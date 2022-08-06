@@ -1,0 +1,14 @@
+.DS_Store
+node_modules
+.svelte-kit
+build
+/package
+/buzzing/data
+.env
+localhost.pem
+localhost-key.pem
+localhost.js
+localhost-key.js
+debugLogs.json
+jwt.key
+jwt.key.pub

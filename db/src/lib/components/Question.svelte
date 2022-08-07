@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { McqQuestion, SaQuestion } from "../../mongo";
+    import type { McqQuestion, SaQuestion } from "../mongo";
     export let question: SaQuestion | McqQuestion
     export let answerVisible: boolean = false
     $: dateObject = new Date(question.date)

@@ -1,4 +1,4 @@
-export type category = "earth" | "bio" | "chem" | "physics" | "math" | "energy"
+export type category = "earth" | "bio" | "chem" | "physics" | "math" | "energy" | undefined
 export interface McqBase {
     type: "MCQ",
     category: category,

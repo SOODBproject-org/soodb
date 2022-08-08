@@ -5,6 +5,7 @@ import PreviewQuestion from '$lib/components/PreviewQuestion.svelte';
     let plainText: string 
     let settingsVisible :boolean= false
     let editableRegex : string
+    let source : string
     let parameters = {
         tossUp: "TOSSUP",
         bonus: "BONUS",
@@ -52,14 +53,15 @@ import PreviewQuestion from '$lib/components/PreviewQuestion.svelte';
                      
             results.forEach((question)=>{
                 let category = categoryNames[question[2].toLowerCase()] ? categoryNames[question[2].toLowerCase()]  : question[2]
-                let authorName = "we'll figure that out later"
+                let isBonus = question[1].toLowerCase().contains("bonus")
                 if (question[3].toLowerCase()=="multiple choice"){
                     let splitQuestion =[...question[4].match(/(.+?)W\)(.+?)X\)(.+?)Y\)(.+?)Z\)(.+)/is)]
                     let answerChoice = [...question[6].match(/(W|X|Y|Z).??/i)]
                     let thisQ : McqBase = {
                         type: "MCQ",
                         category,
-                        authorName,
+                        source,
+                        isBonus,
                         questionText: splitQuestion[1],
                         choices:{
                             W:splitQuestion[2],
@@ -74,7 +76,8 @@ import PreviewQuestion from '$lib/components/PreviewQuestion.svelte';
                     let thisQ : SaBase ={
                         type: "SA",
                         category,
-                        authorName,
+                        source,
+                        isBonus,
                         questionText:question[4],
                         correctAnswer:question[6]
                     }
@@ -93,6 +96,7 @@ import PreviewQuestion from '$lib/components/PreviewQuestion.svelte';
 <main>
     <form id="form" action="/write" method="POST" autocomplete="off">
         <h1>Whole Packet Submission</h1>
+        <input type="text" bind:value={source} placeholder="Packet Source ex:Official-Set2-Round3" style="width:32ch;max-width:90%" />
         <textarea name="plainText" placeholder="Paste in your packet here. Ctrl + A, Ctrl+C, Ctrl+V should work." id="question-input" bind:value={plainText} style="height: 40em; min-height: 10em;" />
         <div id="settingMenu" on:click={()=>{settingsVisible = !settingsVisible}}>
             <h2>{settingsVisible? "Hide" : "Show"} parsing settings</h2>
@@ -121,8 +125,8 @@ import PreviewQuestion from '$lib/components/PreviewQuestion.svelte';
                     <input type="text" bind:value={parameters.categories[5]} on:input={calcRegexPattern}/>
                     {#each Array(parameters.categories.length-6) as _,i}
                         <div class="removableCat">
-                            <input type="text" bind:value={parameters.categories[i+6]} on:input={calcRegexPattern} style="width:11.5ch"/>
-                            <p id="plus" on:click={()=>{parameters.categories.splice(i+6,1);parameters.categories=parameters.categories;calcRegexPattern()}}>-</p>
+                            <input type="text" bind:value={parameters.categories[i+6]} on:input={calcRegexPattern} style="width:12.5ch;border-radius: .3em 0em 0em .3em;margin-right:0;border-right:solid 3px #AAA;" />
+                            <p id="plus" on:click={()=>{parameters.categories.splice(i+6,1);parameters.categories=parameters.categories;calcRegexPattern()}} style="background-color: #FFF;border-radius:0em .3em .3em 0em;padding:.2em 1ch;margin:.5em 0em;">-</p>
                         </div>
                     {/each}
                     <p id="plus" on:click={()=>{parameters.categories.push("");parameters.categories=parameters.categories}}>+</p>
@@ -162,7 +166,7 @@ import PreviewQuestion from '$lib/components/PreviewQuestion.svelte';
         background-color: var(--color-6);
         overflow-y: scroll;
         max-height: calc(100% - 10em);
-        width: min(calc(50% - 3em),30em);
+        width: min(calc(50% - 3em),34em);
     }
     #advancedSettings{
         display:none;
@@ -187,7 +191,7 @@ import PreviewQuestion from '$lib/components/PreviewQuestion.svelte';
         background-color: var(--color-6);
         
         max-height: calc(100% - 10em);
-        width: max(calc(50% - 3em),calc(100% - 36em));
+        width: max(calc(50% - 3em),calc(100% - 40em));
         
     }
     #questions {
@@ -203,15 +207,6 @@ import PreviewQuestion from '$lib/components/PreviewQuestion.svelte';
     .removableCat{
         display: flex;
         flex-direction: row;
-        p{
-            margin: 0em;
-            padding: 0em;
-        }
-        input{
-            width: 12ch;
-            padding: .3em 0em;
-            margin:.5em 0em;
-        }
     }
     #categoryContainer{
         display: flex;

@@ -1,9 +1,10 @@
 export type category = "earth" | "bio" | "chem" | "physics" | "math" | "energy" | undefined
 export interface McqBase {
     type: "MCQ",
+    isBonus: boolean,
     category: category,
     questionText: string,
-    authorName: string,
+    source: string,
     authorId?: string,
     choices: {
         W: string,
@@ -16,19 +17,22 @@ export interface McqBase {
 
 export interface SaBase {
     type: "SA",
+    isBonus: boolean,
     category: category,
     questionText: string,
-    authorName: string,
+    source: string,
     authorId?: string,
     correctAnswer: string
 }
 
 export interface McqQuestion extends McqBase{
     id: string,
+    pairID? : string,
     date: Date
 }
 export interface SaQuestion extends SaBase {
     id: string,
+    pairID? : string,
     date: Date
 }
 

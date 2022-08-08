@@ -1,6 +1,7 @@
 .DS_Store
 node_modules
 .svelte-kit
+.husky
 build
 /package
 /buzzing/data
@@ -12,3 +13,4 @@ localhost-key.js
 debugLogs.json
 jwt.key
 jwt.key.pub
+.eslintcache

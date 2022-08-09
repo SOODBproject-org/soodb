@@ -2,7 +2,7 @@ import { redirectTo } from "$lib/functions/redirectTo"
 import type { RequestEvent } from "@sveltejs/kit"
 import { addQuestion, Category, getUserFromID, McqBase, SaBase } from "$lib/mongo"
 
-export async function post({ request }: RequestEvent) {
+export async function POST ({ request }: RequestEvent) {
     try {
         const formData = await request.formData()
         const userId = formData.get("user-id") as string

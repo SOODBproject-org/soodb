@@ -39,7 +39,7 @@
     "js-cookie": "^2.2.1",
     "jsonwebtoken": "^8.5.1",
     "mongodb-data-api": "^0.2.0",
-    "xmlhttprequest": "^1.8.0"
+    "node-fetch": "^3.2.10"
   },
   "lint-staged": {
     "*.{js,ts}": "eslint --cache --fix",

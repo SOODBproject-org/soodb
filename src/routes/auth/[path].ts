@@ -1,7 +1,9 @@
-import { XMLHttpRequest } from "xmlhttprequest"
+import fetch from 'node-fetch'
 import { generateToken } from "$lib/authentication"
 import { updateAvatarHash } from "$lib/mongo"
 import type { RequestEvent } from "@sveltejs/kit"
+import { env } from "$env/dynamic/public"
+import { redirectTo } from '$lib/functions/redirectTo'
 
 type DiscordUserResponse = {
     id: string
@@ -18,68 +20,63 @@ type DiscordUserResponse = {
     email?: string | null
 }
 
-async function loginUser(token: string, type: string): Promise<DiscordUserResponse> {
-    return new Promise((resolve) => {
-        const xhr = new XMLHttpRequest()
-        xhr.open("GET", "https://discord.com/api/users/@me")
-        xhr.setRequestHeader("Authorization", `${type} ${token}`)
-        xhr.onload = async () => {
-            const userData: DiscordUserResponse = JSON.parse(xhr.responseText)
-            console.dir(userData)
-            await updateAvatarHash(userData.id, userData.avatar)
-            resolve(userData)
+async function loginUser(token: string, type: string): Promise<DiscordUserResponse | null> {
+    const res = await fetch("https://discord.com/api/users/@me", {
+        headers: {
+            'Authorization': `${type} ${token}`
         }
-        xhr.send()
     })
+
+    if (res.status === 200) {
+        const userData = await res.json() as DiscordUserResponse 
+        if (userData.avatar) {
+            await updateAvatarHash(userData.id, userData.avatar)
+        }
+        return userData
+    } else {
+        return null
+    }
 }
 
 export async function get({ url, params }: RequestEvent) {
     const code = url.searchParams.get("code") as string
     if (code) {
         try {
-            return await new Promise((resolve) => {
-                // TODO: replace XHR
-                const xhr = new XMLHttpRequest()
-                xhr.open("POST", "https://discord.com/api/oauth2/token")
-                xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded")
-                xhr.onload = async () => {
-                    const res = JSON.parse(xhr.responseText)
-                    console.dir(res)
-                    if (res.error) {
-                        resolve({
-                            status: 302,
-                            body: "boo",
-                        })
-                    } else {
-                        const { id } = await loginUser(res.access_token, res.token_type)
-                        resolve({
-                            status: 302,
-                            headers: {
-                                "Location": "/" + params.path,
-                                "Set-Cookie": "authToken=" + generateToken(id) + ";Path=/",
-                            },
-                        })
-                    }
-                }
-                xhr.send(
-                    new URLSearchParams({
-                        "client_id": "895468421054083112",
-                        "client_secret": "58RYXZozmWiqGPvlhODBi26fhzau8zX4",
-                        code,
-                        "grant_type": "authorization_code",
-                        "redirect_uri": `${import.meta.env.VITE_HOST_URL}/auth/${params.path}`,
-                        "scope": "identify",
-                    }).toString()
-                )
+            const res = await fetch("https://discord.com/api/oauth2/token", {
+                headers: {
+                    'Content-Type': "application/x-www-form-urlencoded"
+                },
+                body: new URLSearchParams({
+                    "client_id": "895468421054083112",
+                    "client_secret": "58RYXZozmWiqGPvlhODBi26fhzau8zX4",
+                    code,
+                    "grant_type": "authorization_code",
+                    "redirect_uri": `${env.PUBLIC_HOST_URL}/auth/${params.path}`,
+                    "scope": "identify",
+                }).toString()
             })
+            if (res.status === 200) {
+                const responseJson = await res.json() as Record<string, string>
+                const loginResponse = await loginUser(responseJson.access_token, responseJson.token_type)
+                if (loginResponse) {
+                    return {
+                        status: 302,
+                        headers: {
+                            "Location": "/" + params.path,
+                            "Set-Cookie": "authToken=" + generateToken(loginResponse.id) + ";Path=/",
+                        },
+                    }
+                } else {
+                    return redirectTo("/login-failed")
+                }
+            } else {
+                return redirectTo("/login-failed")
+            }
         } catch (error) {
             // NOTE: An unauthorized token will not throw an error;
             // it will return a 401 Unauthorized response in the try block above
             console.error(error)
-            return {
-                status: 302,
-                body: "boo, either you have done something bad or we have done something bad. Either way you are bad",
-            }
+            return redirectTo("/login-error")
         }
     } else {
         return {

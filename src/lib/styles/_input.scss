@@ -1,0 +1,16 @@
+@use 'variables';
+
+%text-input {
+    padding: 0.3em;
+    margin: 0.5em 0;
+    border: transparent 1.5px solid;
+    border-radius: 0.2em;
+    background: variables.$light;
+    color: black;
+    transition: border-color 0.2s;
+    
+    &:focus::placeholder {
+        color: transparent;
+        border-color: variables.$accent-2;
+    }
+}

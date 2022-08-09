@@ -20,7 +20,7 @@
 
 <div id="desktop-header">
     <DatabaseHeader>
-        {#if $session.loggedIn}
+        {#if $session.loggedIn && $session.userData}
             <h1>{$session.userData.username}</h1>
             <div
                 class="icon"
@@ -40,7 +40,7 @@
 <div id="mobile-header">
     <MobileDatabaseHeader>
         <svelte:fragment slot="right">
-            {#if $session.loggedIn}
+            {#if $session.loggedIn && $session.userData}
                 <h1>{$session.userData.username}</h1>
                 <div
                     class="icon"
@@ -76,7 +76,7 @@
     }
 
     button {
-        color: #eee;
+        color: $light;
         background: var(--color-2);
         font-size: 20px;
         font-weight: bold;

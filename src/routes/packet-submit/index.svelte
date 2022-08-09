@@ -268,20 +268,12 @@
     }
 
     input[type="text"] {
-        padding: 0.3em;
+        @extend %text-input;
+
         font-size: 24px;
-        margin: 0.5em auto;
-        border: none;
-        border-radius: 0.3em;
-        box-sizing: border-box;
         width: 15ch;
         max-width: 80vw;
         text-align: center;
-        font-family: "Ubuntu";
-        position: relative;
-        &:focus::placeholder {
-            color: transparent;
-        }
     }
 
     textarea {
@@ -306,22 +298,9 @@
     }
 
     button {
-        padding: 0.5em;
-        color: #eee;
-        background: var(--color-2);
-        border-radius: 0.3em;
-        font-weight: bold;
-        border: solid black 3px;
-        font-size: 30px;
-        cursor: pointer;
-        margin-top: 1em;
+        @extend %button-primary;
 
-        &:disabled {
-            padding: calc(0.5em - 3px);
-            border: solid var(--color-2) 3px;
-            background: transparent;
-            color: #444;
-            cursor: default;
-        }
+        font-size: 30px;
+        margin-top: 1em;
     }
 </style>

@@ -35,13 +35,15 @@
                     Math: {questions.filter((question) => question.category === "math").length}
                 </p>
             {/if}
-            {#if $session.userData.id === userData.id}
+            {#if $session.userData?.id === userData.id}
                 <br />
                 <button
                     on:click={() => {
                         goto("/account")
-                    }}>Edit</button
+                    }}
                 >
+                    Edit
+                </button>
             {/if}
         </p>
     </div>
@@ -108,22 +110,9 @@
     }
 
     button {
-        color: #eee;
-        background: var(--color-2);
-        font-size: 20px;
-        font-weight: bold;
-        padding: 0.6em;
-        border-radius: 0.6em;
-        border: solid black 3px;
-        cursor: pointer;
-        min-width: 10ch;
+        @extend %button-primary;
 
-        &:disabled {
-            border: solid var(--color-2) 3px;
-            background: transparent;
-            color: #444;
-            cursor: default;
-        }
+        min-width: 10ch;
 
         @media (max-width: 600px) {
             position: static;

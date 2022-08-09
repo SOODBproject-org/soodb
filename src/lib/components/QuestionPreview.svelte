@@ -51,7 +51,7 @@
 
         &:hover {
             transform: scale(1.03);
-            transition: transform 0.07s;
+            transition: linear transform 0.07s;
         }
     }
 

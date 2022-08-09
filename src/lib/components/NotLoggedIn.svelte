@@ -25,14 +25,9 @@
     }
 
     button {
-        color: #eee;
-        background: var(--color-2);
+        @extend %button-primary;
+        
         font-size: 30px;
-        font-weight: bold;
-        padding: 0.6em;
-        border-radius: 0.6em;
-        border: solid black 3px;
-        cursor: pointer;
         width: 12ch;
     }
 </style>

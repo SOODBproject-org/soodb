@@ -8,8 +8,8 @@
         const inputs: Record<string, string> = {}
         if (session.previousQuery?.authorName) inputs.authorName = session.previousQuery.authorName
         if (session.previousQuery?.keywords) inputs.keywords = session.previousQuery.keywords
-        if (session.previousQuery?.types.length) inputs.types = (session.previousQuery.types ?? []).join(",")
-        if (session.previousQuery?.categories.length)
+        if (session.previousQuery?.types?.length) inputs.types = (session.previousQuery.types ?? []).join(",")
+        if (session.previousQuery?.categories?.length)
             {inputs.categories = (session.previousQuery.categories ?? []).join(",")}
         if (session.previousQuery?.start) inputs.start = session.previousQuery.start
         if (session.previousQuery?.end) inputs.end = session.previousQuery.end
@@ -90,7 +90,7 @@
 <main>
     <div id="desktop-header">
         <DatabaseHeader>
-            {#if $session.loggedIn}
+            {#if $session.loggedIn && $session.userData}
                 <h1>{$session.userData.username}</h1>
                 <div
                     class="icon"
@@ -118,7 +118,7 @@
             </svelte:fragment>
 
             <svelte:fragment slot="right">
-                {#if $session.loggedIn}
+                {#if $session.loggedIn && $session.userData}
                     <h1>{$session.userData.username}</h1>
                     <div
                         class="icon"
@@ -288,14 +288,9 @@
     }
 
     button {
-        color: #eee;
-        background: var(--color-2);
+        @extend %button-primary;
+
         font-size: 20px;
-        font-weight: bold;
-        padding: 0.6em;
-        border-radius: 0.6em;
-        border: solid black 3px;
-        cursor: pointer;
     }
 
     #no-results {

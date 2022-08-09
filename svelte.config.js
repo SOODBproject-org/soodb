@@ -5,7 +5,11 @@ import vercel from "@sveltejs/adapter-vercel"
 const config = {
     // Consult https://github.com/sveltejs/svelte-preprocess
     // for more information about preprocessors
-    preprocess: preprocess(),
+    preprocess: preprocess({
+        scss: {
+            prependData: `@use './src/lib/styles/_global.scss' as *;`
+        }
+    }),
 
     kit: {
         // hydrate the <div id="svelte"> element in src/app.html

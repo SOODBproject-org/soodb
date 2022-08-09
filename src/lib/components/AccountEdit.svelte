@@ -104,12 +104,9 @@
     }
 
     input[type="text"] {
+        @extend %text-input;
+
         font-size: 20px;
-        padding: 0.3em;
-        margin: 0.5em 0;
-        border: none;
-        border-radius: 0.3em;
-        box-sizing: border-box;
     }
 
     #icon {
@@ -140,24 +137,12 @@
     }
 
     #save-changes {
+        @extend %button-primary;
+
         position: absolute;
         right: 1em;
         bottom: 1em;
-        color: #eee;
-        background: var(--color-2);
         font-size: 20px;
-        font-weight: bold;
-        padding: 0.6em;
-        border-radius: 0.6em;
-        border: solid black 3px;
-        cursor: pointer;
-
-        &:disabled {
-            border: solid var(--color-2) 3px;
-            background: transparent;
-            color: #444;
-            cursor: default;
-        }
 
         @media (max-width: 600px) {
             position: static;

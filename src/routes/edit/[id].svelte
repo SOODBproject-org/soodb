@@ -49,7 +49,7 @@
 <main>
     {#if !$session.loggedIn}
         <NotLoggedIn page="account" />
-    {:else if $session.userData.id !== question.authorId}
+    {:else if $session.userData?.id !== question.authorId}
         <NotAuthorized page="account" />
     {:else}
         <div id="question-wrapper">

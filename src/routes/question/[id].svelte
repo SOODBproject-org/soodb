@@ -90,7 +90,7 @@
 <main>
     <div id="desktop-header">
         <DatabaseHeader>
-            {#if $session.loggedIn}
+            {#if $session.loggedIn && $session.userData}
                 <h1>{$session.userData.username}</h1>
                 <div
                     class="icon"
@@ -118,7 +118,7 @@
             </svelte:fragment>
 
             <svelte:fragment slot="right">
-                {#if $session.loggedIn}
+                {#if $session.loggedIn && $session.userData}
                     <h1>{$session.userData.username}</h1>
                     <div
                         class="icon"

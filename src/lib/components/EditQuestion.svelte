@@ -96,18 +96,10 @@
     }
 
     .radio-label {
-        cursor: pointer;
-        padding-top: 0.3em;
-        padding-bottom: 0.3em;
-        display: inline-block;
+        @extend %radio-label;
+
         font-size: 20px;
         vertical-align: middle;
-
-        input[type="radio"] {
-            visibility: hidden;
-            width: 0;
-            height: 0;
-        }
 
         .choice {
             width: 40ch;
@@ -120,39 +112,6 @@
             margin: 0;
             display: inline-block;
         }
-
-        span {
-            width: 1em;
-            height: 1em;
-            border-radius: 50%;
-            border: #ccc 2px solid;
-            display: inline-block;
-            position: relative;
-            background: #fff;
-            vertical-align: text-top;
-            margin-right: 0.3em;
-
-            &::after {
-                content: "";
-                position: absolute;
-                display: none;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                width: 0.7em;
-                height: 0.7em;
-                border-radius: 0.35em;
-                background: var(--blue);
-            }
-        }
-
-        &:hover > span {
-            border-color: var(--color-2);
-        }
-
-        input:checked ~ span::after {
-            display: inline-block;
-        }
     }
 
     select {
@@ -163,36 +122,6 @@
 
     .question-text {
         font-weight: 500;
-    }
-
-    textarea {
-        &::-webkit-scrollbar {
-            width: 7px;
-        }
-
-        &::-webkit-scrollbar-button {
-            display: none;
-        }
-
-        &::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        &::-webkit-scrollbar-thumb {
-            background: var(--color-2);
-            width: 7px;
-            border-radius: 7px;
-        }
-
-        &::-webkit-scrollbar-track-piece:start {
-            margin-top: 0.2em;
-            background: transparent;
-        }
-
-        &::-webkit-scrollbar-track-piece:end {
-            margin-bottom: 0.2em;
-            background: transparent;
-        }
     }
 
     select {
@@ -210,24 +139,18 @@
     }
 
     input[type="text"] {
-        padding: 0.3em;
+        @extend %text-input;
+
         font-size: 24px;
         margin: 0.5em auto;
-        border: none;
-        border-radius: 0.3em;
-        box-sizing: border-box;
         width: 25ch;
         max-width: 80vw;
         text-align: center;
-        font-family: "Ubuntu";
-        position: relative;
-
-        &:focus::placeholder {
-            color: transparent;
-        }
     }
 
     textarea {
+        @include vertical-scrollable(7px);
+
         padding: 0.3em;
         font-size: 20px;
         margin: 0.5em auto;
@@ -254,16 +177,9 @@
     }
 
     button {
-        color: #eee;
-        background: var(--color-2);
+        @extend %button-primary;
+
         font-size: 20px;
-        font-weight: bold;
-        padding: 0.6em;
-        margin: 1em 0 0.5em;
-        border-radius: 0.6em;
-        border: solid black 3px;
-        cursor: pointer;
-        box-sizing: border-box;
         width: 15ch;
     }
 

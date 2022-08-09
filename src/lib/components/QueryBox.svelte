@@ -129,21 +129,14 @@
             color: transparent;
         }
     }
+
     input[type="text"] {
-        padding: 0.3em;
+        @extend %text-input;
+
         font-size: 20px;
-        margin: 0.5em auto;
-        border: none;
-        border-radius: 0.3em;
-        box-sizing: border-box;
         max-width: 80%;
-        text-align: left;
-        font-family: "Ubuntu";
-        position: relative;
-        &:focus::placeholder {
-            color: transparent;
-        }
     }
+
     h3 {
         margin-top: 0.5em;
         margin-bottom: 0.5em;
@@ -154,54 +147,12 @@
         display: inline-block;
     }
     label {
-        cursor: pointer;
-        padding-top: 0.3em;
-        padding-bottom: 0.3em;
-        display: inline-block;
-        input[type="checkbox"] {
-            visibility: hidden;
-            width: 0;
-            height: 0;
-        }
-        span {
-            width: 1em;
-            height: 1em;
-            border-radius: 0.2em;
-            border: #ccc 0px solid;
-            display: inline-block;
-            position: relative;
-            background: var(--color-3);
-            vertical-align: text-top;
-            margin-right: 0.3em;
-            &::after {
-                content: "";
-                position: absolute;
-                display: none;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                width: 0.6em;
-                height: 0.6em;
-                border-radius: 0.1em;
-                background: var(--blue);
-            }
-        }
-        &:hover > span {
-            border-color: var(--color-2);
-        }
-        input:checked ~ span::after {
-            display: inline-block;
-        }
+        @extend %checkbox-label;
     }
     button {
-        color: #eee;
-        background: var(--color-2);
+        @extend %button-primary;
+
         font-size: 20px;
-        font-weight: bold;
-        padding: 0.6em;
-        border-radius: 0.6em;
-        border: solid black 3px;
-        cursor: pointer;
         max-width: 35ch;
     }
 </style>

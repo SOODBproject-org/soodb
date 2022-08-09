@@ -80,34 +80,21 @@
     }
 
     input[type="text"] {
-        padding: 0.3em;
-        margin: 0em 0.7em;
-        border: none;
-        border-radius: 0.3em;
-        font-size: inherit;
-        box-sizing: border-box;
-        text-align: center;
-        font-family: "Ubuntu";
-        position: relative;
-        vertical-align: middle;
-        width: 5ch;
+        @extend %text-input;
 
-        &:focus::placeholder {
-            color: transparent;
-        }
+        font-size: inherit;
+        text-align: center;
+        width: 5ch;
     }
 
     button {
-        background: #eee;
-        border-radius: 50%;
+        @extend %button-secondary;
+
         font-size: inherit;
-        outline: none;
-        border: none;
         width: 1.7em;
         height: 1.7em;
         padding: 0.2em;
         vertical-align: middle;
-        cursor: pointer;
 
         span {
             background-image: url("/arrow.svg");
@@ -115,10 +102,6 @@
             width: 100%;
             height: 100%;
             display: block;
-        }
-
-        &:disabled {
-            cursor: default;
         }
     }
 </style>

@@ -6,6 +6,7 @@ build
 /package
 /buzzing/data
 .env
+.env.development
 localhost.pem
 localhost-key.pem
 localhost.js

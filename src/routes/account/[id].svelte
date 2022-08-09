@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
-    import type { LoadInput, LoadOutput } from "@sveltejs/kit"
+    import type { Load } from "@sveltejs/kit"
 
-    export async function load({ params, fetch }: LoadInput): Promise<LoadOutput> {
+    export const load: Load =  async function({ params, fetch }) {
         const userRes = await fetch(`/api/user/${params.id}`)
         const userSettingsRes = await fetch(`/api/user/${params.id}/settings`)
         const questionsRes = await fetch(`/api/questions?authorId=${params.id}`)

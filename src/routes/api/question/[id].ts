@@ -1,7 +1,7 @@
-import type { RequestEvent } from "@sveltejs/kit"
-import { getQuestionByID } from "$lib/mongo"
+import { getQuestionByID, type McqQuestion, type SaQuestion } from "$lib/mongo"
+import type { RequestHandler } from './__types/[id].d'
 
-export async function get({ params, locals }: RequestEvent) {
+export const GET: RequestHandler<SaQuestion | McqQuestion> = async function({ params, locals }) {
     const { id } = params
 
     if (!locals.userData) {
@@ -13,13 +13,12 @@ export async function get({ params, locals }: RequestEvent) {
     const result = await getQuestionByID(id)
     if (result) {
         return {
-            status: 302,
+            status: 200,
             body: result,
         }
     } else {
         return {
-            status: 302,
-            body: { error: "No questions matched the query" },
+            status: 404,
         }
     }
 }

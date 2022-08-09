@@ -1,11 +1,19 @@
-import type { RequestEvent } from "@sveltejs/kit"
-import { updateNameOnQuestions, updateUser, User } from "$lib/mongo"
+import { updateNameOnQuestions, updateUser, type User } from "$lib/mongo"
+import type { RequestHandler } from "./__types/account.d"
 
-export async function post({ request, locals }: RequestEvent) {
+export const PATCH: RequestHandler<{user: Partial<User>}> = async function({ request, locals }) {
     const formData = await request.formData()
     const username = formData.get("username") as string
-
-    if (username) {
+    
+    if (!locals.userData) {
+        return  {
+            status: 401
+        }
+    } else if (!username) {
+        return {
+            status: 400,
+        }
+    } else {
         await updateUser(locals.userData.id, { username: username.trim() })
         await updateNameOnQuestions(locals.userData.id, username.trim())
 
@@ -17,10 +25,6 @@ export async function post({ request, locals }: RequestEvent) {
                     username: username.trim(),
                 } as Partial<User>,
             },
-        }
-    } else {
-        return {
-            status: 500,
         }
     }
 }

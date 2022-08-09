@@ -1,34 +1,26 @@
-import type { RequestEvent } from "@sveltejs/kit"
-import { Category, getQuestions } from "$lib/mongo"
+import { getQuestions, type Category, type McqQuestion, type SaQuestion } from "$lib/mongo"
+import type { RequestHandler } from "./__types/questions.d"
 
-export async function get({ url, locals }: RequestEvent) {
-    if (!locals.userData) {
-        return {
-            status: 401,
-        }
-    }
-
-    const authorName = url.searchParams.get("authorName")
-    const authorId = url.searchParams.get("authorId")
-    const keywords = url.searchParams.get("keywords")
+export const GET: RequestHandler<(SaQuestion | McqQuestion)[]> = async function({ url }) {
+    const authorName = url.searchParams.get("authorName") ?? undefined
+    const authorId = url.searchParams.get("authorId") ?? undefined
+    const keywords = url.searchParams.get("keywords") ?? undefined
     const categories = <Category[]>url.searchParams.get("categories")?.split(",")
     const types = <("MCQ" | "SA")[]>url.searchParams.get("types")?.split(",")
-    let startDate = new Date(url.searchParams.get("start") || "")
-    let endDate = new Date(url.searchParams.get("end") || "")
-
-    if (isNaN(startDate.getTime())) startDate = undefined
-    if (isNaN(endDate.getTime())) endDate = undefined
+    const startDate = url.searchParams.get("start") ? new Date(url.searchParams.get("start") as string) : undefined
+    const endDate = url.searchParams.get("end") ? new Date(url.searchParams.get("end") as string) : undefined  
 
     const result = await getQuestions({
-        authorName,
         authorId,
+        authorName,
         keywords,
         categories,
         types,
         timeRange: { startDate, endDate },
     })
+    
     return {
-        status: 302,
+        status: 200,
         body: result,
     }
 }

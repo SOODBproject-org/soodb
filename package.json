@@ -2,9 +2,9 @@
   "name": "~TODO~",
   "version": "0.0.1",
   "scripts": {
-    "dev": "svelte-kit dev --host",
-    "build": "svelte-kit build",
-    "preview": "svelte-kit preview --host",
+    "dev": "vite dev --host",
+    "build": "vite build",
+    "preview": "vite preview --host",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "npx eslint --fix \"{,!(node_modules|static)/**/}*.{js,ts,svelte}\"",
@@ -12,14 +12,15 @@
     "prepare": "husky install"
   },
   "devDependencies": {
-    "@sveltejs/adapter-node": "^1.0.0-next.68",
-    "@sveltejs/kit": "^1.0.0-next.279",
-    "@types/dotenv": "^8.2.0",
+    "@sveltejs/adapter-vercel": "^1.0.0-next.66",
+    "@sveltejs/kit": "^1.0.0-next.405",
+    "@types/js-cookie": "^3.0.2",
     "@types/jsonwebtoken": "^8.5.8",
     "@types/node-fetch": "^3.0.3",
-    "@typescript-eslint/eslint-plugin": "^5.32.0",
-    "@typescript-eslint/parser": "^5.32.0",
+    "@typescript-eslint/eslint-plugin": "^5.33.0",
+    "@typescript-eslint/parser": "^5.33.0",
     "eslint": "^8.21.0",
+    "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-svelte3": "^4.0.0",
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
@@ -28,16 +29,16 @@
     "sass": "^1.35.1",
     "svelte": "^3.44.0",
     "svelte-check": "^2.0.0",
-    "svelte-preprocess": "^4.9.8",
+    "svelte-preprocess": "^4.10.7",
     "tslib": "^2.0.0",
-    "typescript": "^4.0.0"
+    "typescript": "^4.0.0",
+    "vite": "^3.0.4"
   },
   "type": "module",
   "dependencies": {
-    "dotenv": "^10.0.0",
     "js-cookie": "^2.2.1",
     "jsonwebtoken": "^8.5.1",
-    "mongodb": "^4.1.2",
+    "mongodb-data-api": "^0.2.0",
     "xmlhttprequest": "^1.8.0"
   },
   "lint-staged": {

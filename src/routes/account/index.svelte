@@ -1,12 +1,12 @@
 <script lang="ts" context="module">
-    import type { LoadInput, LoadOutput } from "@sveltejs/kit"
-    import { HOST_URL } from "$lib/variables"
+    import type { Load } from "@sveltejs/kit"
+    import { env } from "$env/dynamic/public"
 
-    export async function load({ fetch, session }: LoadInput): Promise<LoadOutput> {
+    export const load: Load = async function({ fetch, session }) {
         if (!session.userData) {
             return {
                 redirect: `https://discord.com/api/oauth2/authorize?client_id=895468421054083112&redirect_uri=${encodeURIComponent(
-                    HOST_URL
+                    env.HOST_URL
                 )}%2Fauth%2Faccount&response_type=code&scope=identify`,
                 status: 302,
             }

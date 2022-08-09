@@ -1,8 +1,8 @@
 import { redirectTo } from "$lib/functions/redirectTo"
-import type { RequestEvent } from "@sveltejs/kit"
-import { editQuestion, Category, McqQuestion, SaQuestion, getQuestionByID } from "$lib/mongo"
+import { editQuestion, getQuestionByID, type Category, type McqQuestion, type SaQuestion } from "$lib/mongo"
+import type { RequestHandler } from './__types/[id].d'
 
-export async function post({ request, params }: RequestEvent) {
+export const POST: RequestHandler = async function({ request, params }) {
     try {
         const formData = await request.formData()
         const { id } = params
@@ -21,11 +21,11 @@ export async function post({ request, params }: RequestEvent) {
         const answer = formData.get("answer") as string
 
         const currentQuestion = await getQuestionByID(id)
-        if (userId !== currentQuestion.authorId) {
+        if (userId !== currentQuestion?.authorId) {
             return redirectTo("error/no-edit-permission")
         }
 
-        let updatedInfo: Partial<SaQuestion | McqQuestion>
+        let updatedInfo: Partial<SaQuestion | McqQuestion> = {}
         if (type === "MCQ") {
             updatedInfo = {
                 type,
@@ -44,6 +44,10 @@ export async function post({ request, params }: RequestEvent) {
                 correctAnswer: answer,
                 date,
                 id,
+            }
+        } else {
+            return {
+                status: 400
             }
         }
 

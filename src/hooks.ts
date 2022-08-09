@@ -10,8 +10,7 @@ export const handle: Handle = async function ({ event, resolve }) {
         ?.split("; ")
         .find((x) => x.split("=")[0] === "authToken")
         ?.split("=")[1]
-    console.log(authToken?.slice(0, 20))
-    const userData = await getUserFromToken(authToken)
+    const userData = authToken ? await getUserFromToken(authToken) : null
     console.dir(userData)
     event.locals.userData = userData
 

@@ -1,22 +1,19 @@
-import { Category, getQuestions } from "$lib/mongo"
+import { getQuestions, type Category, type McqQuestion, type SaQuestion } from "$lib/mongo"
+import type { RequestHandler } from './__types/random.d'
 
-export async function get({ query }: { query: URLSearchParams }) {
-    const authorId = query.get("authorId")
-    const authorName = query.get("authorName")
-    const categories = <Category[]>query.get("categories")?.split(",")
-    const types = <("MCQ" | "SA")[]>query.get("types")?.split(",")
-    let start = parseInt(query.get("start"))
-    let end = parseInt(query.get("end"))
-
-    if (isNaN(start)) start = undefined
-    if (isNaN(end)) end = undefined
-
-    const startDate = typeof start === "number" ? new Date(start) : undefined
-    const endDate = typeof end === "number" ? new Date(end) : undefined
-
+export const GET: RequestHandler<SaQuestion | McqQuestion> = async function({ url }) {
+    const authorName = url.searchParams.get("authorName") ?? undefined
+    const authorId = url.searchParams.get("authorId") ?? undefined
+    const keywords = url.searchParams.get("keywords") ?? undefined
+    const categories = <Category[]>url.searchParams.get("categories")?.split(",")
+    const types = <("MCQ" | "SA")[]>url.searchParams.get("types")?.split(",")
+    const startDate = url.searchParams.get("start") ? new Date(url.searchParams.get("start") as string) : undefined
+    const endDate = url.searchParams.get("end") ? new Date(url.searchParams.get("end") as string) : undefined
+    
     const questions = await getQuestions({
         authorId,
         authorName,
+        keywords,
         categories,
         types,
         timeRange: { startDate, endDate },
@@ -24,9 +21,6 @@ export async function get({ query }: { query: URLSearchParams }) {
     if (questions.length === 0) {
         return {
             status: 404,
-            body: {
-                error: "No questions matched the query",
-            },
         }
     } else {
         return {

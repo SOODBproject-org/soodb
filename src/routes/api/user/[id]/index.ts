@@ -1,7 +1,7 @@
-import type { RequestEvent } from "@sveltejs/kit"
-import { getUserByID } from "$lib/mongo"
+import { getUserByID, type User } from "$lib/mongo"
+import type { RequestHandler } from "./__types/index.d"
 
-export async function get({ params, locals }: RequestEvent) {
+export const GET: RequestHandler<User> = async function({ params, locals }) {
     const { id } = params
 
     if (!locals.userData) {
@@ -13,13 +13,12 @@ export async function get({ params, locals }: RequestEvent) {
     const result = await getUserByID(id)
     if (result) {
         return {
-            status: 302,
+            status: 200,
             body: result,
         }
     } else {
         return {
-            status: 302,
-            body: { error: "No user exists with that ID" },
+            status: 404,
         }
     }
 }

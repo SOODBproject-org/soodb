@@ -5,14 +5,14 @@
 // for information about these interfaces
 declare namespace App {
     interface Locals {
-        userData: import("$lib/mongo").User
+        userData: import("$lib/mongo").User | null
     }
 
     interface Platform {}
 
     interface Session {
         loggedIn: boolean
-        userData: import("$lib/mongo").User
+        userData: import("$lib/mongo").User | null
         previousQuery?: {
             authorName?: string
             keywords?: string
@@ -24,4 +24,15 @@ declare namespace App {
     }
 
     interface Stuff {}
+
+    interface PrivateEnv extends Record<string, string> {
+        CLIENTID: string,
+        SECRET: string,
+        DATABASE_URL: string,
+        DATABASE_KEY: string
+    }
+
+    interface PublicEnv extends Record<string, string> {
+        HOST_URL: string
+    }
 }

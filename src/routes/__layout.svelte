@@ -1,13 +1,13 @@
 <script lang="ts">
     import MobileDatabaseHeader from "$lib/components/MobileDatabaseHeader.svelte"
     import DatabaseHeader from "$lib/components/DatabaseHeader.svelte"
-    import { HOST_URL } from "$lib/variables"
+    import { env } from "$env/dynamic/public"
     import { session } from "$app/stores"
     import { page } from "$app/stores"
 
     $page.url.pathname.split("/")[1]
 
-    const pageToRedirect = {
+    const pageToRedirect: Record<string, string> = {
         "question-search": "question-search",
         "question": "question-search",
         "question-submitted": "question-search",
@@ -29,7 +29,7 @@
         {:else}
             <a
                 href={`https://discord.com/api/oauth2/authorize?client_id=895468421054083112&redirect_uri=${encodeURIComponent(
-                    HOST_URL
+                    env.HOST_URL
                 )}%2Fauth%2F${pageToRedirect[$page.url.pathname.split("/")[1]]}&response_type=code&scope=identify`}
             >
                 <button>Login</button>
@@ -49,7 +49,7 @@
             {:else}
                 <a
                     href={`https://discord.com/api/oauth2/authorize?client_id=895468421054083112&redirect_uri=${encodeURIComponent(
-                        HOST_URL
+                        env.HOST_URL
                     )}%2Fauth%2F${pageToRedirect[$page.url.pathname.split("/")[1]]}&response_type=code&scope=identify`}
                 >
                     <button>Login</button>

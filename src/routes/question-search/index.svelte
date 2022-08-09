@@ -1,8 +1,8 @@
 <script lang="ts" context="module">
-    import type { LoadInput, LoadOutput } from "@sveltejs/kit"
+    import type { Load } from "@sveltejs/kit"
     import Cookie from "js-cookie"
 
-    export async function load({ session, fetch }: LoadInput): Promise<LoadOutput> {
+    export const load: Load = async function({ session, fetch }) {
         console.dir(session)
 
         const inputs: Record<string, string> = {}
@@ -10,7 +10,7 @@
         if (session.previousQuery?.keywords) inputs.keywords = session.previousQuery.keywords
         if (session.previousQuery?.types.length) inputs.types = (session.previousQuery.types ?? []).join(",")
         if (session.previousQuery?.categories.length)
-            inputs.categories = (session.previousQuery.categories ?? []).join(",")
+            {inputs.categories = (session.previousQuery.categories ?? []).join(",")}
         if (session.previousQuery?.start) inputs.start = session.previousQuery.start
         if (session.previousQuery?.end) inputs.end = session.previousQuery.end
         const params = new URLSearchParams(inputs)
@@ -38,7 +38,7 @@
     import NotLoggedIn from "$lib/components/NotLoggedIn.svelte"
     import NotAuthorized from "$lib/components/NotAuthorized.svelte"
     import { session } from "$app/stores"
-    import { HOST_URL } from "$lib/variables"
+    import { env } from '$env/dynamic/public'
 
     export let questions: (SaQuestion | McqQuestion)[] = []
     const resultsPerPage = 20
@@ -99,7 +99,7 @@
             {:else}
                 <a
                     href={`https://discord.com/api/oauth2/authorize?client_id=895468421054083112&redirect_uri=http%3A%2F%2F${encodeURIComponent(
-                        HOST_URL
+                        env.HOST_URL
                     )}%2Fauth%2Fquestion-search&response_type=code&scope=identify`}
                 >
                     <button>Login</button>
@@ -127,7 +127,7 @@
                 {:else}
                     <a
                         href={`https://discord.com/api/oauth2/authorize?client_id=895468421054083112&redirect_uri=http%3A%2F%2F${encodeURIComponent(
-                            HOST_URL
+                            env.HOST_URL
                         )}%2Fauth%2Fquestion-search&response_type=code&scope=identify`}
                     >
                         <button>Login</button>

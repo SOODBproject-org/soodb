@@ -1,9 +1,7 @@
 import { XMLHttpRequest } from "xmlhttprequest"
-import * as dotenv from "dotenv"
 import { generateToken } from "$lib/authentication"
 import { updateAvatarHash } from "$lib/mongo"
 import type { RequestEvent } from "@sveltejs/kit"
-dotenv.config({ path: "../.env" })
 
 type DiscordUserResponse = {
     id: string
@@ -65,12 +63,12 @@ export async function get({ url, params }: RequestEvent) {
                 }
                 xhr.send(
                     new URLSearchParams({
-                        client_id: "895468421054083112",
-                        client_secret: "58RYXZozmWiqGPvlhODBi26fhzau8zX4",
+                        "client_id": "895468421054083112",
+                        "client_secret": "58RYXZozmWiqGPvlhODBi26fhzau8zX4",
                         code,
-                        grant_type: "authorization_code",
-                        redirect_uri: `${import.meta.env.VITE_HOST_URL}/auth/${params.path}`,
-                        scope: "identify",
+                        "grant_type": "authorization_code",
+                        "redirect_uri": `${import.meta.env.VITE_HOST_URL}/auth/${params.path}`,
+                        "scope": "identify",
                     }).toString()
                 )
             })
@@ -85,7 +83,7 @@ export async function get({ url, params }: RequestEvent) {
         }
     } else {
         return {
-            status: 500,
+            status: 400,
         }
     }
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
     import PreviewQuestion from "$lib/components/PreviewQuestion.svelte"
-    import type { McqBase, SaBase } from "$lib/mongo"
+    import type { Category, McqBase, SaBase } from "$lib/mongo"
 
     let plainText: string
     let settingsVisible = false
@@ -15,9 +15,9 @@
         ignoreCase: true,
     }
 
-    function setCatNames(categories) {
-        const DBcat = ["bio", "chem", "earth", "math", "physics", "energy"]
-        const tempObj = {}
+    function setCatNames(categories: string[]) {
+        const DBcat: Category[] = ["bio", "chem", "earth", "math", "physics", "energy"]
+        const tempObj: Record<string, Category> = {}
         for (let i = 0; i < 6; i++) {
             categories[i].split("|").forEach((term) => {
                 tempObj[term.toLowerCase()] = DBcat[i]
@@ -29,7 +29,7 @@
 
     function manualRegex() {
         const res = editableRegex.match(/\/((\n|.)+?)\/(.{0,6})/)
-        regexPattern = new RegExp(res[1], res[3])
+        regexPattern = res ? new RegExp(res[1], res[3]) : /^\b$/
     }
 
     function calcRegexPattern() {
@@ -47,7 +47,7 @@
         //(Tossup|TOSS UP|TOSS-UP|BONUS).+?\n?.+?(BIOLOGY|CHEMISTRY|EARTH AND SPACE|MATH|PHYSICS|GENERAL SCIENCE|ASTRONOMY|EARTH SCIENCE|COMPUTER SCIENCE)\n?.+?(Short Answer|Multiple Choice):?((.|\n)+?)ANSWER:?(.+)
     }
 
-    function doRegex(text, pattern) {
+    function doRegex(text: string, pattern: RegExp) {
         const result: (McqBase | SaBase)[] = []
         if (text) {
             const results = [...text.matchAll(pattern)]
@@ -55,11 +55,11 @@
             results.forEach((question) => {
                 const category = categoryNames[question[2].toLowerCase()]
                     ? categoryNames[question[2].toLowerCase()]
-                    : question[2]
-                const isBonus = question[1].toLowerCase().contains("bonus")
+                    : question[2] as Category
+                const isBonus = question[1].toLowerCase().includes("bonus")
                 if (question[3].toLowerCase() === "multiple choice") {
-                    const splitQuestion = [...question[4].match(/(.+?)W\)(.+?)X\)(.+?)Y\)(.+?)Z\)(.+)/is)]
-                    const answerChoice = [...question[6].match(/(W|X|Y|Z).??/i)]
+                    const splitQuestion = [...(question[4].match(/(.+?)W\)(.+?)X\)(.+?)Y\)(.+?)Z\)(.+)/is) ?? [])]
+                    const answerChoice = [...(question[6].match(/(W|X|Y|Z).??/i) ?? [])]
                     const thisQ: McqBase = {
                         type: "MCQ",
                         category,

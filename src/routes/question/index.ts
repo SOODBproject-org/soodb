@@ -7,7 +7,7 @@ export async function get() {
         return redirectTo("/question/" + questionId)
     } else {
         return {
-            status: 500,
+            status: 400,
         }
     }
 }

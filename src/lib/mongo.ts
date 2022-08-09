@@ -50,9 +50,8 @@ export interface UserSettings {
     imgUrl?: string
 }
 
-import { Collection, Db, MongoClient } from "mongodb"
-import dotenv from "dotenv"
-dotenv.config()
+import { env } from "$env/dynamic/private"
+import { createMongoDBDataAPI } from 'mongodb-data-api'
 
 function createID() {
     const time = Date.now()
@@ -64,28 +63,19 @@ function createID() {
     return id
 }
 
-const collections: Record<string, Collection> = {}
-const client = new MongoClient(process.env.DATABASE_URL)
-let db: Db
-async function init() {
-    try {
-        console.log("Connecting...")
-        await client.connect()
-        db = client.db("scibowl")
-        collections.submittedQuestions = db.collection("submittedQuestions")
-        collections.users = db.collection("users")
-        collections.userSettings = db.collection("userSettings")
-        return true
-    } catch (e) {
-        console.log(e)
-        await new Promise((resolve) => {
-            setTimeout(resolve, 1000)
-        })
-        return init()
-    }
-}
+console.log(env.DATABASE_KEY)
+console.log(env.DATABASE_URL)
 
-init()
+const api = createMongoDBDataAPI({
+    apiKey: env.DATABASE_KEY,
+    urlEndpoint: env.DATABASE_URL
+})
+const database = api.$database("ScibowlOpenDB")
+const collections = {
+    questions: database.$collection<SaQuestion | McqQuestion>("questions"),
+    users: database.$collection<User>("users"),
+    userSettings: database.$collection<UserSettings>("userSettings")
+}
 
 export async function addQuestion(question: SaBase | McqBase) {
     let searchString = question.questionText + " " + question.correctAnswer
@@ -93,15 +83,17 @@ export async function addQuestion(question: SaBase | McqBase) {
         searchString +=
             " " + question.choices.W + " " + question.choices.X + " " + question.choices.Y + " " + question.choices.Z
     }
-    await collections.submittedQuestions.insertOne({
-        id: createID(),
-        ...question,
-        searchString,
-        date: new Date(),
+    await collections.questions.insertOne({
+        document: {
+            id: createID(),
+            ...question,
+            searchString,
+            date: new Date(),
+        }
     })
 }
 
-type questionQuery = {
+type QuestionQuery = {
     authorName?: string
     authorId?: string
     keywords?: string
@@ -112,7 +104,7 @@ type questionQuery = {
         endDate?: Date
     }
 }
-type mongoQuestionQuery = {
+type MongoQuestionQuery = {
     authorName?: string
     authorId?: string
     $text?: { $search: string }
@@ -124,8 +116,8 @@ type mongoQuestionQuery = {
     }
 }
 
-export async function getQuestions({ authorName, authorId, keywords, categories, types, timeRange }: questionQuery) {
-    const mongoQuery: mongoQuestionQuery = {}
+export async function getQuestions({ authorName, authorId, keywords, categories, types, timeRange }: QuestionQuery) {
+    const mongoQuery: MongoQuestionQuery = {}
     if (authorName) mongoQuery.authorName = authorName
     if (authorId) mongoQuery.authorId = authorId
     if (keywords) mongoQuery.$text = { $search: keywords }
@@ -136,8 +128,10 @@ export async function getQuestions({ authorName, authorId, keywords, categories,
         if (timeRange.startDate) mongoQuery.date.$gte = timeRange.startDate
         if (timeRange.endDate) mongoQuery.date.$lt = timeRange.endDate
     }
-    const cursor = collections.submittedQuestions.find(mongoQuery)
-    return <(SaQuestion | McqQuestion)[]>await cursor.toArray()
+    const questions = await collections.questions.find({
+        filter: mongoQuery
+    })
+    return questions.documents
 }
 
 export async function editQuestion(newQuestion: Partial<SaQuestion | McqQuestion>) {
@@ -145,68 +139,74 @@ export async function editQuestion(newQuestion: Partial<SaQuestion | McqQuestion
     if (newQuestion.type === "MCQ") {
         searchString +=
             " " +
-            newQuestion.choices.W +
+            (newQuestion.choices?.W ?? "") +
             " " +
-            newQuestion.choices.X +
+            (newQuestion.choices?.X ?? "") +
             " " +
-            newQuestion.choices.Y +
+            (newQuestion.choices?.Y ?? "") +
             " " +
-            newQuestion.choices.Z
+            (newQuestion.choices?.Z ?? "")
     }
-    await collections.submittedQuestions.updateOne(
-        { id: newQuestion.id },
-        {
+    await collections.questions.updateOne({
+        filter: { id: newQuestion.id },
+        update: {
             $set: {
                 ...newQuestion,
                 searchString,
             },
         }
-    )
+    })  
 }
 
 export async function getQuestionByID(id: string) {
-    const result = await collections.submittedQuestions.findOne({ id })
-    return result || null
+    const { document } = await collections.questions.findOne({ id })
+    return document || null
 }
 
 export async function getUserByID(id: string) {
-    const result = await collections.users.findOne({ id })
-    return result || null
+    const { document } = await collections.users.findOne({ id })
+    return document || null
 }
 
 export async function getUserFromID(id: string): Promise<User | null> {
-    const result = await collections.users.findOne({ id })
-    return result?.id
+    const { document } = await collections.users.findOne({ id })
+    return document
         ? {
-              id: result.id,
-              username: result.username,
-              avatarHash: result.avatarHash,
+              id: document.id,
+              username: document.username,
+              avatarHash: document.avatarHash,
           }
         : null
 }
 
 export async function updateUser(id: string, data: Partial<User>) {
-    return await collections.users.updateOne({ id }, { $set: data })
+    return await collections.users.updateOne({
+        filter: { id },
+        update: { $set: data }
+    })
 }
 
 export async function updateNameOnQuestions(authorId: string, authorName: string) {
-    return await collections.submittedQuestions.updateMany({ authorId }, { $set: { authorName } })
+    return await collections.questions.updateMany({
+        filter: { authorId },
+        update: { $set: { authorName } }
+    })
 }
 
 export async function getUserSettings(id: string): Promise<UserSettings | null> {
-    const result = await collections.userSettings.findOne({ id })
-    return result?.id ? <UserSettings>result : null
+    const { document } = await collections.userSettings.findOne({ id })
+    return document ?? null
 }
 
 export async function updateAvatarHash(id: string, avatarHash: string) {
-    return await collections.users.updateOne(
-        { id },
-        {
+    return await collections.users.updateOne({
+        filter: { id },
+        update: {
             $set: {
                 avatarHash,
             },
         }
-    )
+    })
 }
 
 export async function getRandomQuestionId() {

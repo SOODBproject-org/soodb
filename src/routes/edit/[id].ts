@@ -1,8 +1,8 @@
 import { redirectTo } from "$lib/functions/redirectTo"
 import { editQuestion, getQuestionByID, type Category, type McqQuestion, type SaQuestion } from "$lib/mongo"
-import type { RequestHandler } from './__types/[id].d'
+import type { RequestHandler } from "./__types/[id].d"
 
-export const POST: RequestHandler = async function({ request, params }) {
+export const POST: RequestHandler = async function ({ request, params }) {
     try {
         const formData = await request.formData()
         const { id } = params
@@ -47,7 +47,7 @@ export const POST: RequestHandler = async function({ request, params }) {
             }
         } else {
             return {
-                status: 400
+                status: 400,
             }
         }
 

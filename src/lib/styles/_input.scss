@@ -5,12 +5,15 @@
     margin: 0.5em 0;
     border: transparent 1.5px solid;
     border-radius: 0.2em;
-    background: variables.$light;
-    color: black;
+    background: variables.$input-background;
+    color: variables.$text-light;
     transition: border-color 0.2s;
     
-    &:focus::placeholder {
-        color: transparent;
+    &:focus {
         border-color: variables.$accent-2;
+
+        &::placeholder {
+            color: transparent;
+        }
     }
 }

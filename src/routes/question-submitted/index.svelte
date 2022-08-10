@@ -25,6 +25,6 @@
     h1 {
         font-size: 44px;
         text-align: center;
-        color: #33bb33;
+        color: $accent-1;
     }
 </style>

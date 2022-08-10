@@ -7,8 +7,8 @@ const config = {
     // for more information about preprocessors
     preprocess: preprocess({
         scss: {
-            prependData: `@use './src/lib/styles/_global.scss' as *;`
-        }
+            prependData: `@use './src/lib/styles/_global.scss' as *;`,
+        },
     }),
 
     kit: {

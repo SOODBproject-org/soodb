@@ -11,7 +11,6 @@ declare namespace App {
     interface Platform {}
 
     interface Session {
-        loggedIn: boolean
         userData: import("$lib/mongo").User | null
         previousQuery?: {
             authorName?: string
@@ -26,9 +25,9 @@ declare namespace App {
     interface Stuff {}
 
     interface PrivateEnv extends Record<string, string> {
-        CLIENTID: string,
-        SECRET: string,
-        DATABASE_URL: string,
+        CLIENTID: string
+        SECRET: string
+        DATABASE_URL: string
         DATABASE_KEY: string
     }
 

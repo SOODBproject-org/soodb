@@ -1,7 +1,7 @@
 import { getUserByID, type User } from "$lib/mongo"
 import type { RequestHandler } from "./__types/index.d"
 
-export const GET: RequestHandler<User> = async function({ params, locals }) {
+export const GET: RequestHandler<User> = async function ({ params, locals }) {
     const { id } = params
 
     if (!locals.userData) {

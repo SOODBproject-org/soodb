@@ -55,7 +55,7 @@
             results.forEach((question) => {
                 const category = categoryNames[question[2].toLowerCase()]
                     ? categoryNames[question[2].toLowerCase()]
-                    : question[2] as Category
+                    : (question[2] as Category)
                 const isBonus = question[1].toLowerCase().includes("bonus")
                 if (question[3].toLowerCase() === "multiple choice") {
                     const splitQuestion = [...(question[4].match(/(.+?)W\)(.+?)X\)(.+?)Y\)(.+?)Z\)(.+)/is) ?? [])]
@@ -102,7 +102,7 @@
 
 <main>
     <form id="form" action="/write" method="POST" autocomplete="off">
-        <h1>Whole Packet Submission</h1>
+        <h1>Packet Submission</h1>
         <input
             type="text"
             bind:value={source}
@@ -198,15 +198,17 @@
 
 <style lang="scss">
     form {
+        @include vertical-scrollable();
+
         margin: 2em 1em;
         border-radius: 1em;
+        border: 1px solid #666;
         text-align: center;
         padding: 0.5em;
         position: absolute;
         display: flex;
         flex-direction: column;
         align-items: center;
-        background-color: var(--color-6);
         overflow-y: scroll;
         max-height: calc(100% - 10em);
         width: min(calc(50% - 3em), 34em);
@@ -224,6 +226,7 @@
     #questions-preview {
         margin: 2em 1em;
         border-radius: 1em;
+        border: 1px solid #666;
         text-align: center;
         padding: 0.5em;
         right: 0em;
@@ -231,15 +234,15 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        background-color: var(--color-6);
 
         max-height: calc(100% - 10em);
         width: max(calc(50% - 3em), calc(100% - 40em));
     }
     #questions {
+        @include vertical-scrollable();
+
         padding: 0em 0em;
         text-align: left;
-        overflow-y: scroll;
         max-height: calc(100% - 30em);
     }
 
@@ -262,15 +265,15 @@
         text-align: right;
     }
     h1 {
-        font-size: 44px;
-        text-decoration: underline var(--blue) 3px;
+        font-size: 32px;
+        text-decoration: underline $accent-2 3px;
         text-underline-offset: 0.2em;
     }
 
     input[type="text"] {
         @extend %text-input;
 
-        font-size: 24px;
+        font-size: 18px;
         width: 15ch;
         max-width: 80vw;
         text-align: center;
@@ -278,7 +281,7 @@
 
     textarea {
         padding: 0.3em;
-        font-size: 20px;
+        font-size: 18px;
         margin: 0.5em auto;
         border: none;
         border-radius: 0.3em;
@@ -300,7 +303,7 @@
     button {
         @extend %button-primary;
 
-        font-size: 30px;
+        font-size: 24px;
         margin-top: 1em;
     }
 </style>

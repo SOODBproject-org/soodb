@@ -1,7 +1,7 @@
 import { getQuestionByID, type McqQuestion, type SaQuestion } from "$lib/mongo"
-import type { RequestHandler } from './__types/[id].d'
+import type { RequestHandler } from "./__types/[id].d"
 
-export const GET: RequestHandler<SaQuestion | McqQuestion> = async function({ params, locals }) {
+export const GET: RequestHandler<SaQuestion | McqQuestion> = async function ({ params, locals }) {
     const { id } = params
 
     if (!locals.userData) {

@@ -51,7 +51,7 @@ export interface UserSettings {
 }
 
 import { env } from "$env/dynamic/private"
-import { createMongoDBDataAPI } from 'mongodb-data-api'
+import { createMongoDBDataAPI } from "mongodb-data-api"
 
 function createID() {
     const time = Date.now()
@@ -68,13 +68,13 @@ console.log(env.DATABASE_URL)
 
 const api = createMongoDBDataAPI({
     apiKey: env.DATABASE_KEY,
-    urlEndpoint: env.DATABASE_URL
+    urlEndpoint: env.DATABASE_URL,
 })
 const database = api.$database("ScibowlOpenDB")
 const collections = {
     questions: database.$collection<SaQuestion | McqQuestion>("questions"),
     users: database.$collection<User>("users"),
-    userSettings: database.$collection<UserSettings>("userSettings")
+    userSettings: database.$collection<UserSettings>("userSettings"),
 }
 
 export async function addQuestion(question: SaBase | McqBase) {
@@ -89,7 +89,7 @@ export async function addQuestion(question: SaBase | McqBase) {
             ...question,
             searchString,
             date: new Date(),
-        }
+        },
     })
 }
 
@@ -129,7 +129,7 @@ export async function getQuestions({ authorName, authorId, keywords, categories,
         if (timeRange.endDate) mongoQuery.date.$lt = timeRange.endDate
     }
     const questions = await collections.questions.find({
-        filter: mongoQuery
+        filter: mongoQuery,
     })
     return questions.documents
 }
@@ -154,8 +154,8 @@ export async function editQuestion(newQuestion: Partial<SaQuestion | McqQuestion
                 ...newQuestion,
                 searchString,
             },
-        }
-    })  
+        },
+    })
 }
 
 export async function getQuestionByID(id: string) {
@@ -182,14 +182,14 @@ export async function getUserFromID(id: string): Promise<User | null> {
 export async function updateUser(id: string, data: Partial<User>) {
     return await collections.users.updateOne({
         filter: { id },
-        update: { $set: data }
+        update: { $set: data },
     })
 }
 
 export async function updateNameOnQuestions(authorId: string, authorName: string) {
     return await collections.questions.updateMany({
         filter: { authorId },
-        update: { $set: { authorName } }
+        update: { $set: { authorName } },
     })
 }
 
@@ -205,7 +205,7 @@ export async function updateAvatarHash(id: string, avatarHash: string) {
             $set: {
                 avatarHash,
             },
-        }
+        },
     })
 }
 

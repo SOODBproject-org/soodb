@@ -1,13 +1,10 @@
 <script lang="ts" context="module">
     import type { Load } from "@sveltejs/kit"
-    import { env } from "$env/dynamic/public"
 
-    export const load: Load = async function({ fetch, session }) {
+    export const load: Load = async function ({ fetch, session }) {
         if (!session.userData) {
             return {
-                redirect: `https://discord.com/api/oauth2/authorize?client_id=895468421054083112&redirect_uri=${encodeURIComponent(
-                    env.HOST_URL
-                )}%2Fauth%2Faccount&response_type=code&scope=identify`,
+                redirect: "/login",
                 status: 302,
             }
         }
@@ -27,10 +24,7 @@
 </script>
 
 <script lang="ts">
-    import { session } from "$app/stores"
     import QuestionPreview from "$lib/components/QuestionPreview.svelte"
-    import NotLoggedIn from "$lib/components/NotLoggedIn.svelte"
-    import NotAuthorized from "$lib/components/NotAuthorized.svelte"
     import AccountEdit from "$lib/components/AccountEdit.svelte"
     import type { McqQuestion, SaQuestion, User, UserSettings } from "$lib/mongo"
     export let questions: (SaQuestion | McqQuestion)[]
@@ -43,25 +37,18 @@
 </svelte:head>
 
 <main>
-    {#if !$session.loggedIn}
-        <NotLoggedIn page="account" />
-    {:else if !$session.userData}
-        <NotAuthorized page="account" />
-    {:else}
-        <div id="account">
-            <AccountEdit bind:userData bind:userSettings bind:questions />
+    <div id="account">
+        <AccountEdit bind:userData bind:userSettings bind:questions />
+    </div>
+    <div id="questions-wrapper">
+        <div id="questions">
+            {#if questions}
+                {#each questions as question}
+                    <QuestionPreview {question} />
+                {/each}
+            {/if}
         </div>
-
-        <div id="questions-wrapper">
-            <div id="questions">
-                {#if questions}
-                    {#each questions as question}
-                        <QuestionPreview {question} />
-                    {/each}
-                {/if}
-            </div>
-        </div>
-    {/if}
+    </div>
 </main>
 
 <style lang="scss">

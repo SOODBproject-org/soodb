@@ -35,7 +35,7 @@
     .preview {
         cursor: pointer;
         position: relative;
-        background-color: var(--color-6);
+        background-color: $background-2;
         padding: 1em;
         border-radius: 1em;
         overflow: hidden;
@@ -50,7 +50,7 @@
         }
 
         &:hover {
-            transform: scale(1.03);
+            transform: scaleX(1.03) scaleY(1.03);
             transition: linear transform 0.07s;
         }
     }

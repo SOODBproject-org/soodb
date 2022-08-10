@@ -1,13 +1,13 @@
 import { updateNameOnQuestions, updateUser, type User } from "$lib/mongo"
 import type { RequestHandler } from "./__types/account.d"
 
-export const PATCH: RequestHandler<{user: Partial<User>}> = async function({ request, locals }) {
+export const PATCH: RequestHandler<{ user: Partial<User> }> = async function ({ request, locals }) {
     const formData = await request.formData()
     const username = formData.get("username") as string
-    
+
     if (!locals.userData) {
-        return  {
-            status: 401
+        return {
+            status: 401,
         }
     } else if (!username) {
         return {

@@ -3,6 +3,7 @@
 %boolean-input-label {
     cursor: pointer;
     display: inline-block;
+    margin-block: 0.3em;
 
     input {
         visibility: hidden;
@@ -13,7 +14,7 @@
     span {
         width: 1em;
         height: 1em;
-        border: variables.$light 2px solid;
+        border: variables.$text-light 2px solid;
         display: inline-block;
         position: relative;
         background: transparent;
@@ -58,12 +59,12 @@
     @extend %boolean-input-label;
 
     span {
-        border-radius: 0.2em;
+        border-radius: 0.6em;
 
         &::after {
-            width: 0.65em;
-            height: 0.65em;
-            border-radius: 0.1em;
+            width: 0.7em;
+            height: 0.7em;
+            border-radius: 0.35em;
         }
     }
 }

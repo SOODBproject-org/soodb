@@ -50,7 +50,7 @@
 
     #question {
         position: relative;
-        background-color: var(--color-6);
+        background-color: $background-2;
         padding: 1em;
         margin: 1em;
         border-radius: 1em;

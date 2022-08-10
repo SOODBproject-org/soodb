@@ -45,7 +45,6 @@
         e.preventDefault()
     }}
 >
-    <h2>Make a Query</h2>
     <div style="display: inline-block; text-align: left;">
         <input type="text" name="author-name" placeholder="Author" id="author-input" bind:value={authorName} /><br />
         <input type="text" name="keywords" placeholder="Keywords" id="keyword-input" bind:value={keywords} /><br />

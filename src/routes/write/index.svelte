@@ -22,10 +22,10 @@
 </svelte:head>
 
 <main>
+    <h1>Submit Question</h1>
     <form id="form" action="/write" method="POST" autocomplete="off">
-        <h1>Submit Questions</h1>
         <!-- <input type="hidden" name="user-id" value={$session.userData.id} /> -->
-        {#if $session.loggedIn}
+        {#if $session.userData}
             <label for="own-question" class="checkbox-label">
                 <input id="own-question" type="checkbox" name="own-question" bind:checked={ownQuestion} />
                 <span />
@@ -52,8 +52,8 @@
                 Short Answer
             </label>
         </div>
-        <select name="category" id="category" bind:value={category}>
-            <option value="" hidden default />
+        <select name="category" id="category" bind:value={category} required>
+            <option value="" hidden default>Category</option>
             <option value="earth">Earth and Space</option>
             <option value="bio">Biology</option>
             <option value="chem">Chemistry</option>
@@ -132,21 +132,22 @@
 <style lang="scss">
     form {
         margin: 3em auto;
-        border-radius: 1em;
         text-align: center;
         padding: 1em;
         position: relative;
         display: flex;
         flex-direction: column;
         align-items: center;
-        background-color: var(--color-6);
         width: 50em;
+        max-width: 85vw;
     }
 
     h1 {
         font-size: 44px;
-        text-decoration: underline var(--blue) 3px;
+        text-decoration: underline $accent-2 3px;
         text-underline-offset: 0.2em;
+        color: $text-light;
+        text-align: center;
     }
 
     .radio-wrapper {
@@ -166,6 +167,12 @@
         text-align: center;
         font-family: "Ubuntu";
         position: relative;
+        background: $input-background;
+        color: $text-light;
+
+        &:invalid {
+            color: #666;
+        }
     }
 
     input[type="text"] {
@@ -192,6 +199,8 @@
         font-family: "Ubuntu";
         position: relative;
         vertical-align: middle;
+        background: $input-background;
+        color: $text-light;
 
         &:focus::placeholder {
             color: transparent;
@@ -225,7 +234,7 @@
     button {
         @extend %button-primary;
 
-        font-size: 30px;
+        font-size: 22px;
         margin-top: 1em;
     }
 </style>

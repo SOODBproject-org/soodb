@@ -1,7 +1,7 @@
 import { getQuestions, type Category, type McqQuestion, type SaQuestion } from "$lib/mongo"
-import type { RequestHandler } from './__types/random.d'
+import type { RequestHandler } from "./__types/random.d"
 
-export const GET: RequestHandler<SaQuestion | McqQuestion> = async function({ url }) {
+export const GET: RequestHandler<SaQuestion | McqQuestion> = async function ({ url }) {
     const authorName = url.searchParams.get("authorName") ?? undefined
     const authorId = url.searchParams.get("authorId") ?? undefined
     const keywords = url.searchParams.get("keywords") ?? undefined
@@ -9,7 +9,7 @@ export const GET: RequestHandler<SaQuestion | McqQuestion> = async function({ ur
     const types = <("MCQ" | "SA")[]>url.searchParams.get("types")?.split(",")
     const startDate = url.searchParams.get("start") ? new Date(url.searchParams.get("start") as string) : undefined
     const endDate = url.searchParams.get("end") ? new Date(url.searchParams.get("end") as string) : undefined
-    
+
     const questions = await getQuestions({
         authorId,
         authorName,

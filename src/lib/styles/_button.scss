@@ -6,9 +6,11 @@
     padding: 0.4em;
     margin: 0.5em;
     border-radius: 0.3em;
+    border: none;
     cursor: pointer;
 
     &:disabled {
+        font-style: italic;
         cursor: default;
     }
 
@@ -17,7 +19,7 @@
 %button-primary {
     @extend %button;
 
-    color: variables.$light;
+    color: variables.$text-light;
     background: variables.$accent-1;
 
     &:disabled {
@@ -28,7 +30,7 @@
 %button-secondary {
     @extend %button;
 
-    color: variables.$light;
+    color: variables.$text-light;
     background: variables.$accent-2;
 
     &:disabled {

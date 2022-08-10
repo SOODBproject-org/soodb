@@ -1,9 +1,9 @@
-import fetch from 'node-fetch'
+import fetch from "node-fetch"
 import { generateToken } from "$lib/authentication"
 import { updateAvatarHash } from "$lib/mongo"
 import type { RequestEvent } from "@sveltejs/kit"
 import { env } from "$env/dynamic/public"
-import { redirectTo } from '$lib/functions/redirectTo'
+import { redirectTo } from "$lib/functions/redirectTo"
 
 type DiscordUserResponse = {
     id: string
@@ -23,12 +23,12 @@ type DiscordUserResponse = {
 async function loginUser(token: string, type: string): Promise<DiscordUserResponse | null> {
     const res = await fetch("https://discord.com/api/users/@me", {
         headers: {
-            'Authorization': `${type} ${token}`
-        }
+            Authorization: `${type} ${token}`,
+        },
     })
 
     if (res.status === 200) {
-        const userData = await res.json() as DiscordUserResponse 
+        const userData = (await res.json()) as DiscordUserResponse
         if (userData.avatar) {
             await updateAvatarHash(userData.id, userData.avatar)
         }
@@ -44,19 +44,19 @@ export async function get({ url, params }: RequestEvent) {
         try {
             const res = await fetch("https://discord.com/api/oauth2/token", {
                 headers: {
-                    'Content-Type': "application/x-www-form-urlencoded"
+                    "Content-Type": "application/x-www-form-urlencoded",
                 },
                 body: new URLSearchParams({
-                    "client_id": "895468421054083112",
-                    "client_secret": "58RYXZozmWiqGPvlhODBi26fhzau8zX4",
+                    client_id: "895468421054083112",
+                    client_secret: "58RYXZozmWiqGPvlhODBi26fhzau8zX4",
                     code,
-                    "grant_type": "authorization_code",
-                    "redirect_uri": `${env.PUBLIC_HOST_URL}/auth/${params.path}`,
-                    "scope": "identify",
-                }).toString()
+                    grant_type: "authorization_code",
+                    redirect_uri: `${env.PUBLIC_HOST_URL}/auth/${params.path}`,
+                    scope: "identify",
+                }).toString(),
             })
             if (res.status === 200) {
-                const responseJson = await res.json() as Record<string, string>
+                const responseJson = (await res.json()) as Record<string, string>
                 const loginResponse = await loginUser(responseJson.access_token, responseJson.token_type)
                 if (loginResponse) {
                     return {

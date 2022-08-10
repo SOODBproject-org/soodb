@@ -131,7 +131,7 @@
         max-width: 60em;
         min-height: 30em;
         margin-bottom: 50px;
-        background-color: var(--color-6);
+        background-color: $background-2;
         border-radius: 2em;
         padding: 1em;
     }

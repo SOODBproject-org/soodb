@@ -2,21 +2,22 @@
     import type { Load } from "@sveltejs/kit"
     import Cookie from "js-cookie"
 
-    export const load: Load = async function({ session, fetch }) {
+    export const load: Load = async function ({ session, fetch }) {
         console.dir(session)
 
         const inputs: Record<string, string> = {}
         if (session.previousQuery?.authorName) inputs.authorName = session.previousQuery.authorName
         if (session.previousQuery?.keywords) inputs.keywords = session.previousQuery.keywords
         if (session.previousQuery?.types?.length) inputs.types = (session.previousQuery.types ?? []).join(",")
-        if (session.previousQuery?.categories?.length)
-            {inputs.categories = (session.previousQuery.categories ?? []).join(",")}
+        if (session.previousQuery?.categories?.length) {
+            inputs.categories = (session.previousQuery.categories ?? []).join(",")
+        }
         if (session.previousQuery?.start) inputs.start = session.previousQuery.start
         if (session.previousQuery?.end) inputs.end = session.previousQuery.end
         const params = new URLSearchParams(inputs)
         const questionsRes = await fetch("/api/questions?" + params.toString(), {
             headers: {
-                Authorization: Cookie.get("authToken"),
+                Authorization: Cookie.get("authToken") ?? "",
             },
         })
         return {
@@ -31,20 +32,14 @@
     import QuestionPreview from "$lib/components/QuestionPreview.svelte"
     import PageSwitcher from "$lib/components/PageSwitcher.svelte"
     import QueryBox from "$lib/components/QueryBox.svelte"
-    import MobileDatabaseHeader from "$lib/components/MobileDatabaseHeader.svelte"
     import type { SaQuestion, McqQuestion } from "$lib/mongo"
     import { tick } from "svelte"
-    import DatabaseHeader from "$lib/components/DatabaseHeader.svelte"
-    import NotLoggedIn from "$lib/components/NotLoggedIn.svelte"
-    import NotAuthorized from "$lib/components/NotAuthorized.svelte"
-    import { session } from "$app/stores"
-    import { env } from '$env/dynamic/public'
 
     export let questions: (SaQuestion | McqQuestion)[] = []
     const resultsPerPage = 20
     let pageNumber =
-        parseInt(Cookie.get("pageNumber")) <= Math.ceil(questions.length / resultsPerPage)
-            ? parseInt(Cookie.get("pageNumber"))
+        parseInt(Cookie.get("pageNumber") ?? "1") <= Math.ceil(questions.length / resultsPerPage)
+            ? parseInt(Cookie.get("pageNumber") ?? "1")
             : 1
     $: numPages = Math.ceil(questions.length / resultsPerPage)
     let menuOpen = true
@@ -60,18 +55,14 @@
         const params = new URLSearchParams(inputs)
         const res = await fetch("/api/questions?" + params.toString(), {
             headers: {
-                Authorization: Cookie.get("authToken"),
+                Authorization: Cookie.get("authToken") ?? "",
             },
         })
-        if (res.status === 401) {
-            $session.loggedIn = false
-        } else {
-            questions = await res.json()
-            await tick()
-            window.scroll(0, 0)
-            closeMenu()
-            querySent = true
-        }
+        questions = await res.json()
+        await tick()
+        window.scroll(0, 0)
+        closeMenu()
+        querySent = true
     }
 
     function openMenu() {
@@ -88,113 +79,57 @@
 </svelte:head>
 
 <main>
-    <div id="desktop-header">
-        <DatabaseHeader>
-            {#if $session.loggedIn && $session.userData}
-                <h1>{$session.userData.username}</h1>
-                <div
-                    class="icon"
-                    style={`background-image: url(https://cdn.discordapp.com/avatars/${$session.userData.id}/${$session.userData.avatarHash}.png)`}
-                />
-            {:else}
-                <a
-                    href={`https://discord.com/api/oauth2/authorize?client_id=895468421054083112&redirect_uri=http%3A%2F%2F${encodeURIComponent(
-                        env.HOST_URL
-                    )}%2Fauth%2Fquestion-search&response_type=code&scope=identify`}
-                >
-                    <button>Login</button>
-                </a>
-            {/if}
-        </DatabaseHeader>
-    </div>
-    <div id="mobile-header">
-        <MobileDatabaseHeader>
-            <svelte:fragment slot="left">
-                {#if $session.loggedIn}
-                    <div id="open-menu" class:opened={menuOpen} on:click={openMenu}>
-                        <span><span /></span>
-                    </div>
-                {/if}
-            </svelte:fragment>
-
-            <svelte:fragment slot="right">
-                {#if $session.loggedIn && $session.userData}
-                    <h1>{$session.userData.username}</h1>
-                    <div
-                        class="icon"
-                        style={`background-image: url(https://cdn.discordapp.com/avatars/${$session.userData.id}/${$session.userData.avatarHash}.png)`}
-                    />
-                {:else}
-                    <a
-                        href={`https://discord.com/api/oauth2/authorize?client_id=895468421054083112&redirect_uri=http%3A%2F%2F${encodeURIComponent(
-                            env.HOST_URL
-                        )}%2Fauth%2Fquestion-search&response_type=code&scope=identify`}
-                    >
-                        <button>Login</button>
-                    </a>
-                {/if}
-            </svelte:fragment>
-        </MobileDatabaseHeader>
-    </div>
-    {#if !$session.loggedIn}
-        <div class="spacer" />
-        <NotLoggedIn page="question-search" />
-    {:else if !$session.userData?.username}
-        <div class="spacer" />
-        <NotAuthorized page="question-search" />
-    {:else}
-        <div id="page">
-            <div id="desktop-menu-wrapper">
-                <div id="desktop-menu">
-                    <QueryBox
-                        bind:numQuestions={questions.length}
-                        on:sendQuery={async (event) => {
-                            await sendQuery(event.detail.inputs)
-                            await tick()
-                            if (event.detail.pageNumber && event.detail.pageNumber <= numPages) {
-                                pageNumber = event.detail.pageNumber
-                            }
-                        }}
-                    />
-                </div>
-            </div>
-            <div id="mobile-menu" class:opened={menuOpen}>
+    <div id="page">
+        <div id="desktop-menu-wrapper">
+            <div id="desktop-menu">
                 <QueryBox
                     bind:numQuestions={questions.length}
-                    on:sendQuery={(event) => {
-                        sendQuery(event.detail.inputs)
+                    on:sendQuery={async (event) => {
+                        await sendQuery(event.detail.inputs)
+                        await tick()
+                        if (event.detail.pageNumber && event.detail.pageNumber <= numPages) {
+                            pageNumber = event.detail.pageNumber
+                        }
                     }}
                 />
-                <button id="close-menu" on:click={closeMenu}><span /></button>
-            </div>
-            <div id="results">
-                {#if questions.length}
-                    <div id="questions">
-                        {#each questions as q, i}
-                            {#if i >= (pageNumber - 1) * resultsPerPage && i < pageNumber * resultsPerPage}
-                                <QuestionPreview question={q} />
-                            {/if}
-                        {/each}
-                    </div>
-                    <PageSwitcher
-                        bind:numPages
-                        bind:pageNumber
-                        on:pageChange={(event) => {
-                            window.scroll(0, 0)
-                            Cookie.set("pageNumber", event.detail.new)
-                        }}
-                    />
-                {:else}
-                    <div id="no-results">
-                        {#if querySent}
-                            <h1>No Questions Found</h1>
-                            <div id="bensive" />
-                        {/if}
-                    </div>
-                {/if}
             </div>
         </div>
-    {/if}
+        <div id="mobile-menu" class:opened={menuOpen}>
+            <QueryBox
+                bind:numQuestions={questions.length}
+                on:sendQuery={(event) => {
+                    sendQuery(event.detail.inputs)
+                }}
+            />
+            <button id="close-menu" on:click={closeMenu}><span /></button>
+        </div>
+        <div id="results">
+            {#if questions.length}
+                <div id="questions">
+                    {#each questions as q, i}
+                        {#if i >= (pageNumber - 1) * resultsPerPage && i < pageNumber * resultsPerPage}
+                            <QuestionPreview question={q} />
+                        {/if}
+                    {/each}
+                </div>
+                <PageSwitcher
+                    bind:numPages
+                    bind:pageNumber
+                    on:pageChange={(event) => {
+                        window.scroll(0, 0)
+                        Cookie.set("pageNumber", event.detail.new)
+                    }}
+                />
+            {:else}
+                <div id="no-results">
+                    {#if querySent}
+                        <h1>No Questions Found</h1>
+                        <div id="bensive" />
+                    {/if}
+                </div>
+            {/if}
+        </div>
+    </div>
 </main>
 
 <style lang="scss">
@@ -208,17 +143,6 @@
         display: flex;
         flex-direction: row;
         position: relative;
-    }
-
-    .icon {
-        width: 1.5em;
-        height: 1.5em;
-        border-radius: 50%;
-        background-size: cover;
-    }
-
-    .spacer {
-        height: 80px;
     }
 
     #close-menu {
@@ -239,33 +163,6 @@
             width: 100%;
             height: 100%;
             display: block;
-        }
-    }
-
-    #open-menu {
-        display: none;
-        z-index: 5;
-        left: 0;
-        height: 100%;
-        place-content: center;
-        transition: left 0.4s ease-in-out;
-        span {
-            display: block;
-            width: 55px;
-            height: 55px;
-            background: var(--color-4);
-            border-radius: 10px;
-            cursor: pointer;
-            span {
-                background-image: url("/open-menu.svg");
-                background-position: cover;
-                display: block;
-                width: 100%;
-                height: 100%;
-            }
-        }
-        &.opened {
-            left: 100vw;
         }
     }
 
@@ -354,9 +251,11 @@
     }
 
     #desktop-menu-wrapper {
+        @include vertical-scrollable(7px);
+
         overflow: auto;
         height: min-content;
-        max-height: calc(100vh - 50px);
+        max-height: calc(100vh - 100px);
         position: sticky;
         top: 20px;
         width: min(40vw, 50ch);
@@ -365,64 +264,22 @@
         margin-left: 1em;
         margin-top: 1.2em;
         overscroll-behavior: contain;
-
-        &::-webkit-scrollbar {
-            width: 7px;
-        }
-        &::-webkit-scrollbar-button {
-            display: none;
-        }
-        &::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        &::-webkit-scrollbar-thumb {
-            background: var(--color-2);
-            width: 7px;
-            border-radius: 7px;
-        }
-        &::-webkit-scrollbar-track-piece:start {
-            margin-top: 1.2em;
-            background: transparent;
-        }
-        &::-webkit-scrollbar-track-piece:end {
-            margin-bottom: 1.2em;
-            background: transparent;
-        }
     }
 
     #desktop-menu {
-        background: var(--color-6);
         height: min-content;
         border-radius: 1em;
-    }
-
-    #mobile-header {
-        display: none;
-        width: 100%;
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: 10;
+        border: 1px solid #666;
     }
 
     @media (max-width: 800px) {
         #page {
             margin-top: 80px;
         }
-        #desktop-header {
-            display: none;
-        }
-
-        #mobile-header {
-            display: block;
-        }
         #desktop-menu-wrapper {
             display: none;
         }
         #mobile-menu {
-            display: block;
-        }
-        #open-menu {
             display: block;
         }
         #close-menu {

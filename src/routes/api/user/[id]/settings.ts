@@ -1,7 +1,7 @@
 import { getUserSettings, type UserSettings } from "$lib/mongo"
 import type { RequestHandler } from "./__types/settings.d"
 
-export const GET: RequestHandler<UserSettings> = async function({ params, locals }) {
+export const GET: RequestHandler<UserSettings> = async function ({ params, locals }) {
     const { id } = params
 
     if (!locals.userData) {

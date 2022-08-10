@@ -1,7 +1,7 @@
 <script lang="ts" context="module">
     import type { Load } from "@sveltejs/kit"
 
-    export const load: Load =  async function({ params, fetch }) {
+    export const load: Load = async function ({ params, fetch }) {
         const userRes = await fetch(`/api/user/${params.id}`)
         const userSettingsRes = await fetch(`/api/user/${params.id}/settings`)
         const questionsRes = await fetch(`/api/questions?authorId=${params.id}`)
@@ -16,10 +16,7 @@
 </script>
 
 <script lang="ts">
-    import { session } from "$app/stores"
     import QuestionPreview from "$lib/components/QuestionPreview.svelte"
-    import NotLoggedIn from "$lib/components/NotLoggedIn.svelte"
-    import NotAuthorized from "$lib/components/NotAuthorized.svelte"
     import Account from "$lib/components/Account.svelte"
     import type { McqQuestion, SaQuestion, User } from "$lib/mongo"
     export let questions: (SaQuestion | McqQuestion)[]
@@ -31,25 +28,18 @@
 </svelte:head>
 
 <main>
-    {#if !$session.loggedIn}
-        <NotLoggedIn page="account" />
-    {:else if !$session.userData}
-        <NotAuthorized page="account" />
-    {:else}
-        <div id="account">
-            <Account {userData} {questions} />
+    <div id="account">
+        <Account {userData} {questions} />
+    </div>
+    <div id="questions-wrapper">
+        <div id="questions">
+            {#if questions}
+                {#each questions as question}
+                    <QuestionPreview {question} />
+                {/each}
+            {/if}
         </div>
-
-        <div id="questions-wrapper">
-            <div id="questions">
-                {#if questions}
-                    {#each questions as question}
-                        <QuestionPreview {question} />
-                    {/each}
-                {/if}
-            </div>
-        </div>
-    {/if}
+    </div>
 </main>
 
 <style lang="scss">

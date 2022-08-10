@@ -54,7 +54,6 @@
         position: absolute;
         right: 2em;
         bottom: 2em;
-        background: var(--color-6);
         border-radius: 50%;
         font-size: inherit;
         outline: none;
@@ -99,7 +98,7 @@
 
     #question {
         position: relative;
-        background-color: var(--color-6);
+        background-color: $background-2;
         padding: 1em;
         margin: 20px;
         border-radius: 1em;
@@ -122,15 +121,9 @@
     }
 
     #showanswer {
-        color: #eee;
-        background: var(--color-2);
+        @extend %button-secondary;
+
         font-size: 20px;
-        font-weight: bold;
-        padding: 0.6em;
-        margin: 1em 0 0.5em;
-        border-radius: 0.6em;
-        border: solid black 3px;
-        cursor: pointer;
         box-sizing: border-box;
         width: 15ch;
     }

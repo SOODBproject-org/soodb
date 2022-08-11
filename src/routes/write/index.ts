@@ -7,7 +7,7 @@ export const POST: RequestHandler = async function ({ request, locals }) {
         const formData = await request.formData()
         const type = formData.get("type") as "MCQ" | "SA"
         const category = formData.get("category") as Category
-        const questionText = formData.get("question-text")
+        const questionText = formData.get("question-text") as string
         const bonus = formData.get("bonus") === "checked"
 
         const choices = {
@@ -17,7 +17,7 @@ export const POST: RequestHandler = async function ({ request, locals }) {
             Z: formData.get("Z") as string,
         }
         const correctAnswer = formData.get("correct-answer") as "W" | "X" | "Y" | "Z"
-        const answer = formData.get("answer")
+        const answer = formData.get("answer") as string
 
         let question: NewQuestionData
         if (type === "MCQ") {
@@ -26,7 +26,7 @@ export const POST: RequestHandler = async function ({ request, locals }) {
                 bonus,
                 type,
                 category,
-                questionText: questionText as string,
+                questionText: questionText,
                 choices,
                 correctAnswer,
             }
@@ -36,8 +36,8 @@ export const POST: RequestHandler = async function ({ request, locals }) {
                 bonus,
                 type,
                 category,
-                questionText: questionText as string,
-                correctAnswer: answer as string,
+                questionText: questionText,
+                correctAnswer: answer,
             }
         } else {
             return redirectTo("/error/invalid-question")

@@ -73,13 +73,14 @@ const collections = {
 
 export type NewQuestionData = DistributiveOmit<Question, InternalQuestionKey>
 export async function addQuestion(question: NewQuestionData) {
+    const date = new Date()
     return collections.questions.insertOne({
         document: {
             ...question,
             id: createID(),
             searchString: createSearchString(question),
-            created: new Date(),
-            modified: new Date(),
+            created: date,
+            modified: date,
         },
     })
 }
@@ -125,25 +126,14 @@ export async function getQuestions({ authorName, authorId, keywords, categories,
     return documents
 }
 
-export async function editQuestion(newQuestion: Partial<SaQuestion | McqQuestion>) {
-    let searchString = newQuestion.questionText + " " + newQuestion.correctAnswer
-    if (newQuestion.type === "MCQ") {
-        searchString +=
-            " " +
-            (newQuestion.choices?.W ?? "") +
-            " " +
-            (newQuestion.choices?.X ?? "") +
-            " " +
-            (newQuestion.choices?.Y ?? "") +
-            " " +
-            (newQuestion.choices?.Z ?? "")
-    }
+export async function editQuestion(id: string, newQuestion: Partial<NewQuestionData>) {
     return collections.questions.updateOne({
-        filter: { id: newQuestion.id },
+        filter: { id },
         update: {
             $set: {
                 ...newQuestion,
-                searchString,
+                searchString: createSearchString(newQuestion),
+                modified: new Date(),
             },
         },
     })
@@ -166,13 +156,6 @@ export async function updateUser(id: string, data: Partial<User>) {
     })
 }
 
-export async function updateNameOnQuestions(authorId: string, authorName: string) {
-    return collections.questions.updateMany({
-        filter: { authorId },
-        update: { $set: { authorName } },
-    })
-}
-
 export async function getUserSettings(id: string): Promise<UserSettings | null> {
     const { document } = await collections.userSettings.findOne({ filter: { id } })
     return document
@@ -189,10 +172,10 @@ export async function updateAvatarHash(id: string, avatarHash: string) {
     })
 }
 
-export async function getRandomQuestionId() {
+export async function getRandomQuestion() {
     const questions = await getQuestions({})
     if (!(questions.length === 0)) {
-        return questions[Math.floor(Math.random() * questions.length)].id
+        return questions[Math.floor(Math.random() * questions.length)]
     } else {
         return null
     }

@@ -31,7 +31,7 @@
             class="question-text"
             name="question-text"
             bind:value={questionText}
-            style={`height: ${textareaHeight}px`}
+            style="height: {textareaHeight}px"
         />
     </div>
     <br />

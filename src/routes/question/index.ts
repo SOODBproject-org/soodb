@@ -1,10 +1,10 @@
 import { redirectTo } from "$lib/functions/redirectTo"
-import { getRandomQuestionId } from "$lib/mongo"
+import { getRandomQuestion } from "$lib/mongo"
 
 export async function get() {
-    const questionId = await getRandomQuestionId()
-    if (questionId) {
-        return redirectTo("/question/" + questionId)
+    const question = await getRandomQuestion()
+    if (question) {
+        return redirectTo("/question/" + question.id)
     } else {
         return {
             status: 400,

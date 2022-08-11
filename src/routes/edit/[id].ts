@@ -1,16 +1,14 @@
 import { redirectTo } from "$lib/functions/redirectTo"
-import { editQuestion, getQuestionByID, type Category, type McqQuestion, type SaQuestion } from "$lib/mongo"
+import { editQuestion, getQuestionByID, type Category, type NewQuestionData } from "$lib/mongo"
 import type { RequestHandler } from "./__types/[id].d"
 
-export const POST: RequestHandler = async function ({ request, params }) {
+export const POST: RequestHandler = async function ({ request, params, locals }) {
     try {
         const formData = await request.formData()
         const { id } = params
-        const userId = formData.get("user-id") as string
         const type = formData.get("type") as "MCQ" | "SA"
         const category = formData.get("category") as Category
         const questionText = formData.get("question-text") as string
-        const date = new Date()
         const choices = {
             W: formData.get("W") as string,
             X: formData.get("X") as string,
@@ -21,11 +19,11 @@ export const POST: RequestHandler = async function ({ request, params }) {
         const answer = formData.get("answer") as string
 
         const currentQuestion = await getQuestionByID(id)
-        if (userId !== currentQuestion?.authorId) {
+        if (!currentQuestion || locals.userData?.id !== currentQuestion.authorId) {
             return redirectTo("error/no-edit-permission")
         }
 
-        let updatedInfo: Partial<SaQuestion | McqQuestion> = {}
+        let updatedInfo: Partial<NewQuestionData>
         if (type === "MCQ") {
             updatedInfo = {
                 type,
@@ -33,9 +31,6 @@ export const POST: RequestHandler = async function ({ request, params }) {
                 questionText,
                 choices,
                 correctAnswer,
-                created: date,
-                modified: date,
-                id,
             }
         } else if (type === "SA") {
             updatedInfo = {
@@ -43,9 +38,6 @@ export const POST: RequestHandler = async function ({ request, params }) {
                 category,
                 questionText,
                 correctAnswer: answer,
-                created: date,
-                modified: date,
-                id,
             }
         } else {
             return {
@@ -53,7 +45,7 @@ export const POST: RequestHandler = async function ({ request, params }) {
             }
         }
 
-        await editQuestion(updatedInfo)
+        await editQuestion(id, updatedInfo)
 
         return redirectTo("/question-submitted")
     } catch (e) {

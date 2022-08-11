@@ -1,4 +1,4 @@
-import { updateNameOnQuestions, updateUser, type User } from "$lib/mongo"
+import { updateUser, type User } from "$lib/mongo"
 import type { RequestHandler } from "./__types/account.d"
 
 export const PATCH: RequestHandler<{ user: Partial<User> }> = async function ({ request, locals }) {
@@ -15,7 +15,6 @@ export const PATCH: RequestHandler<{ user: Partial<User> }> = async function ({ 
         }
     } else {
         await updateUser(locals.userData.id, { username: username.trim() })
-        await updateNameOnQuestions(locals.userData.id, username.trim())
 
         return {
             status: 200,

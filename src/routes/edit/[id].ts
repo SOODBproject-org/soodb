@@ -33,7 +33,8 @@ export const POST: RequestHandler = async function ({ request, params }) {
                 questionText,
                 choices,
                 correctAnswer,
-                date,
+                created: date,
+                modified: date,
                 id,
             }
         } else if (type === "SA") {
@@ -42,7 +43,8 @@ export const POST: RequestHandler = async function ({ request, params }) {
                 category,
                 questionText,
                 correctAnswer: answer,
-                date,
+                created: date,
+                modified: date,
                 id,
             }
         } else {

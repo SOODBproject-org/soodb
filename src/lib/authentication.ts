@@ -1,6 +1,6 @@
 import fs from "fs"
 import jwt from "jsonwebtoken"
-import { getUserFromID } from "./mongo"
+import { getUserByID } from "./mongo"
 
 const privateKey = fs.readFileSync("jwt.key")
 
@@ -26,7 +26,7 @@ export async function getUserFromToken(token: string) {
     try {
         const tokenPayload = <jwt.JwtPayload>jwt.verify(token, privateKey, { algorithms: ["RS256"] })
         console.log(tokenPayload)
-        const userData = await getUserFromID(tokenPayload.userID)
+        const userData = await getUserByID(tokenPayload.userID)
         return userData || null
     } catch (e) {
         return null

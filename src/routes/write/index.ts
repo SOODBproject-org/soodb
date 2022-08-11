@@ -1,16 +1,14 @@
 import { redirectTo } from "$lib/functions/redirectTo"
-import { addQuestion, getUserFromID, type McqBase, type SaBase, type Category } from "$lib/mongo"
+import { addQuestion, type Category, type NewQuestionData } from "$lib/mongo"
 import type { RequestHandler } from "./__types/index.d"
 
-export const POST: RequestHandler = async function ({ request }) {
+export const POST: RequestHandler = async function ({ request, locals }) {
     try {
         const formData = await request.formData()
-        const userId = formData.get("user-id") as string
-        const ownQuestion = formData.get("own-question")
-        const authorName = formData.get("author-name")
         const type = formData.get("type") as "MCQ" | "SA"
         const category = formData.get("category") as Category
         const questionText = formData.get("question-text")
+        const bonus = formData.get("bonus") === "checked"
 
         const choices = {
             W: formData.get("W") as string,
@@ -21,26 +19,11 @@ export const POST: RequestHandler = async function ({ request }) {
         const correctAnswer = formData.get("correct-answer") as "W" | "X" | "Y" | "Z"
         const answer = formData.get("answer")
 
-        let question: Partial<SaBase | McqBase>
-        if (ownQuestion && userId) {
-            const userData = await getUserFromID(userId)
-            if (userData) {
-                question = {
-                    authorName: userData.username,
-                    authorId: userId,
-                }
-            } else {
-                return redirectTo("error/invalid-question")
-            }
-        } else {
-            question = {
-                authorName: authorName as string,
-            }
-        }
-
+        let question: NewQuestionData
         if (type === "MCQ") {
             question = {
-                ...question,
+                authorId: locals.userData?.id,
+                bonus,
                 type,
                 category,
                 questionText: questionText as string,
@@ -49,15 +32,18 @@ export const POST: RequestHandler = async function ({ request }) {
             }
         } else if (type === "SA") {
             question = {
-                ...question,
+                authorId: locals.userData?.id,
+                bonus,
                 type,
                 category,
                 questionText: questionText as string,
                 correctAnswer: answer as string,
             }
+        } else {
+            return redirectTo("/error/invalid-question")
         }
 
-        await addQuestion(question as SaBase | McqBase)
+        await addQuestion(question)
 
         return redirectTo("question-submitted")
     } catch (e) {

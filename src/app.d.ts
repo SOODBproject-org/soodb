@@ -27,7 +27,7 @@ declare namespace App {
     interface PrivateEnv extends Record<string, string> {
         CLIENTID: string
         SECRET: string
-        DATABASE_URL: string
+        DATABASE_APP_ID: string
         DATABASE_KEY: string
     }
 

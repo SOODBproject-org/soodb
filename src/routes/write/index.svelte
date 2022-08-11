@@ -24,7 +24,6 @@
 <main>
     <h1>Submit Question</h1>
     <form id="form" action="/write" method="POST" autocomplete="off">
-        <!-- <input type="hidden" name="user-id" value={$session.userData.id} /> -->
         {#if $session.userData}
             <label for="own-question" class="checkbox-label">
                 <input id="own-question" type="checkbox" name="own-question" bind:checked={ownQuestion} />

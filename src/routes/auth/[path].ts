@@ -46,6 +46,7 @@ export async function get({ url, params }: RequestEvent) {
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
                 },
+                /* eslint-disable */
                 body: new URLSearchParams({
                     client_id: "895468421054083112",
                     client_secret: "58RYXZozmWiqGPvlhODBi26fhzau8zX4",
@@ -54,6 +55,7 @@ export async function get({ url, params }: RequestEvent) {
                     redirect_uri: `${env.PUBLIC_HOST_URL}/auth/${params.path}`,
                     scope: "identify",
                 }).toString(),
+                /* eslint-enable */
             })
             if (res.status === 200) {
                 const responseJson = (await res.json()) as Record<string, string>

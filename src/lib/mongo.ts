@@ -1,12 +1,20 @@
 export type Category = "earth" | "bio" | "chem" | "physics" | "math" | "energy"
-export interface McqBase {
-    type: "MCQ"
-    isBonus: boolean
+
+interface QuestionBase {
+    id: string
+    authorId?: string
+    bonus: boolean
     category: Category
     questionText: string
-    source: string
-    authorId?: string
-    authorName?: string
+    pairId?: string
+    source?: string
+    searchString: string
+    created: Date
+    modified: Date
+}
+
+export interface McqQuestion extends QuestionBase {
+    type: "MCQ"
     choices: {
         W: string
         X: string
@@ -16,27 +24,14 @@ export interface McqBase {
     correctAnswer: "W" | "X" | "Y" | "Z"
 }
 
-export interface SaBase {
+export type InternalQuestionKey = "id" | "searchString" | "created" | "modified"
+
+export interface SaQuestion extends QuestionBase {
     type: "SA"
-    isBonus: boolean
-    category: Category
-    questionText: string
-    source: string
-    authorId?: string
-    authorName?: string
     correctAnswer: string
 }
 
-export interface McqQuestion extends McqBase {
-    id: string
-    pairID?: string
-    date: Date
-}
-export interface SaQuestion extends SaBase {
-    id: string
-    pairID?: string
-    date: Date
-}
+export type Question = McqQuestion | SaQuestion
 
 export interface User {
     id: string
@@ -51,7 +46,9 @@ export interface UserSettings {
 }
 
 import { env } from "$env/dynamic/private"
-import { createMongoDBDataAPI } from "mongodb-data-api"
+import MongoDataAPI from "atlas-data-api"
+import { createSearchString } from "./functions/databaseUtils"
+import type { DistributiveOmit } from "./utils"
 
 function createID() {
     const time = Date.now()
@@ -63,32 +60,26 @@ function createID() {
     return id
 }
 
-console.log(env.DATABASE_KEY)
-console.log(env.DATABASE_URL)
-
-const api = createMongoDBDataAPI({
-    apiKey: env.DATABASE_KEY,
-    urlEndpoint: env.DATABASE_URL,
+const api = new MongoDataAPI({
+    key: env.DATABASE_KEY,
+    id: env.DATABASE_APP_ID,
 })
-const database = api.$database("ScibowlOpenDB")
+const database = api.cluster("SOODB").database("ScibowlOpenDB")
 const collections = {
-    questions: database.$collection<SaQuestion | McqQuestion>("questions"),
-    users: database.$collection<User>("users"),
-    userSettings: database.$collection<UserSettings>("userSettings"),
+    questions: database.collection<SaQuestion | McqQuestion>("questions"),
+    users: database.collection<User>("users"),
+    userSettings: database.collection<UserSettings>("userSettings"),
 }
 
-export async function addQuestion(question: SaBase | McqBase) {
-    let searchString = question.questionText + " " + question.correctAnswer
-    if (question.type === "MCQ") {
-        searchString +=
-            " " + question.choices.W + " " + question.choices.X + " " + question.choices.Y + " " + question.choices.Z
-    }
-    await collections.questions.insertOne({
+export type NewQuestionData = DistributiveOmit<Question, InternalQuestionKey>
+export async function addQuestion(question: NewQuestionData) {
+    return collections.questions.insertOne({
         document: {
-            id: createID(),
             ...question,
-            searchString,
-            date: new Date(),
+            id: createID(),
+            searchString: createSearchString(question),
+            created: new Date(),
+            modified: new Date(),
         },
     })
 }
@@ -128,10 +119,10 @@ export async function getQuestions({ authorName, authorId, keywords, categories,
         if (timeRange.startDate) mongoQuery.date.$gte = timeRange.startDate
         if (timeRange.endDate) mongoQuery.date.$lt = timeRange.endDate
     }
-    const questions = await collections.questions.find({
+    const { documents } = await collections.questions.find({
         filter: mongoQuery,
     })
-    return questions.documents
+    return documents
 }
 
 export async function editQuestion(newQuestion: Partial<SaQuestion | McqQuestion>) {
@@ -147,7 +138,7 @@ export async function editQuestion(newQuestion: Partial<SaQuestion | McqQuestion
             " " +
             (newQuestion.choices?.Z ?? "")
     }
-    await collections.questions.updateOne({
+    return collections.questions.updateOne({
         filter: { id: newQuestion.id },
         update: {
             $set: {
@@ -159,47 +150,36 @@ export async function editQuestion(newQuestion: Partial<SaQuestion | McqQuestion
 }
 
 export async function getQuestionByID(id: string) {
-    const { document } = await collections.questions.findOne({ id })
-    return document || null
+    const { document } = await collections.questions.findOne({ filter: { id } })
+    return document
 }
 
 export async function getUserByID(id: string) {
-    const { document } = await collections.users.findOne({ id })
-    return document || null
-}
-
-export async function getUserFromID(id: string): Promise<User | null> {
-    const { document } = await collections.users.findOne({ id })
+    const { document } = await collections.users.findOne({ filter: { id } })
     return document
-        ? {
-              id: document.id,
-              username: document.username,
-              avatarHash: document.avatarHash,
-          }
-        : null
 }
 
 export async function updateUser(id: string, data: Partial<User>) {
-    return await collections.users.updateOne({
+    return collections.users.updateOne({
         filter: { id },
         update: { $set: data },
     })
 }
 
 export async function updateNameOnQuestions(authorId: string, authorName: string) {
-    return await collections.questions.updateMany({
+    return collections.questions.updateMany({
         filter: { authorId },
         update: { $set: { authorName } },
     })
 }
 
 export async function getUserSettings(id: string): Promise<UserSettings | null> {
-    const { document } = await collections.userSettings.findOne({ id })
-    return document ?? null
+    const { document } = await collections.userSettings.findOne({ filter: { id } })
+    return document
 }
 
 export async function updateAvatarHash(id: string, avatarHash: string) {
-    return await collections.users.updateOne({
+    return collections.users.updateOne({
         filter: { id },
         update: {
             $set: {

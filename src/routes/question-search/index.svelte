@@ -14,7 +14,7 @@
         }
         if (session.previousQuery?.start) inputs.start = session.previousQuery.start
         if (session.previousQuery?.end) inputs.end = session.previousQuery.end
-        const params = new URLSearchParams(inputs)
+        const params = new URLSearchParams({ ...inputs, includeAuthor: "true" })
         const questionsRes = await fetch("/api/questions?" + params.toString(), {
             headers: {
                 Authorization: Cookie.get("authToken") ?? "",

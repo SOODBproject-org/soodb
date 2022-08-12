@@ -25,7 +25,6 @@ export async function getIDFromToken(token: string) {
 export async function getUserFromToken(token: string) {
     try {
         const tokenPayload = <jwt.JwtPayload>jwt.verify(token, privateKey, { algorithms: ["RS256"] })
-        console.log(tokenPayload)
         const userData = await getUserByID(tokenPayload.userID)
         return userData || null
     } catch (e) {

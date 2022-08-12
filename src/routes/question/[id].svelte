@@ -2,10 +2,11 @@
     import type { Load } from "@sveltejs/kit"
 
     export const load: Load = async function ({ params, fetch }) {
-        const res = await fetch(`/api/question/${params.id}`)
+        const questionRes = await fetch(`/api/question/${params.id}?includeAuthor=true`)
+        const question = (await questionRes.json()) as Question & { authorName?: string }
         return {
             props: {
-                question: await res.json(),
+                question,
             },
         }
     }
@@ -13,36 +14,38 @@
 
 <script lang="ts">
     import { onMount } from "svelte"
-    import type { SaQuestion, McqQuestion, Category } from "$lib/mongo"
-    import Question from "$lib/components/Question.svelte"
+    import type { Question, Category, User } from "$lib/mongo"
+    import QuestionComp from "$lib/components/Question.svelte"
     import Cookie from "js-cookie"
     import QueryBox from "$lib/components/QueryBox.svelte"
-    export let question: SaQuestion | McqQuestion
+
+    export let question: Question & { authorName?: string }
+
     let menuOpen = true
     let answerVisible = false
     const loaded = true
     let noMatch = false
     const questionsSeen: string[] = []
-    let author: string
+    let authorSearch: string
     let types: ("MCQ" | "SA")[] = []
     let categories: Category[] = []
     let start, end
 
-    onMount(async () => {
-        const stored = JSON.parse(Cookie.get("lastQuery") || "{}")
-        author = stored.author
-        types = !stored.types ? [] : stored.types
-        categories = !stored.categories ? [] : stored.categories
-        start = stored.start || undefined
-        end = stored.end || undefined
-        sendQuery({
-            author,
-            types: types.join(","),
-            categories: categories.join(","),
-            start,
-            end,
-        })
-    })
+    // onMount(async () => {
+    //     const stored = JSON.parse(Cookie.get("lastQuery") || "{}")
+    //     author = stored.author
+    //     types = !stored.types ? [] : stored.types
+    //     categories = !stored.categories ? [] : stored.categories
+    //     start = stored.start || undefined
+    //     end = stored.end || undefined
+    //     sendQuery({
+    //         author: authorSearch,
+    //         types: types.join(","),
+    //         categories: categories.join(","),
+    //         start,
+    //         end,
+    //     })
+    // })
 
     async function sendQuery(inputs: Record<string, string>) {
         answerVisible = false
@@ -96,7 +99,7 @@
         {#if noMatch}
             <h1>No questions matched that query</h1>
         {:else if loaded}
-            <Question {question} bind:answerVisible />
+            <QuestionComp {question} bind:answerVisible />
         {:else}
             <h1>Loading...</h1>
         {/if}

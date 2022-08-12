@@ -1,13 +1,13 @@
 <script lang="ts">
     import { goto } from "$app/navigation"
-    import type { McqQuestion, SaQuestion } from "$lib/mongo"
-    export let question: SaQuestion | McqQuestion
+    import type { Question } from "$lib/mongo"
+    export let question: Question & { authorName?: string }
     $: truncatedQuestion =
         question.questionText.length > numCharacters
             ? question.questionText.slice(0, numCharacters) + "…"
             : question.questionText
-    $: dateObject = new Date(question.date)
-    $: dateString = dateObject.toDateString() + " " + dateObject.toTimeString().split(" ")[0]
+    let modifiedDate = new Date(question.modified)
+    let modifiedDateString = Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale).format(modifiedDate)
     let previewWidth: number
     $: numCharacters = previewWidth / 3 - 20
 
@@ -19,24 +19,27 @@
         math: "Math",
         energy: "Energy",
     }
-
-    function accessQuestion() {
-        goto("/question/" + question.id)
-    }
 </script>
 
-<div class={"preview " + question.category} on:click={accessQuestion} bind:clientWidth={previewWidth}>
-    <h2>{categoryNames[question.category]}</h2>
+<div class={"preview " + question.category} bind:clientWidth={previewWidth}>
+    <div class="wrapper">
+        <h2>{categoryNames[question.category]}</h2>
+        <a href="/question/{question.id}" sveltekit:prefetch>View</a>
+    </div>
     <h3>{truncatedQuestion}</h3>
-    <p>Author - {question.authorName} <i>({dateString})</i></p>
+    {#if question.authorId}
+        <p>
+            <a href="/user/{question.authorId}" sveltekit:prefetch>{question.authorName}</a>
+            <i>({modifiedDateString})</i>
+        </p>
+    {/if}
 </div>
 
 <style lang="scss">
     .preview {
-        cursor: pointer;
         position: relative;
         background-color: $background-2;
-        padding: 1em;
+        padding: 1em 1em 0.5em;
         border-radius: 1em;
         overflow: hidden;
 
@@ -48,11 +51,22 @@
             width: 0.3em;
             height: 150%;
         }
+    }
 
-        &:hover {
-            transform: scaleX(1.03) scaleY(1.03);
-            transition: linear transform 0.07s;
+    .wrapper {
+        display: flex;
+        flex-direction: row;
+        align-items: top;
+
+        a {
+            margin-left: auto;
+            text-decoration: none;
+            font-size: 18px;
         }
+    }
+
+    h2 {
+        margin: 0;
     }
 
     h3 {

@@ -9,13 +9,13 @@
         <h1 id="title">SOODB</h1>
         <nav>
             <ul>
-                <li><a href="/question-search">Search</a></li>
-                <li><a href="/write">Write</a></li>
-                <li><a href="/packet-submit">Packet Submit</a></li>
+                <li><a href="/question-search" sveltekit:prefetch>Search</a></li>
+                <li><a href="/write" sveltekit:prefetch>Write</a></li>
+                <li><a href="/packet-submit" sveltekit:prefetch>Packet Submit</a></li>
                 {#if $session.userData}
-                    <li><a href="/account">Account</a></li>
+                    <li><a href="/account" sveltekit:prefetch>Account</a></li>
                 {:else}
-                    <li><a href="/login">Login</a></li>
+                    <li><a href="/login" sveltekit:prefetch>Login</a></li>
                 {/if}
             </ul>
         </nav>

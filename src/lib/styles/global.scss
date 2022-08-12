@@ -41,6 +41,14 @@ select:focus {
     outline: none;
 }
 
+a {
+    color: variables.$accent-2;
+
+    &:visited {
+        color: variables.$accent-2;
+    }
+}
+
 body::-webkit-scrollbar {
     width: 7px;
 }

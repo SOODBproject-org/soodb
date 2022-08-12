@@ -1,5 +1,6 @@
 <script lang="ts">
     import { session } from "$app/stores"
+    import { slide } from "svelte/transition"
 
     let menuOpen = false
 </script>
@@ -26,7 +27,7 @@
         <button class="menu-button" on:click={() => (menuOpen = !menuOpen)} />
     </div>
     {#if menuOpen}
-        <nav class="mobile-menu">
+        <nav class="mobile-menu" transition:slide>
             <ul>
                 {#if $session.userData}
                     <li><a href="/account">Account</a></li>

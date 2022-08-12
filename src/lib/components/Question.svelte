@@ -1,6 +1,7 @@
 <script lang="ts">
     import type { Question, User } from "../mongo"
     import { session } from "$app/stores"
+    import { slide } from "svelte/transition"
 
     export let question: Question & { authorName?: string }
     export let answerVisible = false
@@ -46,7 +47,7 @@
 
         <button id="showanswer" on:click={showAnswer}>{answerVisible ? "Hide" : "Show"} Answer</button>
         {#if answerVisible}
-            <p id="correct-answer">{question.correctAnswer}</p>
+            <p id="correct-answer" transition:slide={{ duration: 200 }}>{question.correctAnswer}</p>
         {/if}
     </div>
     <div class="line" />
@@ -119,9 +120,9 @@
     }
 
     #correct-answer {
-        display: inline-block;
         font-size: 20px;
         margin: 0.5em;
+        padding-left: 1em;
     }
 
     p {

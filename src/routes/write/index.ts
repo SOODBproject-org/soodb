@@ -40,14 +40,14 @@ export const POST: RequestHandler = async function ({ request, locals }) {
                 correctAnswer: answer,
             }
         } else {
-            return redirectTo("/error/invalid-question")
+            return redirectTo("write?submitted=error")
         }
 
         await addQuestion(question)
 
-        return redirectTo("question-submitted")
+        return redirectTo("write?submitted=success")
     } catch (e) {
         console.error(e)
-        return redirectTo("error/invalid-question")
+        return redirectTo("write?submitted=error")
     }
 }

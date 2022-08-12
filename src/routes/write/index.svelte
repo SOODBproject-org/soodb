@@ -1,6 +1,37 @@
+<script context="module" lang="ts">
+    import type { Load } from "@sveltejs/kit"
+
+    export const load: Load = async function ({ url }) {
+        if (browser) {
+            history.replaceState(null, "", "/write")
+        }
+
+        return {
+            props: {
+                submitted: url.searchParams.get("submitted"),
+            },
+        }
+    }
+</script>
+
 <script lang="ts">
     import type { Category } from "$lib/mongo"
     import { session } from "$app/stores"
+    import { browser } from "$app/env"
+    import Notification from "$lib/components/Notification.svelte"
+    import { onMount } from "svelte"
+
+    export let submitted: string
+    let notificationShown = true
+
+    if (submitted) {
+        onMount(() => {
+            setTimeout(() => {
+                notificationShown = false
+            }, 5000)
+        })
+    }
+
     let ownQuestion = true
     let author: string
     let type: "MCQ" | "SA"
@@ -22,22 +53,24 @@
 </svelte:head>
 
 <main>
+    {#if submitted === "success"}
+        <Notification title="Success" text="Your question has been successfully submitted" shown={notificationShown} />
+    {:else if submitted === "error"}
+        <Notification
+            title="Error"
+            text="An error occurred and your question was not submitted"
+            shown={notificationShown}
+        />
+    {/if}
+
     <h1>Submit Question</h1>
     <form id="form" action="/write" method="POST" autocomplete="off">
-        {#if $session.userData}
-            <label for="own-question" class="checkbox-label">
-                <input id="own-question" type="checkbox" name="own-question" bind:checked={ownQuestion} />
-                <span />
-                This is my own question
-            </label>
-
-            {#if !ownQuestion}
-                <input type="text" name="author-name" placeholder="Author" id="author-input" bind:value={author} />
-            {/if}
-        {:else}
-            <input type="text" name="author-name" placeholder="Author" id="author-input" bind:value={author} />
+        {#if !$session.userData}
+            <p style:font-style="italic" style:margin-top="0">
+                This question will be submitted anonymously.<br />
+                <a href="/login">Log in</a> to submit a question under your account
+            </p>
         {/if}
-
         <div class="radio-wrapper">
             <label for="multiple-choice" class="radio-label">
                 <input id="multiple-choice" type="radio" name="type" value="MCQ" bind:group={type} />
@@ -130,7 +163,7 @@
 
 <style lang="scss">
     form {
-        margin: 3em auto;
+        margin: 0 auto 3em;
         text-align: center;
         padding: 1em;
         position: relative;
@@ -222,12 +255,6 @@
             margin: 0;
             display: inline-block;
         }
-    }
-
-    .checkbox-label {
-        @extend %checkbox-label;
-
-        font-size: 20px;
     }
 
     button {

@@ -4,7 +4,7 @@
     import Cookie from "js-cookie"
     import { page } from "$app/stores"
 
-    let inputs: {
+    type Inputs = {
         authorName: string
         keywords: string
         start: string
@@ -12,20 +12,30 @@
         types: ("MCQ" | "SA")[]
         categories: Category[]
     }
+    let inputs: Inputs = {
+        authorName: "",
+        keywords: "",
+        start: "",
+        end: "",
+        types: [],
+        categories: [],
+    }
     export let numQuestions: number
     const dispatch = createEventDispatcher()
-    let authorName: string, keywords: string, start: string, end: string
-    let types: ("MCQ" | "SA")[] = []
-    let categories: Category[] = []
-    $: inputs = { authorName, keywords, start, end, types, categories }
+
+    export function setQuery(query: Partial<Inputs>) {
+        if (query.authorName) inputs.authorName = query.authorName
+        if (query.keywords) inputs.keywords = query.keywords
+        if (query.start) inputs.start = query.start
+        if (query.end) inputs.end = query.end
+        if (query.types) inputs.types = query.types
+        if (query.categories) inputs.categories = query.categories
+    }
+
     async function emitQuery(pageNumber = 1) {
         dispatch("sendQuery", {
             inputs: inputs,
             pageNumber,
-        })
-        Cookie.set("lastQuery", JSON.stringify(inputs), {
-            path: "",
-            expires: 0.01,
         })
     }
 </script>
@@ -43,26 +53,34 @@
     id="query"
     on:submit={(e) => {
         e.preventDefault()
+        emitQuery()
     }}
 >
     <div style="display: inline-block; text-align: left;">
-        <input type="text" name="author-name" placeholder="Author" id="author-input" bind:value={authorName} /><br />
-        <input type="text" name="keywords" placeholder="Keywords" id="keyword-input" bind:value={keywords} /><br />
+        <input
+            type="text"
+            name="author-name"
+            placeholder="Author"
+            id="author-input"
+            bind:value={inputs.authorName}
+        /><br />
+        <input type="text" name="keywords" placeholder="Keywords" id="keyword-input" bind:value={inputs.keywords} /><br
+        />
         <h3>Start Date:</h3>
-        <input type="date" name="start-date" bind:value={start} /><br />
+        <input type="date" name="start-date" bind:value={inputs.start} /><br />
         <h3>End Date:</h3>
-        <input type="date" name="end-date" bind:value={end} />
+        <input type="date" name="end-date" bind:value={inputs.end} />
     </div>
     <div class="radio-wrapper">
         <h3>Type</h3>
         <label for="multiple-choice">
-            <input id="multiple-choice" type="checkbox" name="type" value="MCQ" bind:group={types} />
+            <input id="multiple-choice" type="checkbox" name="type" value="MCQ" bind:group={inputs.types} />
             <span />
             Multiple Choice
         </label>
         <br />
         <label for="short-answer">
-            <input id="short-answer" type="checkbox" name="type" value="SA" bind:group={types} />
+            <input id="short-answer" type="checkbox" name="type" value="SA" bind:group={inputs.types} />
             <span />
             Short Answer
         </label>
@@ -71,38 +89,38 @@
     <div class="checkbox-wrapper">
         <h3>Categories</h3>
         <label for="bio">
-            <input type="checkbox" id="bio" name="category" value="bio" bind:group={categories} />
+            <input type="checkbox" id="bio" name="category" value="bio" bind:group={inputs.categories} />
             <span />
             Biology
         </label> <br />
         <label for="earth">
-            <input type="checkbox" id="earth" name="category" value="earth" bind:group={categories} />
+            <input type="checkbox" id="earth" name="category" value="earth" bind:group={inputs.categories} />
             <span />
             Earth and Space
         </label> <br />
         <label for="chem">
-            <input type="checkbox" id="chem" name="category" value="chem" bind:group={categories} />
+            <input type="checkbox" id="chem" name="category" value="chem" bind:group={inputs.categories} />
             <span />
             Chemistry
         </label> <br />
         <label for="physics">
-            <input type="checkbox" id="physics" name="category" value="physics" bind:group={categories} />
+            <input type="checkbox" id="physics" name="category" value="physics" bind:group={inputs.categories} />
             <span />
             Physics
         </label> <br />
         <label for="math">
-            <input type="checkbox" id="math" name="category" value="math" bind:group={categories} />
+            <input type="checkbox" id="math" name="category" value="math" bind:group={inputs.categories} />
             <span />
             Math
         </label> <br />
         <label for="energy">
-            <input type="checkbox" id="energy" name="category" value="energy" bind:group={categories} />
+            <input type="checkbox" id="energy" name="category" value="energy" bind:group={inputs.categories} />
             <span />
             Energy
         </label> <br />
     </div>
     <br />
-    <button on:click={() => emitQuery()}>Submit Query</button>
+    <button type="submit">Submit Query</button>
     {#if numQuestions}
         <h3>{numQuestions} questions matched your query</h3>
     {/if}

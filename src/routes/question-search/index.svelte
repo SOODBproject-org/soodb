@@ -2,26 +2,22 @@
     import type { Load } from "@sveltejs/kit"
     import Cookie from "js-cookie"
 
-    export const load: Load = async function ({ session, fetch }) {
-        console.dir(session)
-
-        const inputs: Record<string, string> = {}
-        if (session.previousQuery?.authorName) inputs.authorName = session.previousQuery.authorName
-        if (session.previousQuery?.keywords) inputs.keywords = session.previousQuery.keywords
-        if (session.previousQuery?.types?.length) inputs.types = (session.previousQuery.types ?? []).join(",")
-        if (session.previousQuery?.categories?.length) {
-            inputs.categories = (session.previousQuery.categories ?? []).join(",")
-        }
-        if (session.previousQuery?.start) inputs.start = session.previousQuery.start
-        if (session.previousQuery?.end) inputs.end = session.previousQuery.end
-        const params = new URLSearchParams({ ...inputs, includeAuthor: "true" })
+    export const load: Load = async function ({ fetch }) {
+        const previousQuery: Record<string, string | string[]> = browser
+            ? JSON.parse(Cookie.get("previousQuery") ?? "{}")
+            : {}
+        const params = new URLSearchParams({
+            ...previousQuery,
+            includeAuthor: "true",
+            // check cookie on SSR request
+            checkCookies: "true",
+        })
         const questionsRes = await fetch("/api/questions?" + params.toString(), {
-            headers: {
-                Authorization: Cookie.get("authToken") ?? "",
-            },
+            credentials: "include",
         })
         return {
             props: {
+                query: previousQuery,
                 questions: await questionsRes.json(),
             },
         }
@@ -33,9 +29,18 @@
     import PageSwitcher from "$lib/components/PageSwitcher.svelte"
     import QueryBox from "$lib/components/QueryBox.svelte"
     import type { SaQuestion, McqQuestion } from "$lib/mongo"
-    import { tick } from "svelte"
+    import { onMount, tick } from "svelte"
+    import { browser } from "$app/env"
+    import { removeUndefined } from "$lib/utils"
 
+    export let query: Record<string, string>
     export let questions: (SaQuestion | McqQuestion)[] = []
+
+    let queryBoxComponent: QueryBox
+    onMount(() => {
+        queryBoxComponent?.setQuery(query)
+    })
+
     const resultsPerPage = 20
     let pageNumber =
         parseInt(Cookie.get("pageNumber") ?? "1") <= Math.ceil(questions.length / resultsPerPage)
@@ -45,20 +50,23 @@
     let menuOpen = true
     let querySent = false
     async function sendQuery(queryBox: Record<string, any>) {
-        const inputs: Record<string, string> = {}
-        if (queryBox.authorName) inputs.authorName = queryBox.authorName
-        if (queryBox.keywords) inputs.keywords = queryBox.keywords
-        if (queryBox.types.length) inputs.types = queryBox.types.join(",")
-        if (queryBox.categories.length) inputs.categories = queryBox.categories.join(",")
-        if (queryBox.start) inputs.start = queryBox.start
-        if (queryBox.end) inputs.end = queryBox.end
-        const params = new URLSearchParams(inputs)
+        query.authorName = queryBox.authorName || undefined
+        query.keywords = queryBox.keywords || undefined
+        query.types = queryBox.types.length ? queryBox.types : undefined
+        query.categories = queryBox.categories.length ? queryBox.categories : undefined
+        query.start = queryBox.start || undefined
+        query.end = queryBox.end || undefined
+
+        query = removeUndefined(query)
+
+        Cookie.set("previousQuery", JSON.stringify(query))
+        const params = new URLSearchParams(query)
+
         const res = await fetch("/api/questions?" + params.toString(), {
-            headers: {
-                Authorization: Cookie.get("authToken") ?? "",
-            },
+            credentials: "include",
         })
         questions = await res.json()
+
         await tick()
         window.scroll(0, 0)
         closeMenu()
@@ -84,6 +92,7 @@
             <div id="desktop-menu">
                 <QueryBox
                     bind:numQuestions={questions.length}
+                    bind:this={queryBoxComponent}
                     on:sendQuery={async (event) => {
                         await sendQuery(event.detail.inputs)
                         await tick()
@@ -134,7 +143,6 @@
 
 <style lang="scss">
     h1 {
-        display: inline-block;
         margin: 0 1ch;
         font-size: 1em;
     }

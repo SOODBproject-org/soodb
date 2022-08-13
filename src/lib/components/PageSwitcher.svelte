@@ -35,41 +35,45 @@
 </script>
 
 <div>
-    <button
-        on:click={() => {
-            if (pageNumber > 1) {
-                dispatch("pageChange", {
-                    old: pageNumber,
-                    new: pageNumber - 1,
-                })
-                pageNumber -= 1
-            }
-        }}
-        disabled={pageNumber === 1}
-    >
-        <span />
-    </button>
-    <input
-        type="text"
-        bind:this={inputElement}
-        bind:value={inputValue}
-        on:input={handleInput}
-        on:change={handleChange}
-    />
-    <button
-        on:click={() => {
-            if (pageNumber < numPages) {
-                dispatch("pageChange", {
-                    old: pageNumber,
-                    new: pageNumber + 1,
-                })
-                pageNumber += 1
-            }
-        }}
-        disabled={pageNumber === numPages}
-    >
-        <span style="transform: scaleX(-1)" />
-    </button>
+    {#if pageNumber > 1}
+        <button
+            on:click={() => {
+                if (pageNumber > 1) {
+                    dispatch("pageChange", {
+                        old: pageNumber,
+                        new: pageNumber - 1,
+                    })
+                    pageNumber -= 1
+                }
+            }}
+        >
+            <span />
+        </button>
+    {/if}
+    {#if numPages > 1}
+        <input
+            type="text"
+            bind:this={inputElement}
+            bind:value={inputValue}
+            on:input={handleInput}
+            on:change={handleChange}
+        />
+    {/if}
+    {#if pageNumber < numPages}
+        <button
+            on:click={() => {
+                if (pageNumber < numPages) {
+                    dispatch("pageChange", {
+                        old: pageNumber,
+                        new: pageNumber + 1,
+                    })
+                    pageNumber += 1
+                }
+            }}
+        >
+            <span style="transform: scaleX(-1)" />
+        </button>
+    {/if}
 </div>
 
 <style lang="scss">
@@ -85,16 +89,18 @@
         font-size: inherit;
         text-align: center;
         width: 5ch;
+        margin-block: 0;
     }
 
     button {
         @extend %button-secondary;
 
         font-size: inherit;
-        width: 1.7em;
-        height: 1.7em;
+        width: 1.8em;
+        height: 1.8em;
         padding: 0.2em;
         vertical-align: middle;
+        margin-block: 0;
 
         span {
             background-image: url("/arrow.svg");

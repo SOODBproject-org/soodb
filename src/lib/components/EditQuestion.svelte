@@ -150,25 +150,15 @@
 
     textarea {
         @include vertical-scrollable(7px);
+        @extend %textarea;
 
-        padding: 0.3em;
         font-size: 20px;
-        margin: 0.5em auto;
-        border: none;
-        border-radius: 0.3em;
-        box-sizing: border-box;
         width: 30em;
         max-width: 80vw;
         resize: vertical;
         min-height: 1.8em;
         height: 1.8em;
-        font-family: "Ubuntu";
-        position: relative;
         vertical-align: middle;
-
-        &:focus::placeholder {
-            color: transparent;
-        }
     }
 
     p {

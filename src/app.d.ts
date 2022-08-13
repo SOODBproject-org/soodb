@@ -29,6 +29,7 @@ declare namespace App {
         SECRET: string
         DATABASE_APP_ID: string
         DATABASE_KEY: string
+        LUCIA_SECRET: string
     }
 
     interface PublicEnv extends Record<string, string> {

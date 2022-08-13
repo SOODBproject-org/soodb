@@ -33,10 +33,8 @@ export interface SaQuestion extends QuestionBase {
 
 export type Question = McqQuestion | SaQuestion
 
-export interface User {
-    id: string
+export interface UserData {
     username: string
-    avatarHash?: string
 }
 
 export interface UserSettings {
@@ -45,8 +43,14 @@ export interface UserSettings {
     imgUrl?: string
 }
 
+export type RefreshToken = {
+    refresh_token: string,
+    user_id: string
+}
+
 import { env } from "$env/dynamic/private"
 import MongoDataAPI from "atlas-data-api"
+import type { DatabaseUser } from "lucia-sveltekit/types"
 import { createSearchString } from "./functions/databaseUtils"
 import type { DistributiveOmit } from "./utils"
 
@@ -65,10 +69,11 @@ const api = new MongoDataAPI({
     id: env.DATABASE_APP_ID,
 })
 const database = api.cluster("SOODB").database("ScibowlOpenDB")
-const collections = {
-    questions: database.collection<SaQuestion | McqQuestion>("questions"),
-    users: database.collection<User>("users"),
+export const collections = {
+    questions: database.collection<Question>("questions"),
+    users: database.collection<DatabaseUser<UserData>>("users"),
     userSettings: database.collection<UserSettings>("userSettings"),
+    refreshTokens: database.collection<RefreshToken>("refreshTokens")
 }
 
 export type NewQuestionData = DistributiveOmit<Question, InternalQuestionKey>
@@ -149,7 +154,7 @@ export async function getUserByID(id: string) {
     return document
 }
 
-export async function updateUser(id: string, data: Partial<User>) {
+export async function updateUser(id: string, data: Partial<UserData>) {
     return collections.users.updateOne({
         filter: { id },
         update: { $set: data },

@@ -316,7 +316,7 @@
 
     .plus {
         @extend %button-secondary;
-
+        padding-top:.3em;
         width: 6ch;
     }
 
@@ -328,6 +328,7 @@
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
         margin-left: 0;
+        padding-top:.2em;
         box-sizing: border-box;
         height: 1.9em;
     }

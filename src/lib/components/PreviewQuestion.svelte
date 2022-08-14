@@ -1,6 +1,6 @@
 <script lang="ts">
-    import type { McqBase, SaBase } from "../mongo"
-    export let question: SaBase | McqBase
+    import type { McqQuestion, SaQuestion } from "../mongo"
+    export let question: NewQuestionData
 
     const categoryNames = {
         bio: "Biology",
@@ -24,7 +24,7 @@
         <h3 class="question-text">Y) {question.choices.Y}</h3>
         <h3 class="question-text">Z) {question.choices.Z}</h3>
     {/if}
-    <p>Author - {question.authorName}</p>
+    <p>Source - {question.source}</p>
     <h3 class="correct-answer">{question.correctAnswer}</h3>
 </div>
 

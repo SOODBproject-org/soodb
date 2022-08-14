@@ -1,29 +1,57 @@
-<script lang="ts">
-    import PreviewQuestion from "$lib/components/PreviewQuestion.svelte"
-    import type { Category, McqBase, SaBase } from "$lib/mongo"
+<script context="module" lang="ts">
+    import type { Load } from "@sveltejs/kit"
 
+    export const load: Load = async function ({ url }) {
+        if (browser) {
+            history.replaceState(null, "", "/write")
+        }
+
+        return {
+            props: {
+                submitted: url.searchParams.get("submitted"),
+            },
+        }
+    }
+</script>
+
+<script lang="ts">
+    import { browser } from "$app/env"
+    import { onMount } from "svelte"
+    import PreviewQuestion from "$lib/components/PreviewQuestion.svelte"
+    import type { Category, NewQuestionData } from "$lib/mongo"
+    import Notification from "$lib/components/Notification.svelte"
     let plainText: string
     let settingsVisible = false
     let editableRegex: string
     let source: string
+    export let submitted: string
+
     const parameters = {
         tossUp: "TOSSUP",
         bonus: "BONUS",
-        categories: ["biology", "chemistry", "earth and space", "physics", "math", "energy"],
+        categories: ["BIOLOGY", "CHEMISTRY", "EARTH AND SPACE", "PHYSICS", "MATH", "ENERGY"],
         shortAnswer: "Short Answer",
         multipleChoice: "Multiple Choice",
         ignoreCase: true,
     }
+    let notificationShown = true
+
+    if (submitted) {
+        onMount(() => {
+            setTimeout(() => {
+                notificationShown = false
+            }, 5000)
+        })
+    }
 
     function setCatNames(categories: string[]) {
-        const DBcat: Category[] = ["bio", "chem", "earth", "math", "physics", "energy"]
+        const DBcat: Category[] = ["bio", "chem", "earth", "physics", "math", "energy"]
         const tempObj: Record<string, Category> = {}
         for (let i = 0; i < 6; i++) {
             categories[i].split("|").forEach((term) => {
                 tempObj[term.toLowerCase()] = DBcat[i]
             })
         }
-        console.dir(tempObj)
         return tempObj
     }
 
@@ -47,8 +75,8 @@
         //(Tossup|TOSS UP|TOSS-UP|BONUS).+?\n?.+?(BIOLOGY|CHEMISTRY|EARTH AND SPACE|MATH|PHYSICS|GENERAL SCIENCE|ASTRONOMY|EARTH SCIENCE|COMPUTER SCIENCE)\n?.+?(Short Answer|Multiple Choice):?((.|\n)+?)ANSWER:?(.+)
     }
 
-    function doRegex(text: string, pattern: RegExp) {
-        const result: (McqBase | SaBase)[] = []
+    function generatePreviews(text: string, pattern: RegExp, source: string) {
+        const result: NewQuestionData[] = []
         if (text) {
             const results = [...text.matchAll(pattern)]
 
@@ -56,15 +84,15 @@
                 const category = categoryNames[question[2].toLowerCase()]
                     ? categoryNames[question[2].toLowerCase()]
                     : (question[2] as Category)
-                const isBonus = question[1].toLowerCase().includes("bonus")
+                const bonus = question[1].toLowerCase().includes("bonus")
                 if (question[3].toLowerCase() === "multiple choice") {
                     const splitQuestion = [...(question[4].match(/(.+?)W\)(.+?)X\)(.+?)Y\)(.+?)Z\)(.+)/is) ?? [])]
                     const answerChoice = [...(question[6].match(/(W|X|Y|Z).??/i) ?? [])]
-                    const thisQ: McqBase = {
+                    const thisQ: NewQuestionData = {
                         type: "MCQ",
                         category,
                         source,
-                        isBonus,
+                        bonus,
                         questionText: splitQuestion[1],
                         choices: {
                             W: splitQuestion[2],
@@ -72,17 +100,17 @@
                             Y: splitQuestion[4],
                             Z: splitQuestion[5],
                         },
-                        correctAnswer: answerChoice[1].toUpperCase() as "W" | "X" | "Y" | "Z",
+                        correctAnswer: answerChoice[1].toUpperCase() as "W" | "X" | "Y" | "Z"
                     }
                     result.push(thisQ)
                 } else {
-                    const thisQ: SaBase = {
+                    const thisQ: NewQuestionData = {
                         type: "SA",
                         category,
                         source,
-                        isBonus,
+                        bonus,
                         questionText: question[4],
-                        correctAnswer: question[6],
+                        correctAnswer: question[6]
                     }
                     result.push(thisQ)
                 }
@@ -93,7 +121,7 @@
 
     $: categoryNames = setCatNames(parameters.categories)
     let regexPattern = calcRegexPattern()
-    $: questions = doRegex(plainText, regexPattern)
+    $: questions = generatePreviews(plainText, regexPattern, source)
 </script>
 
 <svelte:head>
@@ -101,7 +129,16 @@
 </svelte:head>
 
 <main>
-    <form id="form" action="/write" method="POST" autocomplete="off">
+    {#if submitted === "success"}
+        <Notification title="Success" text="Your question has been successfully submitted" shown={notificationShown} />
+    {:else if submitted === "error"}
+        <Notification
+            title="Error"
+            text="An error occurred and your question was not submitted"
+            shown={notificationShown}
+        />
+    {/if}
+    <form id="form" action="/packet-submit" method="POST" autocomplete="off">
         <h1>Packet Submission</h1>
         <input
             type="text"
@@ -125,10 +162,10 @@
             <h2>{settingsVisible ? "Hide" : "Show"} parsing settings</h2>
         </div>
         <div id="advancedSettings" class:visible={settingsVisible}>
-            <input type="text" bind:value={parameters.tossUp} on:input={calcRegexPattern} />
-            <input type="text" bind:value={parameters.bonus} on:input={calcRegexPattern} /><br />
-            <input type="text" bind:value={parameters.shortAnswer} on:input={calcRegexPattern} />
-            <input type="text" bind:value={parameters.multipleChoice} on:input={calcRegexPattern} /><br />
+            <input type="text" bind:value={parameters.tossUp} on:input={()=>regexPattern = calcRegexPattern()} />
+            <input type="text" bind:value={parameters.bonus} on:input={()=>regexPattern = calcRegexPattern()} /><br />
+            <input type="text" bind:value={parameters.shortAnswer} on:input={()=>regexPattern = calcRegexPattern()} />
+            <input type="text" bind:value={parameters.multipleChoice} on:input={()=>regexPattern = calcRegexPattern()} /><br />
             <div id="categoryContainer">
                 <div id="labels" class="v-box">
                     <p>Biology:</p>
@@ -140,18 +177,18 @@
                     <p>Other:</p>
                 </div>
                 <div id="categoryInputs" class="v-box">
-                    <input type="text" bind:value={parameters.categories[0]} on:input={calcRegexPattern} />
-                    <input type="text" bind:value={parameters.categories[1]} on:input={calcRegexPattern} />
-                    <input type="text" bind:value={parameters.categories[2]} on:input={calcRegexPattern} />
-                    <input type="text" bind:value={parameters.categories[3]} on:input={calcRegexPattern} />
-                    <input type="text" bind:value={parameters.categories[4]} on:input={calcRegexPattern} />
-                    <input type="text" bind:value={parameters.categories[5]} on:input={calcRegexPattern} />
+                    <input type="text" bind:value={parameters.categories[0]} on:input={()=>regexPattern = calcRegexPattern()} />
+                    <input type="text" bind:value={parameters.categories[1]} on:input={()=>regexPattern = calcRegexPattern()} />
+                    <input type="text" bind:value={parameters.categories[2]} on:input={()=>regexPattern = calcRegexPattern()} />
+                    <input type="text" bind:value={parameters.categories[3]} on:input={()=>regexPattern = calcRegexPattern()} />
+                    <input type="text" bind:value={parameters.categories[4]} on:input={()=>regexPattern = calcRegexPattern()} />
+                    <input type="text" bind:value={parameters.categories[5]} on:input={()=>regexPattern = calcRegexPattern()} />
                     {#each Array(parameters.categories.length - 6) as _, i}
                         <div class="removableCat">
                             <input
                                 type="text"
                                 bind:value={parameters.categories[i + 6]}
-                                on:input={calcRegexPattern}
+                                on:input={()=>regexPattern = calcRegexPattern()}
                                 style="width:12.5ch;border-radius: .3em 0em 0em .3em;margin-right:0;border-right:solid 3px #AAA;"
                             />
                             <p
@@ -165,6 +202,7 @@
                             >
                                 -
                             </p>
+                            
                         </div>
                     {/each}
                     <p
@@ -176,6 +214,7 @@
                     >
                         +
                     </p>
+                    <input type="hidden" name="questions" value={JSON.stringify(questions)} />
                 </div>
             </div>
             <p>Raw Regex:</p>
@@ -254,8 +293,8 @@
         display: flex;
         flex-direction: row;
         p {
-            margin: 0.8em;
-            font-size: 24px;
+            margin: 0.85em;
+            font-size: 18px;
         }
     }
     .v-box {
@@ -280,6 +319,7 @@
     }
 
     textarea {
+        @extend %text-input;
         padding: 0.3em;
         font-size: 18px;
         margin: 0.5em auto;
@@ -291,7 +331,6 @@
         resize: horizontal vertical;
         min-height: 1.8em;
         height: 1.8em;
-        font-family: "Ubuntu";
         position: relative;
         vertical-align: middle;
 

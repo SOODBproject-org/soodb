@@ -1,16 +1,16 @@
-export type Category = "earth" | "bio" | "chem" | "physics" | "math" | "energy"
+export type Category = "earth" | "bio" | "chem" | "physics" | "math" | "energy" 
 
 interface QuestionBase {
     id: string
     authorId?: string
     bonus: boolean
-    category: Category
+    category: string
     questionText: string
     pairId?: string
     source?: string
-    searchString: string
+    searchString?: string
     created: Date
-    modified: Date
+    modified?: Date
 }
 
 export interface McqQuestion extends QuestionBase {
@@ -66,7 +66,7 @@ const api = new MongoDataAPI({
 })
 const database = api.cluster("SOODB").database("ScibowlOpenDB")
 const collections = {
-    questions: database.collection<SaQuestion | McqQuestion>("questions"),
+    questions: database.collection<Question>("questions"),
     users: database.collection<User>("users"),
     userSettings: database.collection<UserSettings>("userSettings"),
 }
@@ -83,6 +83,43 @@ export async function addQuestion(question: NewQuestionData) {
             modified: date,
         },
     })
+}
+
+export async function addPacket(questions:NewQuestionData[]) {
+    const date = new Date()
+    const questionOBJ : (Question)[] = []
+    for (let i=0;i<Math.floor(questions.length/2);i++){
+        const tossupID =  createID()
+        const bonusID = createID()
+        questionOBJ.push({
+            ...questions[i*2],
+            id:tossupID,
+            pairId:bonusID,
+            searchString: createSearchString(questions[i*2]),
+            created:date,
+            modified:date
+        })
+        questionOBJ.push({
+            ...questions[i*2+1],
+            id:bonusID,
+            pairId:tossupID,
+            searchString: createSearchString(questions[i*2+1]),
+            created:date,
+            modified:date
+        })
+    }
+    if (questions.length%2===1) {
+        questionOBJ.push({
+            ...questions[questions.length-1],
+            id:createID(),
+            searchString: createSearchString(questions[questions.length-1]),
+            created:date,
+            modified:date 
+        })
+    }
+
+    return collections.questions.insertMany({documents: questionOBJ}) 
+    
 }
 
 type QuestionQuery = {

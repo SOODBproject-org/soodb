@@ -139,7 +139,7 @@ type MongoQuestionQuery = {
     $text?: { $search: string }
     category?: { $in: Category[] }
     type?: { $in: ("SA" | "MCQ")[] }
-    date?: {
+    created?: {
         $lt?: Date
         $gte?: Date
     }
@@ -153,9 +153,9 @@ export async function getQuestions({ authorName, authorId, keywords, categories,
     if (categories?.length) mongoQuery.category = { $in: categories }
     if (types?.length) mongoQuery.type = { $in: types }
     if (timeRange && (timeRange.startDate || timeRange.endDate)) {
-        mongoQuery.date = {}
-        if (timeRange.startDate) mongoQuery.date.$gte = timeRange.startDate
-        if (timeRange.endDate) mongoQuery.date.$lt = timeRange.endDate
+        mongoQuery.created = {}
+        if (timeRange.startDate) mongoQuery.created.$gte = timeRange.startDate
+        if (timeRange.endDate) mongoQuery.created.$lt = timeRange.endDate
     }
     const { documents } = await collections.questions.find({
         filter: mongoQuery,

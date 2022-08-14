@@ -1,4 +1,5 @@
 @use 'variables';
+@use 'scrollable';
 
 %text-input {
     padding: 0.3em;
@@ -11,6 +12,27 @@
     
     &:focus {
         border-color: variables.$accent-2;
+
+        &::placeholder {
+            color: transparent;
+        }
+    }
+}
+
+%textarea {
+    @include scrollable.vertical-scrollable(5px);
+
+    padding: 0.3em;
+    margin: 0.5em 0;
+    border: transparent 1.5px solid;
+    border-radius: 0.2em;
+    background: variables.$input-background;
+    color: variables.$text-light;
+    transition: border-color 0.2s;
+    
+    &:focus {
+        border-color: variables.$accent-2;
+        outline: none;
 
         &::placeholder {
             color: transparent;

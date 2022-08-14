@@ -3,7 +3,7 @@
 
     export const load: Load = async function ({ url }) {
         if (browser) {
-            history.replaceState(null, "", "/write")
+            history.replaceState(null, "", "/packet-submit")
         }
 
         return {
@@ -25,6 +25,7 @@
     let settingsVisible = false
     let editableRegex: string
     let source: string
+    let created: Date
     export let submitted: string
 
     const parameters = {
@@ -62,7 +63,6 @@
     }
 
     function calcRegexPattern() {
-        console.log("calc")
         let catString = ""
         parameters.categories.forEach((cat) => {
             catString += cat + "|"
@@ -141,7 +141,7 @@
         />
     {/if}    
     <div class="data-entry">
-        <form id="form" action="/write" method="POST" autocomplete="off" on:input={calcRegexPattern}>
+        <form id="form" action="/packet-submit" method="POST" autocomplete="off" on:input={calcRegexPattern}>
             <h1>Packet Submission</h1>
             <input
                 type="text"
@@ -149,6 +149,16 @@
                 placeholder="Packet Source ex:Official-Set2-Round3"
                 style="width:32ch;max-width:90%"
             />
+            <div style="background:hsl(48, 18%, 9%);border-radius:.3em">
+                <label for="created" style="display: inline-block;margin:0 .3em;font-size:20px;">Date packet was created:  </label>
+                <input
+                    id="created"
+                    name="created"
+                    type="date"
+                    bind:value={created}
+                    style="width:13ch;max-width:90%;margin:0;border-radius:0 .3em .3em 0"
+                />
+            </div>
             <textarea
                 name="plainText"
                 placeholder="Paste in your packet here. Ctrl + A, Ctrl+C, Ctrl+V should work."
@@ -182,7 +192,7 @@
                     <div>
                         {#each Array(parameters.categories.length - 6) as _, i}
                             <div class="removableCat">
-                                <input type="text" bind:value={parameters.categories[i + 6]} style:width="12ch" />
+                                <input type="text" bind:value={parameters.categories[i + 6]} style="width:12ch;border-radius:.3em 0 0 .3em " />
                                 <button
                                     type="button"
                                     class="minus"
@@ -191,7 +201,6 @@
                                         parameters.categories = parameters.categories
                                         calcRegexPattern()
                                     }}
-                                    style=""
                                 >
                                     -
                                 </button>
@@ -347,7 +356,13 @@
         max-width: 80vw;
         text-align: center;
     }
-
+    input[type="date"] {
+        @extend %text-input;
+        font-size: 20px;
+        &:focus::placeholder {
+            color: transparent;
+        }
+    }
     textarea {
         @extend %textarea;
 

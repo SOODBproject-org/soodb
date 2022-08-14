@@ -1,9 +1,8 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte"
-    import type { Category } from "$lib/mongo"
-    import Cookie from "js-cookie"
+    import Select from 'svelte-select'
     import { page } from "$app/stores"
-
+    
     type Inputs = {
         authorName: string
         keywords: string
@@ -20,6 +19,15 @@
         types: [],
         categories: [],
     }
+    const categoryNames = [
+        {id:"Biology",value:"bio"},
+        {id:"Earth and Space",value:"earth"},
+        {id:"Chemistry",value:"chem"},
+        {id:"Math",value:"math"},
+        {id:"Physics",value:"physics"},
+        {id:"Energy",value:"energy"}
+    ]
+    
     export let numQuestions: number
     const dispatch = createEventDispatcher()
 
@@ -37,6 +45,11 @@
             inputs: inputs,
             pageNumber,
         })
+    }
+
+    function handleCategorySelect(e: CustomEvent<{ id: number, value: string}[]>){
+        if (e.detail) inputs.categories = e.detail.map((i)=>i.value as Category)
+        else inputs.categories = []
     }
 </script>
 
@@ -66,9 +79,8 @@
         /><br />
         <input type="text" name="keywords" placeholder="Keywords" id="keyword-input" bind:value={inputs.keywords} /><br
         />
-        <h3>Start Date:</h3>
-        <input type="date" name="start-date" bind:value={inputs.start} /><br />
-        <h3>End Date:</h3>
+        <h3>Date Range:</h3>
+        <input type="date" name="start-date" bind:value={inputs.start} />-
         <input type="date" name="end-date" bind:value={inputs.end} />
     </div>
     <div class="radio-wrapper">
@@ -88,36 +100,15 @@
     <br />
     <div class="checkbox-wrapper">
         <h3>Categories</h3>
-        <label for="bio">
-            <input type="checkbox" id="bio" name="category" value="bio" bind:group={inputs.categories} />
-            <span />
-            Biology
-        </label> <br />
-        <label for="earth">
-            <input type="checkbox" id="earth" name="category" value="earth" bind:group={inputs.categories} />
-            <span />
-            Earth and Space
-        </label> <br />
-        <label for="chem">
-            <input type="checkbox" id="chem" name="category" value="chem" bind:group={inputs.categories} />
-            <span />
-            Chemistry
-        </label> <br />
-        <label for="physics">
-            <input type="checkbox" id="physics" name="category" value="physics" bind:group={inputs.categories} />
-            <span />
-            Physics
-        </label> <br />
-        <label for="math">
-            <input type="checkbox" id="math" name="category" value="math" bind:group={inputs.categories} />
-            <span />
-            Math
-        </label> <br />
-        <label for="energy">
-            <input type="checkbox" id="energy" name="category" value="energy" bind:group={inputs.categories} />
-            <span />
-            Energy
-        </label> <br />
+        <div class='select'>
+            <Select 
+                items={categoryNames}
+                optionIdentifier="value" 
+                labelIdentifier="id"
+                isMulti={true}
+                on:select={handleCategorySelect} 
+            />
+        </div>
     </div>
     <br />
     <button type="submit">Submit Query</button>
@@ -133,15 +124,31 @@
         padding: 1em;
     }
     input[type="date"] {
-        padding: 0.3em;
+        @extend %text-input;
         font-size: 20px;
-        margin: 0.5em auto;
+        width: min(150px,40%);
+        &:focus::placeholder {
+            color: transparent;
+        }
+    }
+    .select {
+        --input-font-size:20px;
+        --background: hsl(48, 18%, 9%);
+        --listBackground:hsl(48, 18%, 9%);
+        --itemHoverBG: hsl(218, 38%, 46%);
+        --multiItemBG: hsl(218, 38%, 46%);
+        --itemColor: hsl(32, 30%, 87%);
+        --listMaxHeight: 6em;
+        --border: transparent 1.5px solid;
+        --border-radius: .2em;
+        font-size: 20px;
         border: none;
-        border-radius: 0.3em;
+        margin: .5em 0;        
         box-sizing: border-box;
-        max-width: min(80vw, 90%);
-        text-align: left;
+        max-width: min(300px,80%);
         position: relative;
+        text-align: left;
+        font-family: 'Ubuntu';
         &:focus::placeholder {
             color: transparent;
         }
@@ -151,7 +158,7 @@
         @extend %text-input;
 
         font-size: 20px;
-        max-width: 80%;
+        max-width: min(300px,80%);
     }
 
     h3 {

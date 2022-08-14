@@ -85,7 +85,7 @@ export async function addQuestion(question: NewQuestionData) {
     })
 }
 
-export async function addPacket(questions:NewQuestionData[]) {
+export async function addPacket(questions:NewQuestionData[],created:Date) {
     const date = new Date()
     const questionOBJ : (Question)[] = []
     for (let i=0;i<Math.floor(questions.length/2);i++){
@@ -96,7 +96,7 @@ export async function addPacket(questions:NewQuestionData[]) {
             id:tossupID,
             pairId:bonusID,
             searchString: createSearchString(questions[i*2]),
-            created:date,
+            created,
             modified:date
         })
         questionOBJ.push({
@@ -104,7 +104,7 @@ export async function addPacket(questions:NewQuestionData[]) {
             id:bonusID,
             pairId:tossupID,
             searchString: createSearchString(questions[i*2+1]),
-            created:date,
+            created,
             modified:date
         })
     }
@@ -113,7 +113,7 @@ export async function addPacket(questions:NewQuestionData[]) {
             ...questions[questions.length-1],
             id:createID(),
             searchString: createSearchString(questions[questions.length-1]),
-            created:date,
+            created,
             modified:date 
         })
     }

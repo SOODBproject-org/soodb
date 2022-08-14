@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { McqQuestion, SaQuestion } from "../mongo"
+    import type { NewQuestionData } from "../mongo"
     export let question: NewQuestionData
 
     const categoryNames = {

@@ -41,7 +41,7 @@
         queryBoxComponent?.setQuery(query)
     })
 
-    const resultsPerPage = 20
+    const resultsPerPage = 24
     let pageNumber =
         parseInt(Cookie.get("pageNumber") ?? "1") <= Math.ceil(questions.length / resultsPerPage)
             ? parseInt(Cookie.get("pageNumber") ?? "1")
@@ -265,7 +265,7 @@
         height: min-content;
         max-height: calc(100vh - 100px);
         position: sticky;
-        top: 20px;
+        top: 5.75em;
         width: min(40vw, 50ch);
         flex-grow: 2;
         border-radius: 1em;

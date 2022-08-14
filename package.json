@@ -39,7 +39,8 @@
     "atlas-data-api": "^0.1.6",
     "js-cookie": "^2.2.1",
     "jsonwebtoken": "^8.5.1",
-    "node-fetch": "^3.2.10"
+    "node-fetch": "^3.2.10",
+    "svelte-select": "^4.4.7"
   },
   "lint-staged": {
     "*.{js,ts}": "eslint --cache --fix",

@@ -8,6 +8,8 @@
 
     let modifiedDate = new Date(question.modified)
     let modifiedDateString = Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale).format(modifiedDate)
+    let createdDate = new Date(question.created)
+    let createdDateString = Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale).format(createdDate)
 
     const categoryNames = {
         bio: "Biology",
@@ -33,7 +35,7 @@
 
 <div id="question" class={question.category}>
     <div class="top">
-        <h1>{categoryNames[question.category]}</h1>
+        <h1>{categoryNames[question.category] ? categoryNames[question.category] : question.category }</h1>
         <p class="question-text">{question.questionText}</p>
 
         {#if question.type === "MCQ"}
@@ -53,8 +55,9 @@
     <div class="line" />
     <div class="bottom">
         <span class="metadata">
-            {question.authorName ? `Author - ${question.authorName}` : ""}
-            <i>({modifiedDateString})</i>
+            {question.authorName ? `Author - ${question.authorName}; ` : ""}
+            <i>Created: {createdDateString}</i>
+            <i>{createdDateString!==modifiedDateString ? `; Updated: ${modifiedDateString}` : ""}</i>
         </span>
         {#if question.pairId}
             <a href="/question/{question.pairId}">Paired {question.bonus ? "Tossup" : "Bonus"}</a>

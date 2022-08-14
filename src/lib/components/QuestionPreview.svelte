@@ -23,7 +23,7 @@
 
 <div class={"preview " + question.category} bind:clientWidth={previewWidth}>
     <div class="wrapper">
-        <h2>{categoryNames[question.category]}</h2>
+        <h2>{categoryNames[question.category] ? categoryNames[question.category] : question.category }</h2>
         <a href="/question/{question.id}" sveltekit:prefetch>View</a>
     </div>
     <h3>{truncatedQuestion}</h3>

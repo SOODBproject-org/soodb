@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Question, User } from "../mongo"
+    import type { Question } from "../mongo"
     import { session } from "$app/stores"
     import { slide } from "svelte/transition"
 
@@ -60,7 +60,7 @@
             <a href="/question/{question.pairId}">Paired {question.bonus ? "Tossup" : "Bonus"}</a>
         {/if}
         <span style="margin-left: auto;" />
-        {#if $session.userData && $session.userData.id === question.authorId}
+        {#if $session.lucia && $session.lucia.user.user_id === question.authorId}
             <a id="editbutton" href="/edit/{question.id}">
                 <span />
             </a>

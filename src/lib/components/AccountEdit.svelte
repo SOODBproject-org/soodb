@@ -1,7 +1,8 @@
 <script lang="ts">
-    import type { SaQuestion, McqQuestion, User, UserSettings } from "$lib/mongo"
+    import type { SaQuestion, McqQuestion, UserSettings, UserData } from "$lib/mongo"
+    import type { User } from "lucia-sveltekit/types";
 
-    export let userData: User
+    export let userData: User<UserData>
     export let userSettings: UserSettings
     export let questions: (SaQuestion | McqQuestion)[]
 
@@ -33,13 +34,13 @@
 
 <div>
     <div id="card">
-        <img
+        <!-- <img
             id="icon"
             src={`https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatarHash}.png`}
             alt="Profile"
-        />
+        /> -->
         <input id="username" type="text" bind:value={inputtedUsername} />
-        <p id="user-id">{userData.id}</p>
+        <p id="user-id">{userData.user_id}</p>
         <p>
             {#if questions}
                 <h3>Question Record</h3>

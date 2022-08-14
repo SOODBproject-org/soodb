@@ -18,9 +18,10 @@
 <script lang="ts">
     import QuestionPreview from "$lib/components/QuestionPreview.svelte"
     import Account from "$lib/components/Account.svelte"
-    import type { McqQuestion, SaQuestion, User } from "$lib/mongo"
+    import type { McqQuestion, SaQuestion, UserData } from "$lib/mongo"
+    import type { User } from "lucia-sveltekit/types";
     export let questions: (SaQuestion | McqQuestion)[]
-    export let userData: User
+    export let userData: User<UserData>
 </script>
 
 <svelte:head>

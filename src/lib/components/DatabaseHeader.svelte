@@ -1,8 +1,15 @@
 <script lang="ts">
     import { session } from "$app/stores"
     import { slide } from "svelte/transition"
+    import { signOut } from 'lucia-sveltekit/client'
+    import { goto } from "$app/navigation";
 
     let menuOpen = false
+
+    async function logout() {
+        await signOut()
+        window.location.href = "/write"
+    }
 </script>
 
 <div id="header">
@@ -14,8 +21,9 @@
                 <!-- Do not prefetch write or URL will get changed -->
                 <li><a href="/write">Write</a></li>
                 <li><a href="/packet-submit" sveltekit:prefetch>Packet Submit</a></li>
-                {#if $session.userData}
+                {#if $session.lucia}
                     <li><a href="/account" sveltekit:prefetch>Account</a></li>
+                    <li><button class="logout" on:click={logout}>Logout</button></li>
                 {:else}
                     <li><a href="/login" sveltekit:prefetch>Login</a></li>
                 {/if}
@@ -29,14 +37,16 @@
     {#if menuOpen}
         <nav class="mobile-menu" transition:slide>
             <ul>
-                {#if $session.userData}
-                    <li><a href="/account">Account</a></li>
+                {#if $session.lucia}
+                    <li><a href="/account" sveltekit:prefetch>Account</a></li>
+                    <li><button class="logout" on:click={logout}>Logout</button></li>
                 {:else}
                     <li><a href="/login">Login</a></li>
                 {/if}
-                <li><a href="/question-search">Search</a></li>
+                <li><a href="/question-search" sveltekit:prefetch>Search</a></li>
+                <!-- Do not prefetch write or URL will get changed -->
                 <li><a href="/write">Write</a></li>
-                <li><a href="/packet-submit">Packet Submit</a></li>
+                <li><a href="/packet-submit" sveltekit:prefetch>Packet Submit</a></li>
             </ul>
         </nav>
     {/if}
@@ -96,6 +106,12 @@
         color: inherit;
         font-size: 18px;
         white-space: nowrap;
+    }
+
+    .logout {
+        @extend %button-secondary;
+
+        font-size: inherit;
     }
 
     @media (max-width: 600px) {

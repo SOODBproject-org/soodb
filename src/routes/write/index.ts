@@ -1,8 +1,9 @@
 import { redirectTo } from "$lib/functions/redirectTo"
+import { auth } from "$lib/lucia"
 import { addQuestion, type Category, type NewQuestionData } from "$lib/mongo"
 import type { RequestHandler } from "./__types/index.d"
 
-export const POST: RequestHandler = async function ({ request, locals }) {
+export const POST: RequestHandler = async function ({ request }) {
     try {
         const formData = await request.formData()
         const type = formData.get("type") as "MCQ" | "SA"
@@ -19,10 +20,12 @@ export const POST: RequestHandler = async function ({ request, locals }) {
         const correctAnswer = formData.get("correct-answer") as "W" | "X" | "Y" | "Z"
         const answer = formData.get("answer") as string
 
+        const user = await auth.validateRequest(request)
+
         let question: NewQuestionData
         if (type === "MCQ") {
             question = {
-                authorId: locals.userData?.id,
+                authorId: user.user_id,
                 bonus,
                 type,
                 category,
@@ -32,7 +35,7 @@ export const POST: RequestHandler = async function ({ request, locals }) {
             }
         } else if (type === "SA") {
             question = {
-                authorId: locals.userData?.id,
+                authorId: user.user_id,
                 bonus,
                 type,
                 category,

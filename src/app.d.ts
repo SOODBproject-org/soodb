@@ -5,21 +5,13 @@
 // for information about these interfaces
 declare namespace App {
     interface Locals {
-        userData: import("$lib/mongo").User | null
+        
     }
 
     interface Platform {}
 
     interface Session {
-        userData: import("$lib/mongo").User | null
-        previousQuery?: {
-            authorName?: string
-            keywords?: string
-            types?: string[]
-            categories?: string[]
-            start?: string
-            end?: string
-        }
+        lucia: import("lucia-sveltekit/types").SvelteKitSession<import("$lib/mongo").UserData>
     }
 
     interface Stuff {}

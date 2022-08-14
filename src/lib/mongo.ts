@@ -154,6 +154,17 @@ export async function getUserByID(id: string) {
     return document
 }
 
+export type DatabaseUserSafe = Omit<DatabaseUser<UserData>, 'hashed_password' | 'identifier_token'>
+
+export async function getUserByIDSafe(id: string) {
+    const { document } = await collections.users.findOne({ filter: { id } })
+    return document ? {
+        ...Object.fromEntries(
+            Object.entries(document)
+            .filter(x => ![ "hashed_password", "identifier_token" ].includes(x[0]))) as DatabaseUserSafe
+    } : null
+}
+
 export async function updateUser(id: string, data: Partial<UserData>) {
     return collections.users.updateOne({
         filter: { id },

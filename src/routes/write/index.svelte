@@ -65,7 +65,7 @@
 
     <h1>Submit Question</h1>
     <form id="form" action="/write" method="POST" autocomplete="off">
-        {#if !$session.userData}
+        {#if !$session.lucia}
             <p style:font-style="italic" style:margin-top="0">
                 This question will be submitted anonymously.<br />
                 <a href="/login">Log in</a> to submit a question under your account

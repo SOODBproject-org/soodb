@@ -2,16 +2,16 @@
     import type { Load } from "@sveltejs/kit"
 
     export const load: Load = async function ({ fetch, session }) {
-        if (!session.userData) {
+        if (!session.lucia) {
             return {
                 redirect: "/login",
                 status: 302,
             }
         }
 
-        const userRes = await fetch(`/api/user/${session.userData.id}`)
-        const userSettingsRes = await fetch(`/api/user/${session.userData.id}/settings`)
-        const questionsRes = await fetch(`/api/questions?authorId=${session.userData.id}`)
+        const userRes = await fetch(`/api/user/${session.lucia.user.user_id}`)
+        const userSettingsRes = await fetch(`/api/user/${session.lucia.user.user_id}/settings`)
+        const questionsRes = await fetch(`/api/questions?authorId=${session.lucia.user.user_id}`)
         const questions = await questionsRes.json()
         return {
             props: {
@@ -26,9 +26,10 @@
 <script lang="ts">
     import QuestionPreview from "$lib/components/QuestionPreview.svelte"
     import AccountEdit from "$lib/components/AccountEdit.svelte"
-    import type { McqQuestion, SaQuestion, User, UserSettings } from "$lib/mongo"
-    export let questions: (SaQuestion | McqQuestion)[]
-    export let userData: User
+    import type { Question, UserData, UserSettings } from "$lib/mongo"
+    import type { User } from "lucia-sveltekit/types";
+    export let questions: Question[]
+    export let userData: User<UserData>
     export let userSettings: UserSettings
 </script>
 

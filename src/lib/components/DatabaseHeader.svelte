@@ -2,7 +2,6 @@
     import { session } from "$app/stores"
     import { slide } from "svelte/transition"
     import { signOut } from 'lucia-sveltekit/client'
-    import { goto } from "$app/navigation";
 
     let menuOpen = false
 
@@ -112,6 +111,7 @@
         @extend %button-secondary;
 
         font-size: inherit;
+        margin: 0;
     }
 
     @media (max-width: 600px) {

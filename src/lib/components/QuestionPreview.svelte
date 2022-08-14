@@ -1,7 +1,8 @@
 <script lang="ts">
-    import { goto } from "$app/navigation"
     import type { Question } from "$lib/mongo"
     export let question: Question & { authorName?: string }
+    console.log(question)
+
     $: truncatedQuestion =
         question.questionText.length > numCharacters
             ? question.questionText.slice(0, numCharacters) + "…"
@@ -27,9 +28,9 @@
         <a href="/question/{question.id}" sveltekit:prefetch>View</a>
     </div>
     <h3>{truncatedQuestion}</h3>
-    {#if question.authorId}
+    {#if question.authorName}
         <p>
-            <a href="/user/{question.authorId}" sveltekit:prefetch>{question.authorName}</a>
+            <a href="/account/{question.authorId}" sveltekit:prefetch>{question.authorName}</a>
             <i>({modifiedDateString})</i>
         </p>
     {/if}

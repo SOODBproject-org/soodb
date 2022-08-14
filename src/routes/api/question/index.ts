@@ -1,7 +1,8 @@
-import { getQuestions, getUserByID, type Category, type Question } from "$lib/mongo"
+import { auth } from "$lib/lucia"
+import { addQuestion, getQuestions, getUserByID, type Category, type NewQuestionData, type Question } from "$lib/mongo"
 import { removeUndefined } from "$lib/utils"
 import fetch from "node-fetch"
-import type { RequestHandler } from "./__types/questions.d"
+import type { RequestHandler } from "./__types/index.d"
 
 export const GET: RequestHandler<Question[]> = async function ({ request, url }) {
     const checkCookies = url.searchParams.get("checkCookies") === "true"
@@ -74,6 +75,76 @@ export const GET: RequestHandler<Question[]> = async function ({ request, url })
         return {
             status: 200,
             body: result,
+        }
+    }
+}
+
+export const POST: RequestHandler = async function({ request }) {
+    try {
+        const formData = await request.formData()
+        const type = formData.get("type") as "MCQ" | "SA"
+        const category = formData.get("category") as Category
+        const questionText = formData.get("question-text") as string
+        const bonus = formData.get("bonus") === "checked"
+
+        const choices = {
+            W: formData.get("W") as string,
+            X: formData.get("X") as string,
+            Y: formData.get("Y") as string,
+            Z: formData.get("Z") as string,
+        }
+        const correctAnswer = formData.get("correct-answer") as "W" | "X" | "Y" | "Z"
+        const answer = formData.get("answer") as string
+
+        const anonymous = formData.get("anonymous") === "true"
+
+        let authorId: string | undefined = undefined
+        if (!anonymous) {
+            try {
+                const user = await auth.validateRequest(request)
+                authorId = user.user_id
+            } catch {
+                return {
+                    status: 401
+                }
+            }
+        }
+
+        let question: NewQuestionData
+        if (type === "MCQ") {
+            question = {
+                authorId,
+                bonus,
+                type,
+                category,
+                questionText: questionText,
+                choices,
+                correctAnswer,
+            }
+        } else if (type === "SA") {
+            question = {
+                authorId,
+                bonus,
+                type,
+                category,
+                questionText: questionText,
+                correctAnswer: answer,
+            }
+        } else {
+            return {
+                status: 400
+            }
+        }
+
+        await addQuestion(question)
+
+        return {
+            status: 200
+        }
+    } catch (e) {
+        console.error(e)
+        return {
+            status: 500
         }
     }
 }

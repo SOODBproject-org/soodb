@@ -1,9 +1,8 @@
 <script lang="ts">
     import { session } from "$app/stores"
     import { goto } from "$app/navigation"
-    import type { SaQuestion, McqQuestion, UserData } from "$lib/mongo"
-    import type { User } from "lucia-sveltekit/types";
-    export let userData: User<UserData>
+    import type { SaQuestion, McqQuestion, DatabaseUserSafe } from "$lib/mongo"
+    export let userData: DatabaseUserSafe
     export let questions: (SaQuestion | McqQuestion)[]
 </script>
 
@@ -15,7 +14,7 @@
             alt="Profile"
         /> -->
         <h2 id="username">{userData.username}</h2>
-        <p id="user-id">{userData.user_id}</p>
+        <p id="user-id">{userData.id}</p>
         <p>
             {#if questions}
                 <h3>Question Record</h3>
@@ -36,7 +35,7 @@
                     Math: {questions.filter((question) => question.category === "math").length}
                 </p>
             {/if}
-            {#if $session.lucia?.user.user_id === userData.user_id}
+            {#if $session.lucia?.user.user_id === userData.id}
                 <br />
                 <button
                     on:click={() => {
@@ -105,7 +104,7 @@
         max-width: 60em;
         min-height: 30em;
         margin-bottom: 50px;
-        background-color: var(--color-6);
+        background-color: $background-2;
         border-radius: 2em;
         padding: 1em;
     }

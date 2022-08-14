@@ -8,7 +8,6 @@ interface QuestionBase {
     questionText: string
     pairId?: string
     source?: string
-    searchString: string
     created: Date
     modified: Date
 }
@@ -83,7 +82,6 @@ export async function addQuestion(question: NewQuestionData) {
         document: {
             ...question,
             id: createID(),
-            searchString: createSearchString(question),
             created: date,
             modified: date,
         },

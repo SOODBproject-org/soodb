@@ -1,8 +1,8 @@
 <script lang="ts">
-    import type { SaQuestion, McqQuestion, UserSettings, UserData } from "$lib/mongo"
-    import type { User } from "lucia-sveltekit/types";
+    import type { SaQuestion, McqQuestion, UserSettings, DatabaseUserSafe } from "$lib/mongo"
+    import { session } from "$app/stores";
 
-    export let userData: User<UserData>
+    export let userData: DatabaseUserSafe
     export let userSettings: UserSettings
     export let questions: (SaQuestion | McqQuestion)[]
 
@@ -16,9 +16,12 @@
             username: inputtedUsername,
         })
 
-        const res = await fetch("/api/account", {
-            method: "POST",
+        const res = await fetch("/api/user", {
+            method: "PATCH",
             body: reqBody,
+            headers: {
+                Authorization: `Bearer ${$session.lucia?.access_token}`
+            }
         })
         const resBody = await res.json()
         if (resBody.user?.username) {
@@ -40,7 +43,7 @@
             alt="Profile"
         /> -->
         <input id="username" type="text" bind:value={inputtedUsername} />
-        <p id="user-id">{userData.user_id}</p>
+        <p id="user-id">{userData.id}</p>
         <p>
             {#if questions}
                 <h3>Question Record</h3>

@@ -9,15 +9,26 @@
             }
         }
 
-        const userRes = await fetch(`/api/user/${session.lucia.user.user_id}`)
-        const userSettingsRes = await fetch(`/api/user/${session.lucia.user.user_id}/settings`)
-        const questionsRes = await fetch(`/api/questions?authorId=${session.lucia.user.user_id}`)
-        const questions = await questionsRes.json()
+        const userRes = await fetch(`/api/user`, {
+            headers: {
+                Authorization: `Bearer ${session.lucia.access_token}`
+            }
+        })
+        const userSettingsRes = await fetch(`/api/user/settings`, {
+            headers: {
+                Authorization: `Bearer ${session.lucia.access_token}`
+            }
+        })
+        const questionsRes = await fetch(`/api/question?authorId=${session.lucia.user.user_id}`)
+        const userData = await userRes.json() as DatabaseUserSafe
+        console.log(userData)
         return {
             props: {
-                userData: await userRes.json(),
+                userData,
                 userSettings: await userSettingsRes.json(),
-                questions,
+                questions: (await questionsRes.json() as Question[]).map(
+                    x => ({ ...x, authorName: userData.username })
+                ),
             },
         }
     }
@@ -26,10 +37,9 @@
 <script lang="ts">
     import QuestionPreview from "$lib/components/QuestionPreview.svelte"
     import AccountEdit from "$lib/components/AccountEdit.svelte"
-    import type { Question, UserData, UserSettings } from "$lib/mongo"
-    import type { User } from "lucia-sveltekit/types";
+    import type { DatabaseUserSafe, Question, UserSettings } from "$lib/mongo"
     export let questions: Question[]
-    export let userData: User<UserData>
+    export let userData: DatabaseUserSafe
     export let userSettings: UserSettings
 </script>
 

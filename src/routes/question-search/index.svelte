@@ -12,7 +12,7 @@
             // check cookie on SSR request
             checkCookies: "true",
         })
-        const questionsRes = await fetch("/api/questions?" + params.toString(), {
+        const questionsRes = await fetch("/api/question?" + params.toString(), {
             credentials: "include",
         })
         return {
@@ -62,7 +62,7 @@
         Cookie.set("previousQuery", JSON.stringify(query))
         const params = new URLSearchParams(query)
 
-        const res = await fetch("/api/questions?" + params.toString(), {
+        const res = await fetch("/api/question?" + params.toString(), {
             credentials: "include",
         })
         questions = await res.json()

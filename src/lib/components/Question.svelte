@@ -52,10 +52,12 @@
     </div>
     <div class="line" />
     <div class="bottom">
-        <span class="metadata">
-            {question.authorName ? `Author - ${question.authorName}` : ""}
-            <i>({modifiedDateString})</i>
-        </span>
+        {#if question.authorId}
+            <span class="metadata">
+                <a href="/account/{question.authorId}" sveltekit:prefetch>{question.authorName}</a>
+                <i>({modifiedDateString})</i>
+            </span>
+        {/if}
         {#if question.pairId}
             <a href="/question/{question.pairId}">Paired {question.bonus ? "Tossup" : "Bonus"}</a>
         {/if}

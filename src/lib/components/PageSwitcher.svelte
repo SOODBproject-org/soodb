@@ -1,7 +1,11 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte"
+    import Icon from 'svelte-icon/Icon.svelte'
+    import arrow from '$lib/icons/arrow.svg?raw'
+
     export let numPages: number
     export let pageNumber: number
+
     $: inputValue = pageNumber.toString()
     let previousInput = pageNumber.toString()
 
@@ -47,7 +51,7 @@
                 }
             }}
         >
-            <span />
+            <Icon data={arrow} class="icon" />
         </button>
     {/if}
     {#if numPages > 1}
@@ -71,7 +75,7 @@
                 }
             }}
         >
-            <span style="transform: scaleX(-1)" />
+            <Icon data={arrow} class="icon" />
         </button>
     {/if}
 </div>
@@ -101,13 +105,11 @@
         padding: 0.2em;
         vertical-align: middle;
         margin-block: 0;
+    }
 
-        span {
-            background-image: url("/arrow.svg");
-            background-size: cover;
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
+    button > :global(.icon) {
+        display: inline-block;
+        width: 100%;
+        height: 100%;
     }
 </style>

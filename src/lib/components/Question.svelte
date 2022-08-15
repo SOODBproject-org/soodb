@@ -1,7 +1,9 @@
 <script lang="ts">
-    import type { Question, User } from "../mongo"
+    import type { Question } from "../mongo"
     import { session } from "$app/stores"
     import { slide } from "svelte/transition"
+    import Icon from "svelte-icon/Icon.svelte";
+    import pencil from '$lib/icons/pencil.svg?raw'
 
     export let question: Question & { authorName?: string }
     export let answerVisible = false
@@ -63,9 +65,10 @@
             <a href="/question/{question.pairId}">Paired {question.bonus ? "Tossup" : "Bonus"}</a>
         {/if}
         <span style="margin-left: auto;" />
-        {#if $session.userData && $session.userData.id === question.authorId}
-            <a id="editbutton" href="/edit/{question.id}">
-                <span />
+        <!-- {#if $session.userData && $session.userData.id === question.authorId} -->
+        {#if true}
+            <a href="/edit/{question.id}">
+                <Icon data={pencil} class="icon" />
             </a>
         {/if}
     </div>
@@ -148,35 +151,20 @@
 
         a {
             display: inline-block;
+
+            > :global(.icon) {
+                width: 1.5em;
+                height: 1.5em;
+                padding: 0.2em;
+                cursor: pointer;
+                color: $text-light;
+            }
         }
     }
 
     .metadata {
         margin: 0;
         line-height: 1em;
-    }
-
-    #editbutton {
-        font-size: inherit;
-        outline: none;
-        border: none;
-        width: 1.5em;
-        height: 1.5em;
-        padding: 0.2em;
-        vertical-align: middle;
-        cursor: pointer;
-
-        span {
-            background-image: url("/pencil.png");
-            background-size: cover;
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        &:disabled {
-            cursor: default;
-        }
     }
 
     #showanswer {

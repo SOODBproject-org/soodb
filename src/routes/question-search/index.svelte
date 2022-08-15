@@ -32,6 +32,8 @@
     import { onMount, tick } from "svelte"
     import { browser } from "$app/env"
     import { removeUndefined } from "$lib/utils"
+    import Icon from "svelte-icon/Icon.svelte";
+    import bensive from "$lib/icons/bensive.svg?raw"
 
     export let query: Record<string, string>
     export let questions: (SaQuestion | McqQuestion)[] = []
@@ -133,7 +135,7 @@
                 <div id="no-results">
                     {#if querySent}
                         <h1>No Questions Found</h1>
-                        <div id="bensive" />
+                        <div id="bensive"><Icon data={bensive} class="bensive" /></div>
                     {/if}
                 </div>
             {/if}
@@ -204,8 +206,6 @@
     }
 
     #bensive {
-        background: url("/bensive.svg");
-        background-size: cover;
         width: 25vw;
         height: 25vw;
         max-width: 25em;
@@ -213,6 +213,14 @@
         margin: 1em 3em;
         display: inline-block;
         opacity: 0.7;
+        color: $text-light;
+    }
+
+    :global(.bensive) {
+        color: $text-light;
+        width: 100%;
+        height: 100%;
+        display: inline-block;
     }
 
     #mobile-menu {

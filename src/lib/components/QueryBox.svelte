@@ -2,6 +2,7 @@
     import { createEventDispatcher } from "svelte"
     import Select from 'svelte-select'
     import { page } from "$app/stores"
+    import type { Category } from "$lib/mongo";
     
     type Inputs = {
         authorName: string

@@ -9,7 +9,7 @@
         physics: "Physics",
         math: "Math",
         energy: "Energy",
-    }
+    } as Record<string, string>
 </script>
 
 <div id="question" class={categoryNames[question.category] ? question.category : "other"}>

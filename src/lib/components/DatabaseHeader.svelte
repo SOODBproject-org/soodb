@@ -1,8 +1,15 @@
 <script lang="ts">
+    import { beforeNavigate } from "$app/navigation";
     import { session } from "$app/stores"
     import { slide } from "svelte/transition"
+    import Icon from "svelte-icon/Icon.svelte"
+    import hamburger from "$lib/icons/hamburger.svg?raw"
 
     let menuOpen = false
+
+    beforeNavigate(() => {
+        menuOpen = false
+    })
 </script>
 
 <div id="header">
@@ -24,7 +31,9 @@
     </div>
     <div class="mobile">
         <h1 id="title">SOODB</h1>
-        <button class="menu-button" on:click={() => (menuOpen = !menuOpen)} />
+        <button class="menu-button" on:click={() => (menuOpen = !menuOpen)}>
+            <Icon data={hamburger} class="icon" />
+        </button>
     </div>
     {#if menuOpen}
         <nav class="mobile-menu" transition:slide>
@@ -98,6 +107,22 @@
         white-space: nowrap;
     }
 
+    .menu-button {
+        @extend %button-secondary;
+
+        margin: 0 0 0 auto;
+        padding: 0;
+        width: 2.5em;
+        height: 2.5em;
+        padding: 0.25em;
+
+        > :global(.icon) {
+            display: inline-block;
+            width: 100%;
+            height: 100%;
+        }
+    }
+
     @media (max-width: 600px) {
         #header {
             padding-inline: 5vw;
@@ -113,12 +138,6 @@
             align-items: center;
             padding: 0.3em;
             width: 100%;
-        }
-
-        .menu-button {
-            width: 1.5em;
-            height: 1.5em;
-            margin-left: auto;
         }
 
         .mobile-menu {

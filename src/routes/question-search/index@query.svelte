@@ -34,6 +34,7 @@
     import { removeUndefined } from "$lib/utils"
     import Icon from "svelte-icon/Icon.svelte";
     import bensive from "$lib/icons/bensive.svg?raw"
+    import arrow from "$lib/icons/arrow.svg?raw"
 
     export let query: Record<string, string>
     export let questions: (SaQuestion | McqQuestion)[] = []
@@ -49,7 +50,7 @@
             ? parseInt(Cookie.get("pageNumber") ?? "1")
             : 1
     $: numPages = Math.ceil(questions.length / resultsPerPage)
-    let menuOpen = true
+    let menuOpen = false
     let querySent = false
     async function sendQuery(queryBox: Record<string, any>) {
         query.authorName = queryBox.authorName || undefined
@@ -71,16 +72,12 @@
 
         await tick()
         window.scroll(0, 0)
-        closeMenu()
+        menuOpen = false
         querySent = true
     }
 
-    function openMenu() {
-        menuOpen = true
-    }
-
-    function closeMenu() {
-        menuOpen = false
+    function toggleMenu() {
+        menuOpen = !menuOpen
     }
 </script>
 
@@ -88,59 +85,59 @@
     <title>Question Search</title>
 </svelte:head>
 
+<div id="desktop-menu-wrapper">
+    <div id="desktop-menu">
+        <QueryBox
+            bind:numQuestions={questions.length}
+            bind:this={queryBoxComponent}
+            on:sendQuery={async (event) => {
+                await sendQuery(event.detail.inputs)
+                await tick()
+                if (event.detail.pageNumber && event.detail.pageNumber <= numPages) {
+                    pageNumber = event.detail.pageNumber
+                }
+            }}
+        />
+    </div>
+</div>
+<div id="mobile-menu-wrapper" class:opened={menuOpen}>
+    <div id="mobile-menu">
+        <QueryBox
+            bind:numQuestions={questions.length}
+            on:sendQuery={(event) => {
+                sendQuery(event.detail.inputs)
+            }}
+        />
+    </div>
+    <button id="toggle-button" on:click={toggleMenu}>
+        <Icon data={arrow} class="toggle-menu" />
+    </button>
+</div>
 <main>
-    <div id="page">
-        <div id="desktop-menu-wrapper">
-            <div id="desktop-menu">
-                <QueryBox
-                    bind:numQuestions={questions.length}
-                    bind:this={queryBoxComponent}
-                    on:sendQuery={async (event) => {
-                        await sendQuery(event.detail.inputs)
-                        await tick()
-                        if (event.detail.pageNumber && event.detail.pageNumber <= numPages) {
-                            pageNumber = event.detail.pageNumber
-                        }
-                    }}
-                />
-            </div>
+    {#if questions.length}
+        <div id="questions">
+            {#each questions as q, i}
+                {#if i >= (pageNumber - 1) * resultsPerPage && i < pageNumber * resultsPerPage}
+                    <QuestionPreview question={q} />
+                {/if}
+            {/each}
         </div>
-        <div id="mobile-menu" class:opened={menuOpen}>
-            <QueryBox
-                bind:numQuestions={questions.length}
-                on:sendQuery={(event) => {
-                    sendQuery(event.detail.inputs)
-                }}
-            />
-            <button id="close-menu" on:click={closeMenu}><span /></button>
-        </div>
-        <div id="results">
-            {#if questions.length}
-                <div id="questions">
-                    {#each questions as q, i}
-                        {#if i >= (pageNumber - 1) * resultsPerPage && i < pageNumber * resultsPerPage}
-                            <QuestionPreview question={q} />
-                        {/if}
-                    {/each}
-                </div>
-                <PageSwitcher
-                    bind:numPages
-                    bind:pageNumber
-                    on:pageChange={(event) => {
-                        window.scroll(0, 0)
-                        Cookie.set("pageNumber", event.detail.new)
-                    }}
-                />
-            {:else}
-                <div id="no-results">
-                    {#if querySent}
-                        <h1>No Questions Found</h1>
-                        <div id="bensive"><Icon data={bensive} class="bensive" /></div>
-                    {/if}
-                </div>
+        <PageSwitcher
+            bind:numPages
+            bind:pageNumber
+            on:pageChange={(event) => {
+                window.scroll(0, 0)
+                Cookie.set("pageNumber", event.detail.new)
+            }}
+        />
+    {:else}
+        <div id="no-results">
+            {#if querySent}
+                <h1>No Questions Found</h1>
+                <div id="bensive"><Icon data={bensive} class="bensive" /></div>
             {/if}
         </div>
-    </div>
+    {/if}
 </main>
 
 <style lang="scss">
@@ -149,30 +146,23 @@
         font-size: 1em;
     }
 
-    #page {
-        display: flex;
-        flex-direction: row;
-        position: relative;
-    }
-
-    #close-menu {
-        display: none;
-        width: 40px;
-        height: 40px;
-        background: var(--color-3);
-        border: none;
-        padding: 0;
+    #toggle-button {
+        width: 50px;
+        height: 50px;
+        background: $accent-2;
+        border-radius: 50%;
         position: absolute;
-        top: 30px;
-        right: 30px;
-        cursor: pointer;
+        top: 100px;
+        right: -25px;
+        margin: 0;
+        padding: 0;
 
-        span {
-            background-image: url("/close-menu.svg");
-            background-position: cover;
-            width: 100%;
-            height: 100%;
-            display: block;
+        > :global(.toggle-menu) {
+            display: inline-block;
+            width: 60%;
+            height: 60%;
+            transition: transform 0.4s cubic-bezier(0.215, 0.610, 0.355, 1);
+            transform: rotate(180deg);
         }
     }
 
@@ -181,17 +171,6 @@
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         row-gap: 20px;
         column-gap: 20px;
-    }
-
-    #results {
-        margin: 20px;
-        height: 100%;
-        flex-grow: 1;
-        width: 100%;
-
-        @media (min-width: 800px) {
-            width: 75vw;
-        }
     }
 
     button {
@@ -223,47 +202,39 @@
         display: inline-block;
     }
 
-    #mobile-menu {
+    #mobile-menu-wrapper {
         width: 85vw;
         max-width: 50ch;
-        height: calc(100vh - 80px);
+        height: calc(100vh - 115px);
         display: none;
         position: fixed;
-        left: -120vw;
+        overflow: visible;
+        top: 6em;
+        left: calc(30px - min(85vw, 50ch));
         transition: left 0.4s ease-in-out;
         z-index: 3;
-        background: #eee;
-        overflow: auto;
+        background: $background-2;
         border-top-right-radius: 1em;
         border-bottom-right-radius: 1em;
-        box-shadow: 25px 0px 20px #666;
+        border: solid 1px #666;
         overscroll-behavior: contain;
 
         &.opened {
             left: 0;
+
+            :global(.toggle-menu) {
+                transform: rotate(0deg);
+            }
         }
-        &::-webkit-scrollbar {
-            width: 7px;
-        }
-        &::-webkit-scrollbar-button {
-            display: none;
-        }
-        &::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        &::-webkit-scrollbar-thumb {
-            background: var(--color-2);
-            width: 7px;
-            border-radius: 7px;
-        }
-        &::-webkit-scrollbar-track-piece:start {
-            margin-top: 1.2em;
-            background: transparent;
-        }
-        &::-webkit-scrollbar-track-piece:end {
-            margin-bottom: 1.2em;
-            background: transparent;
-        }
+    }
+
+    #mobile-menu {
+        @include vertical-scrollable(7px);
+
+        position: relative;
+        overflow: auto;
+        height: 100%;
+        padding-right: 1em;
     }
 
     #desktop-menu-wrapper {
@@ -273,42 +244,28 @@
         height: min-content;
         max-height: calc(100vh - 100px);
         position: sticky;
-        top: 5.75em;
+        top: 6em;
         width: min(40vw, 50ch);
         flex-grow: 2;
         border-radius: 1em;
-        margin-left: 1em;
-        margin-top: 1.2em;
+        border: 1px solid #666;
         overscroll-behavior: contain;
     }
 
     #desktop-menu {
         height: min-content;
         border-radius: 1em;
-        border: 1px solid #666;
     }
 
-    @media (max-width: 800px) {
-        #page {
-            margin-top: 80px;
-        }
+    @media (max-width: 650px) {
         #desktop-menu-wrapper {
             display: none;
         }
-        #mobile-menu {
-            display: block;
-        }
-        #close-menu {
+        #mobile-menu-wrapper {
             display: block;
         }
         #questions {
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-        }
-    }
-
-    @media (max-width: 600px) {
-        #questions {
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
         }
     }
 </style>

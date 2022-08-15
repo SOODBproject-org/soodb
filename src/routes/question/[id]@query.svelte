@@ -18,10 +18,12 @@
     import QuestionComp from "$lib/components/Question.svelte"
     import Cookie from "js-cookie"
     import QueryBox from "$lib/components/QueryBox.svelte"
+    import Icon from "svelte-icon/Icon.svelte";
+    import arrow from "$lib/icons/arrow.svg?raw"
 
     export let question: Question & { authorName?: string }
 
-    let menuOpen = true
+    let menuOpen = false
     let answerVisible = false
     const loaded = true
     let noMatch = false
@@ -62,12 +64,8 @@
         }
     }
 
-    function openMenu() {
-        menuOpen = true
-    }
-
-    function closeMenu() {
-        menuOpen = false
+    function toggleMenu() {
+        menuOpen = !menuOpen
     }
 </script>
 
@@ -75,92 +73,99 @@
     <title>View Question</title>
 </svelte:head>
 
-<main>
-    <div id="page">
-        <div id="desktop-menu-wrapper">
-            <div id="desktop-menu">
-                <QueryBox
-                    numQuestions={0}
-                    on:sendQuery={async (event) => {
-                        sendQuery(event.detail.inputs)
-                    }}
-                />
-            </div>
-        </div>
-        <div id="mobile-menu" class:opened={menuOpen}>
-            <QueryBox
-                numQuestions={0}
-                on:sendQuery={(event) => {
-                    sendQuery(event.detail.inputs)
-                }}
-            />
-            <button id="close-menu" on:click={closeMenu}><span /></button>
-        </div>
-        {#if noMatch}
-            <h1>No questions matched that query</h1>
-        {:else if loaded}
-            <QuestionComp {question} bind:answerVisible />
-        {:else}
-            <h1>Loading...</h1>
-        {/if}
+<div id="desktop-menu-wrapper">
+    <div id="desktop-menu">
+        <QueryBox
+            numQuestions={0}
+            on:sendQuery={async (event) => {
+                sendQuery(event.detail.inputs)
+            }}
+        />
     </div>
+</div>
+<div id="mobile-menu-wrapper" class:opened={menuOpen}>
+    <div id="mobile-menu">
+        <QueryBox
+            numQuestions={0}
+            on:sendQuery={(event) => {
+                sendQuery(event.detail.inputs)
+            }}
+        />
+    </div>
+    <button id="toggle-button" on:click={toggleMenu}>
+        <Icon data={arrow} class="toggle-menu" />
+    </button>
+</div>
+<main>
+    {#if noMatch}
+        <h1>No questions matched that query</h1>
+    {:else if loaded}
+        <QuestionComp {question} bind:answerVisible />
+    {:else}
+        <h1>Loading...</h1>
+    {/if}
 </main>
 
 <style lang="scss">
-    #page {
-        display: flex;
-        flex-direction: row;
-        align-items: flex-start;
-    }
-
     h1 {
         display: inline-block;
         margin: 0 1ch;
         font-size: 1em;
     }
 
-    #close-menu {
-        display: none;
-        width: 40px;
-        height: 40px;
-        background: var(--color-3);
-        border: none;
-        padding: 0;
+    #toggle-button {
+        width: 50px;
+        height: 50px;
+        background: $accent-2;
+        border-radius: 50%;
         position: absolute;
-        top: 30px;
-        right: 30px;
-        cursor: pointer;
+        top: 100px;
+        right: -25px;
+        margin: 0;
+        padding: 0;
 
-        span {
-            background-image: url("/close-menu.svg");
-            background-position: cover;
-            width: 100%;
-            height: 100%;
-            display: block;
+        > :global(.toggle-menu) {
+            display: inline-block;
+            width: 60%;
+            height: 60%;
+            transition: transform 0.4s cubic-bezier(0.215, 0.610, 0.355, 1);
+            transform: rotate(180deg);
+        }
+    }
+
+    #mobile-menu-wrapper {
+        width: 85vw;
+        max-width: 50ch;
+        height: calc(100vh - 100px);
+        display: none;
+        position: fixed;
+        overflow: visible;
+        top: 6em;
+        left: calc(30px - min(85vw, 50ch));
+        transition: left 0.4s ease-in-out;
+        z-index: 3;
+        background: $background-2;
+        border-top-right-radius: 1em;
+        border-bottom-right-radius: 1em;
+        border: solid 1px #666;
+        overscroll-behavior: contain;
+
+        &.opened {
+            left: 0;
+
+            :global(.toggle-menu) {
+                transform: rotate(0deg);
+            }
         }
     }
 
     #mobile-menu {
         @include vertical-scrollable(7px);
 
-        width: 85vw;
-        max-width: 50ch;
-        height: calc(100vh - 80px);
-        display: none;
-        position: fixed;
-        left: -120vw;
-        transition: left 0.4s ease-in-out;
-        z-index: 3;
-        background: $background-2;
+        position: relative;
         overflow: auto;
-        border-top-right-radius: 1em;
-        border-bottom-right-radius: 1em;
-        box-shadow: 25px 0px 20px #666;
-        overscroll-behavior: contain;
-
-        &.opened {
-            left: 0;
-        }
+        height: 100%;
+        padding-right: 1em;
     }
 
     #desktop-menu-wrapper {
@@ -170,34 +175,24 @@
         height: min-content;
         max-height: calc(100vh - 100px);
         position: sticky;
-        top: 20px;
+        top: 6em;
         width: min(40vw, 50ch);
-        max-width: 350px;
         flex-grow: 2;
         border-radius: 1em;
-        margin-left: 1em;
-        margin-top: 1.2em;
+        border: 1px solid #666;
         overscroll-behavior: contain;
     }
 
     #desktop-menu {
         height: min-content;
         border-radius: 1em;
-        border: 1px solid #666;
     }
 
-    @media (max-width: 800px) {
-        #page {
-            margin-top: 80px;
-        }
-
+    @media (max-width: 650px) {
         #desktop-menu-wrapper {
             display: none;
         }
-        #mobile-menu {
-            display: block;
-        }
-        #close-menu {
+        #mobile-menu-wrapper {
             display: block;
         }
     }
@@ -206,21 +201,5 @@
         @extend %button-primary;
 
         font-size: 20px;
-    }
-
-    @media (max-width: 800px) {
-        #page {
-            margin-top: 80px;
-        }
-
-        #desktop-menu-wrapper {
-            display: none;
-        }
-        #mobile-menu {
-            display: block;
-        }
-        #close-menu {
-            display: block;
-        }
     }
 </style>

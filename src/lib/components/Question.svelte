@@ -65,8 +65,7 @@
             <a href="/question/{question.pairId}">Paired {question.bonus ? "Tossup" : "Bonus"}</a>
         {/if}
         <span style="margin-left: auto;" />
-        <!-- {#if $session.userData && $session.userData.id === question.authorId} -->
-        {#if true}
+        {#if $session.userData && $session.userData.id === question.authorId}
             <a href="/edit/{question.id}">
                 <Icon data={pencil} class="icon" />
             </a>
@@ -82,7 +81,6 @@
         margin: 20px;
         border-radius: 1em;
         overflow: hidden;
-        width: 100%;
         max-width: min(100ch, 60vw);
 
         &::before {

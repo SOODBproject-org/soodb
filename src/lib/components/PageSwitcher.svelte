@@ -75,7 +75,7 @@
                 }
             }}
         >
-            <Icon data={arrow} class="icon" />
+            <Icon data={arrow} class="icon right" />
         </button>
     {/if}
 </div>
@@ -111,5 +111,9 @@
         display: inline-block;
         width: 100%;
         height: 100%;
+    }
+
+    button > :global(.right) {
+        transform: rotate(180deg);
     }
 </style>

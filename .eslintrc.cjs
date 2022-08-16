@@ -30,7 +30,6 @@ module.exports = {
         "no-unmodified-loop-condition": "error",
         "no-unreachable-loop": "error",
         "no-unused-private-class-members": "warn",
-        "camelcase": "warn",
         "consistent-return": "warn",
         "curly": ["error", "multi-line"],
         "eqeqeq": "error",

@@ -33,7 +33,8 @@ export interface SaQuestion extends QuestionBase {
 export type Question = McqQuestion | SaQuestion
 
 export interface UserData {
-    username: string
+    username: string,
+    email?: string
 }
 
 export interface UserSettings {

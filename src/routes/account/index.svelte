@@ -21,7 +21,6 @@
         })
         const questionsRes = await fetch(`/api/question?authorId=${session.lucia.user.user_id}`)
         const userData = await userRes.json() as DatabaseUserSafe
-        console.log(userData)
         return {
             props: {
                 userData,

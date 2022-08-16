@@ -34,7 +34,8 @@ export type Question = McqQuestion | SaQuestion
 
 export interface UserData {
     username: string,
-    email?: string
+    email?: string,
+    discordId?: string
 }
 
 export interface UserSettings {

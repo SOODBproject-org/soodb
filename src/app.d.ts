@@ -17,8 +17,7 @@ declare namespace App {
     interface Stuff {}
 
     interface PrivateEnv extends Record<string, string> {
-        CLIENTID: string
-        SECRET: string
+        DISCORD_SECRET: string
         DATABASE_APP_ID: string
         DATABASE_KEY: string
         LUCIA_SECRET: string
@@ -28,5 +27,6 @@ declare namespace App {
     interface PublicEnv extends Record<string, string> {
         PUBLIC_HOST_URL: string
         PUBLIC_GITHUB_CLIENT_ID: string
+        PUBLIC_DISCORD_CLIENT_ID: string
     }
 }

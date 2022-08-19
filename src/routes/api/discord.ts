@@ -1,4 +1,4 @@
-import type { RequestHandler } from "./__types/github.d"
+import type { RequestHandler } from "./__types/discord.d"
 import { env as publicEnv } from "$env/dynamic/public"
 import { env as privateEnv } from "$env/dynamic/private"
 import { auth } from "$lib/lucia";
@@ -59,11 +59,11 @@ export const GET: RequestHandler = async function({ url }) {
     }
     const profileData = await profileRes.json() as { id: string, username: string }
 
-    const user = await auth.getUser("github", profileData.id)
+    const user = await auth.getUser("discord", profileData.id)
 
     if (user) {
         try {
-            const authenticateUser = await auth.authenticateUser("github", profileData.id);
+            const authenticateUser = await auth.authenticateUser("discord", profileData.id);
             return {
                 status: 302,
                 headers: {
@@ -83,7 +83,7 @@ export const GET: RequestHandler = async function({ url }) {
     }
 
     try {
-        const createUser = await auth.createUser("github", profileData.id, {
+        const createUser = await auth.createUser("discord", profileData.id, {
             user_data: {
                 discordId: profileData.id,
                 username: profileData.username

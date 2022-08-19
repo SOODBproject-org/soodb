@@ -1,6 +1,6 @@
 import { env as publicEnv } from '$env/dynamic/public'
 import { env as privateEnv } from '$env/dynamic/private'
-import type { RequestHandler } from './__types/index.d'
+import type { RequestHandler } from './__types/google.d'
 import { auth } from '$lib/lucia'
 
 export const GET: RequestHandler = async function({ url }) {

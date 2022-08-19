@@ -22,11 +22,13 @@ declare namespace App {
         DATABASE_KEY: string
         LUCIA_SECRET: string
         GITHUB_SECRET: string
+        GOOGLE_SECRET: string
     }
 
     interface PublicEnv extends Record<string, string> {
         PUBLIC_HOST_URL: string
         PUBLIC_GITHUB_CLIENT_ID: string
         PUBLIC_DISCORD_CLIENT_ID: string
+        PUBLIC_GOOGLE_CLIENT_ID: string
     }
 }

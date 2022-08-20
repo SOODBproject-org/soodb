@@ -3,7 +3,7 @@
 
     export const load: Load = async function ({ params, fetch }) {
         const questionRes = await fetch(`/api/question/${params.id}?includeAuthor=true`)
-        const question = (await questionRes.json()) as Question & { authorName?: string }
+        const question = await questionRes.json()
         return {
             props: {
                 question,
@@ -13,15 +13,14 @@
 </script>
 
 <script lang="ts">
-    import { onMount } from "svelte"
-    import type { Question, Category, User } from "$lib/mongo"
+    import type { Question, Category } from "$lib/mongo"
     import QuestionComp from "$lib/components/Question.svelte"
     import Cookie from "js-cookie"
     import QueryBox from "$lib/components/QueryBox.svelte"
     import Icon from "svelte-icon/Icon.svelte";
     import arrow from "$lib/icons/arrow.svg?raw"
 
-    export let question: Question & { authorName?: string }
+    export let question: Question & { authorName?: string, authorId?: string }
 
     let menuOpen = false
     let answerVisible = false
@@ -53,14 +52,13 @@
         answerVisible = false
         const params = new URLSearchParams(inputs)
         const res = await fetch("/api/random?" + params.toString())
-        const returnedQuestion = await res.json()
-        if (returnedQuestion.error) {
-            noMatch = true
-        } else {
+        if (res.ok) {
             noMatch = false
-            question = returnedQuestion
+            question = await res.json()
             questionsSeen.push(question.id)
             history.pushState(null, "", "/question/" + question.id)
+        } else {
+            noMatch = true
         }
     }
 

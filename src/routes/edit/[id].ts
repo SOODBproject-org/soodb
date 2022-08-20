@@ -1,8 +1,8 @@
-import { redirectTo } from "$lib/functions/redirectTo"
+import { auth } from "$lib/lucia"
 import { editQuestion, getQuestionByID, type Category, type NewQuestionData } from "$lib/mongo"
 import type { RequestHandler } from "./__types/[id].d"
 
-export const POST: RequestHandler = async function ({ request, params, locals }) {
+export const PATCH: RequestHandler = async function ({ request, params }) {
     try {
         const formData = await request.formData()
         const { id } = params
@@ -19,37 +19,50 @@ export const POST: RequestHandler = async function ({ request, params, locals })
         const answer = formData.get("answer") as string
 
         const currentQuestion = await getQuestionByID(id)
-        if (!currentQuestion || locals.userData?.id !== currentQuestion.authorId) {
-            return redirectTo("error/no-edit-permission")
-        }
+        try {
+            const user = await auth.validateRequest(request)
+            if (!currentQuestion || user.user_id !== currentQuestion.authorId) {
+                return {
+                    status: 403
+                }
+            }
 
-        let updatedInfo: Partial<NewQuestionData>
-        if (type === "MCQ") {
-            updatedInfo = {
-                type,
-                category,
-                questionText,
-                choices,
-                correctAnswer,
+            let updatedInfo: Partial<NewQuestionData>
+            if (type === "MCQ") {
+                updatedInfo = {
+                    type,
+                    category,
+                    questionText,
+                    choices,
+                    correctAnswer,
+                }
+            } else if (type === "SA") {
+                updatedInfo = {
+                    type,
+                    category,
+                    questionText,
+                    correctAnswer: answer,
+                }
+            } else {
+                return {
+                    status: 400,
+                }
             }
-        } else if (type === "SA") {
-            updatedInfo = {
-                type,
-                category,
-                questionText,
-                correctAnswer: answer,
-            }
-        } else {
+
+            await editQuestion(id, updatedInfo)
+
             return {
-                status: 400,
+                status: 200
+            }
+        } catch {
+            return {
+                status: 401
             }
         }
-
-        await editQuestion(id, updatedInfo)
-
-        return redirectTo("/question-submitted")
     } catch (e) {
         console.error(e)
-        return redirectTo("/error/invalid-question")
+        return {
+            status: 500
+        }
     }
 }

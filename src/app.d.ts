@@ -5,33 +5,30 @@
 // for information about these interfaces
 declare namespace App {
     interface Locals {
-        userData: import("$lib/mongo").User | null
+        
     }
 
     interface Platform {}
 
     interface Session {
-        userData: import("$lib/mongo").User | null
-        previousQuery?: {
-            authorName?: string
-            keywords?: string
-            types?: string[]
-            categories?: string[]
-            start?: string
-            end?: string
-        }
+        lucia: import("lucia-sveltekit/types").SvelteKitSession<import("$lib/mongo").UserData>
     }
 
     interface Stuff {}
 
     interface PrivateEnv extends Record<string, string> {
-        CLIENTID: string
-        SECRET: string
+        DISCORD_SECRET: string
         DATABASE_APP_ID: string
         DATABASE_KEY: string
+        LUCIA_SECRET: string
+        GITHUB_SECRET: string
+        GOOGLE_SECRET: string
     }
 
     interface PublicEnv extends Record<string, string> {
-        HOST_URL: string
+        PUBLIC_HOST_URL: string
+        PUBLIC_GITHUB_CLIENT_ID: string
+        PUBLIC_DISCORD_CLIENT_ID: string
+        PUBLIC_GOOGLE_CLIENT_ID: string
     }
 }

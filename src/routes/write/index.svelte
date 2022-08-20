@@ -32,20 +32,44 @@
         })
     }
 
-    let ownQuestion = true
-    let author: string
-    let type: "MCQ" | "SA"
-    let category: Category
+    let type: "MCQ" | "SA" | undefined
+    let category: Category | undefined
     let optionW: string, optionX: string, optionY: string, optionZ: string
     let questionText: string, answer: string
-    let correctAnswer: "W" | "X" | "Y" | "Z"
+    let correctAnswer: "W" | "X" | "Y" | "Z" | undefined
     $: submitEnabled =
-        (author || ownQuestion) &&
         type &&
         category &&
         questionText &&
         (answer || correctAnswer) &&
         (type !== "MCQ" || (optionW && optionX && optionY && optionZ))
+
+    let formElement: HTMLFormElement
+    async function handleSubmit(e: SubmitEvent) {
+        e.preventDefault()
+
+        type = undefined
+        category = undefined
+        optionW = ""
+        optionX = ""
+        optionY = ""
+        optionZ = ""
+        questionText = ""
+        correctAnswer = undefined
+
+        const formData = new FormData(formElement)
+        const res = await fetch('/api/question', {
+            method: "POST",
+            body: formData,
+            headers: {
+                Authorization: `Bearer ${$session.lucia?.access_token}` ?? ""
+            }
+        })
+        
+        submitted = res.ok ? "success" : "error"
+        notificationShown = true
+        setTimeout(() => notificationShown = false, 5000)
+    }
 </script>
 
 <svelte:head>
@@ -64,12 +88,13 @@
     {/if}
 
     <h1>Submit Question</h1>
-    <form id="form" action="/write" method="POST" autocomplete="off">
-        {#if !$session.userData}
+    <form id="form" action="/write" method="POST" autocomplete="off" on:submit={handleSubmit} bind:this={formElement}>
+        {#if !$session.lucia}
             <p style:font-style="italic" style:margin-top="0">
                 This question will be submitted anonymously.<br />
                 <a href="/login">Log in</a> to submit a question under your account
             </p>
+            <input type="hidden" name="anonymous" value="true" />
         {/if}
         <div class="radio-wrapper">
             <label for="multiple-choice" class="radio-label">

@@ -1,18 +1,18 @@
 <script lang="ts">
     import { session } from "$app/stores"
     import { goto } from "$app/navigation"
-    import type { SaQuestion, McqQuestion, User } from "$lib/mongo"
-    export let userData: User
+    import type { SaQuestion, McqQuestion, DatabaseUserSafe } from "$lib/mongo"
+    export let userData: DatabaseUserSafe
     export let questions: (SaQuestion | McqQuestion)[]
 </script>
 
 <div>
     <div id="card">
-        <img
+        <!-- <img
             id="icon"
-            src={`https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatarHash}.png`}
+            src={`https://cdn.discordapp.com/avatars/${userData.user_id}/${userData.avatarHash}.png`}
             alt="Profile"
-        />
+        /> -->
         <h2 id="username">{userData.username}</h2>
         <p id="user-id">{userData.id}</p>
         <p>
@@ -34,16 +34,6 @@
                 <p>
                     Math: {questions.filter((question) => question.category === "math").length}
                 </p>
-            {/if}
-            {#if $session.userData?.id === userData.id}
-                <br />
-                <button
-                    on:click={() => {
-                        goto("/account")
-                    }}
-                >
-                    Edit
-                </button>
             {/if}
         </p>
     </div>
@@ -100,11 +90,9 @@
     #card {
         position: relative;
         margin: auto;
-        width: 80vw;
-        max-width: 60em;
         min-height: 30em;
         margin-bottom: 50px;
-        background-color: var(--color-6);
+        background-color: $background-2;
         border-radius: 2em;
         padding: 1em;
     }

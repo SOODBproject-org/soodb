@@ -2,7 +2,7 @@
     import type { Load } from "@sveltejs/kit"
 
     export const load: Load = async function ({ params, session, fetch }) {
-        if (!session.userData) {
+        if (!session.lucia) {
             return {
                 status: 302,
                 redirect: "/login",

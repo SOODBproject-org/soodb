@@ -8,12 +8,12 @@
     export let question: Question & { authorName?: string }
     export let answerVisible = false
 
-    let modifiedDate = new Date(question.modified)
+    let modifiedDate = new Date(question.modified ?? "")
     let modifiedDateString = Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale).format(modifiedDate)
     let createdDate = new Date(question.created)
     let createdDateString = Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale).format(createdDate)
 
-    const categoryNames = {
+    const categoryNames: Record<string, string> = {
         bio: "Biology",
         earth: "Earth and Space",
         chem: "Chemistry",
@@ -57,7 +57,7 @@
     <div class="line" />
     <div class="bottom">
         <span class="metadata">
-            {question.authorName ? `Author - ${question.authorName}; ` : ""}
+            <a href="/account/{question.authorId}" sveltekit:prefetch>{question.authorName}</a>
             <i>Created: {createdDateString}</i>
             <i>{createdDateString!==modifiedDateString ? `; Updated: ${modifiedDateString}` : ""}</i>
         </span>
@@ -65,7 +65,7 @@
             <a href="/question/{question.pairId}">Paired {question.bonus ? "Tossup" : "Bonus"}</a>
         {/if}
         <span style="margin-left: auto;" />
-        {#if $session.userData && $session.userData.id === question.authorId}
+        {#if $session.lucia && $session.lucia.user.user_id === question.authorId}
             <a href="/edit/{question.id}">
                 <Icon data={pencil} class="icon" />
             </a>

@@ -12,7 +12,5 @@ localhost-key.pem
 localhost.js
 localhost-key.js
 debugLogs.json
-jwt.key
-jwt.key.pub
 .eslintcache
 .vercel

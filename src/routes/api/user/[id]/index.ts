@@ -1,16 +1,10 @@
-import { getUserByID, type User } from "$lib/mongo"
+import { getUserByIDSafe, type DatabaseUserSafe } from "$lib/mongo"
 import type { RequestHandler } from "./__types/index.d"
 
-export const GET: RequestHandler<User> = async function ({ params, locals }) {
+export const GET: RequestHandler<DatabaseUserSafe> = async function ({ params }) {
     const { id } = params
 
-    if (!locals.userData) {
-        return {
-            status: 401,
-        }
-    }
-
-    const result = await getUserByID(id)
+    const result = await getUserByIDSafe(id)
     if (result) {
         return {
             status: 200,

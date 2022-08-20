@@ -4,12 +4,18 @@
     import { slide } from "svelte/transition"
     import Icon from "svelte-icon/Icon.svelte"
     import hamburger from "$lib/icons/hamburger.svg?raw"
+    import { signOut } from 'lucia-sveltekit/client'
 
     let menuOpen = false
 
     beforeNavigate(() => {
         menuOpen = false
     })
+
+    async function logout() {
+        await signOut()
+        window.location.href = "/write"
+    }
 </script>
 
 <div id="header">
@@ -21,8 +27,9 @@
                 <!-- Do not prefetch write or URL will get changed -->
                 <li><a href="/write">Write</a></li>
                 <li><a href="/packet-submit" sveltekit:prefetch>Packet Submit</a></li>
-                {#if $session.userData}
+                {#if $session.lucia}
                     <li><a href="/account" sveltekit:prefetch>Account</a></li>
+                    <li><button class="logout" on:click={logout}>Logout</button></li>
                 {:else}
                     <li><a href="/login" sveltekit:prefetch>Login</a></li>
                 {/if}
@@ -38,14 +45,16 @@
     {#if menuOpen}
         <nav class="mobile-menu" transition:slide>
             <ul>
-                {#if $session.userData}
-                    <li><a href="/account">Account</a></li>
+                {#if $session.lucia}
+                    <li><a href="/account" sveltekit:prefetch>Account</a></li>
+                    <li><button class="logout" on:click={logout}>Logout</button></li>
                 {:else}
                     <li><a href="/login">Login</a></li>
                 {/if}
-                <li><a href="/question-search">Search</a></li>
+                <li><a href="/question-search" sveltekit:prefetch>Search</a></li>
+                <!-- Do not prefetch write or URL will get changed -->
                 <li><a href="/write">Write</a></li>
-                <li><a href="/packet-submit">Packet Submit</a></li>
+                <li><a href="/packet-submit" sveltekit:prefetch>Packet Submit</a></li>
             </ul>
         </nav>
     {/if}
@@ -121,6 +130,13 @@
             width: 100%;
             height: 100%;
         }
+    }
+
+    .logout {
+        @extend %button-secondary;
+
+        font-size: inherit;
+        margin: 0;
     }
 
     @media (max-width: 600px) {

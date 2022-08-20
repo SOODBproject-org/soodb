@@ -3,13 +3,14 @@
 
     export const load: Load = async function ({ params, fetch }) {
         const userRes = await fetch(`/api/user/${params.id}`)
-        const userSettingsRes = await fetch(`/api/user/${params.id}/settings`)
-        const questionsRes = await fetch(`/api/questions?authorId=${params.id}`)
+        const questionsRes = await fetch(`/api/question?authorId=${params.id}`)
+        const userData = await userRes.json() as DatabaseUserSafe
         return {
             props: {
-                userData: await userRes.json(),
-                userSettings: await userSettingsRes.json(),
-                questions: await questionsRes.json(),
+                userData,
+                questions: (await questionsRes.json() as Question[]).map(
+                    x => ({ ...x, authorName: userData.username })
+                ),
             },
         }
     }
@@ -18,9 +19,9 @@
 <script lang="ts">
     import QuestionPreview from "$lib/components/QuestionPreview.svelte"
     import Account from "$lib/components/Account.svelte"
-    import type { McqQuestion, SaQuestion, User } from "$lib/mongo"
-    export let questions: (SaQuestion | McqQuestion)[]
-    export let userData: User
+    import type { DatabaseUserSafe, Question } from "$lib/mongo"
+    export let questions: Question[]
+    export let userData: DatabaseUserSafe
 </script>
 
 <svelte:head>
@@ -32,20 +33,27 @@
         <Account {userData} {questions} />
     </div>
     <div id="questions-wrapper">
-        <div id="questions">
-            {#if questions}
+        {#if questions?.length}
+            <div id="questions">
                 {#each questions as question}
                     <QuestionPreview {question} />
                 {/each}
-            {/if}
-        </div>
+            </div>
+        {:else}
+            <p class="no-questions">No questions written</p>
+        {/if}
     </div>
 </main>
 
 <style lang="scss">
     #account {
         margin-top: 1.2em;
+        position: relative;
+        margin-inline: auto;
+        width: 80vw;
+        max-width: 60em;
     }
+
     #questions-wrapper {
         width: 100%;
         display: grid;
@@ -61,5 +69,10 @@
         margin: 5em;
         width: 90vw;
         max-width: 1400px;
+    }
+
+    .no-questions {
+        text-align: center;
+        font-size: 20px;
     }
 </style>

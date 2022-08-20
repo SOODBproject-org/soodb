@@ -2,7 +2,11 @@
     import "$lib/styles/page.scss"
 
     import DatabaseHeader from "$lib/components/DatabaseHeader.svelte"
+    import { Lucia } from "lucia-sveltekit/client";
+    import { session } from "$app/stores";
 </script>
 
-<DatabaseHeader />
-<slot />
+<Lucia {session}>
+    <DatabaseHeader />
+    <slot />
+</Lucia>

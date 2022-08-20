@@ -8,7 +8,6 @@ interface QuestionBase {
     questionText: string
     pairId?: string
     source?: string
-    searchString?: string
     created: Date
     modified?: Date
 }
@@ -33,10 +32,11 @@ export interface SaQuestion extends QuestionBase {
 
 export type Question = McqQuestion | SaQuestion
 
-export interface User {
-    id: string
-    username: string
-    avatarHash?: string
+export interface UserData {
+    username: string,
+    email?: string,
+    discordId?: string,
+    googleId?: string
 }
 
 export interface UserSettings {
@@ -45,8 +45,14 @@ export interface UserSettings {
     imgUrl?: string
 }
 
+export type RefreshToken = {
+    refresh_token: string,
+    user_id: string
+}
+
 import { env } from "$env/dynamic/private"
-import MongoDataAPI from "atlas-data-api"
+import MongoDataAPI, { Document } from "atlas-data-api"
+import type { DatabaseUser } from "lucia-sveltekit/types"
 import { createSearchString } from "./functions/databaseUtils"
 import type { DistributiveOmit } from "./utils"
 
@@ -65,10 +71,11 @@ const api = new MongoDataAPI({
     id: env.DATABASE_APP_ID,
 })
 const database = api.cluster("SOODB").database("ScibowlOpenDB")
-const collections = {
+export const collections = {
     questions: database.collection<Question>("questions"),
-    users: database.collection<User>("users"),
+    users: database.collection<DatabaseUser<UserData>>("users"),
     userSettings: database.collection<UserSettings>("userSettings"),
+    refreshTokens: database.collection<RefreshToken>("refreshTokens")
 }
 
 export type NewQuestionData = DistributiveOmit<Question, InternalQuestionKey>
@@ -78,7 +85,6 @@ export async function addQuestion(question: NewQuestionData) {
         document: {
             ...question,
             id: createID(),
-            searchString: createSearchString(question),
             created: date,
             modified: date,
         },
@@ -95,7 +101,6 @@ export async function addPacket(questions:NewQuestionData[],created:Date) {
             ...questions[i*2],
             id:tossupID,
             pairId:bonusID,
-            searchString: createSearchString(questions[i*2]),
             created,
             modified:date
         })
@@ -103,7 +108,6 @@ export async function addPacket(questions:NewQuestionData[],created:Date) {
             ...questions[i*2+1],
             id:bonusID,
             pairId:tossupID,
-            searchString: createSearchString(questions[i*2+1]),
             created,
             modified:date
         })
@@ -112,7 +116,6 @@ export async function addPacket(questions:NewQuestionData[],created:Date) {
         questionOBJ.push({
             ...questions[questions.length-1],
             id:createID(),
-            searchString: createSearchString(questions[questions.length-1]),
             created,
             modified:date 
         })
@@ -186,7 +189,19 @@ export async function getUserByID(id: string) {
     return document
 }
 
-export async function updateUser(id: string, data: Partial<User>) {
+export type DatabaseUserSafe = Omit<DatabaseUser<UserData>, 'hashed_password' | 'identifier_token'>
+
+export async function getUserByIDSafe(id: string) {
+    const { document } = await collections.users.findOne({ filter: { id } })
+    return document ? removePrivateFields(document) : null
+}
+
+export async function getUserByUsernameSafe(username: string) {
+    const { document } = await collections.users.findOne({ filter: { username } })
+    return document ? removePrivateFields(document) : null
+}
+
+export async function updateUser(id: string, data: Partial<UserData>) {
     return collections.users.updateOne({
         filter: { id },
         update: { $set: data },
@@ -216,4 +231,13 @@ export async function getRandomQuestion() {
     } else {
         return null
     }
+}
+
+function removePrivateFields<T extends Document = Document>(doc: T): Omit<T, 'hashed_password' | 'identifier_token'> {
+    return {
+        ...Object.fromEntries(
+            Object.entries(doc)
+            .filter(x => ![ "hashed_password", "identifier_token" ].includes(x[0]))
+        )
+    } as Omit<T, 'hashed_password' | 'identifier_token'>
 }

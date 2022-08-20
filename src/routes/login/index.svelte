@@ -2,7 +2,6 @@
     import { goto } from "$app/navigation";
     import { env } from "$env/dynamic/public"
 
-    console.log(env)
     let username: string
     let password: string
 </script>
@@ -37,11 +36,13 @@
         </button>
         <button type="button" class="google" on:click={() => goto(`https://accounts.google.com/o/oauth2/v2/auth?client_id=${env.PUBLIC_GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(env.PUBLIC_HOST_URL + "/api/google")}&response_type=code&scope=${encodeURIComponent("openid email profile")}`)}>
             <span class="icon">
-                <svg xmlns="https://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 48 48" aria-hidden="true" class="L5wZDc">
-                    <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"></path>
-                    <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"></path>
-                    <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24c0 3.55.85 6.91 2.34 9.88l7.35-5.7z"></path>
-                    <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"></path><path fill="none" d="M2 2h44v44H2z"></path>
+                <svg id="eFAD9Bf5e2T1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 150 150" shape-rendering="geometricPrecision" text-rendering="geometricPrecision">
+                    <g transform="matrix(1.417482 0 0 1.417482-31.328867-31.309915)">
+                        <path d="M120,76.1c0-3.1-.3-6.3-.8-9.3h-43.3v17.7h24.8c-1,5.7-4.3,10.7-9.2,13.9l14.8,11.5C115,101.8,120,90,120,76.1v0Z" fill="#4280ef"/>
+                        <path d="M75.9,120.9c12.4,0,22.8-4.1,30.4-11.1L91.5,98.4c-4.1,2.8-9.4,4.4-15.6,4.4-12,0-22.1-8.1-25.8-18.9L34.9,95.6c7.8,15.5,23.6,25.3,41,25.3Z" fill="#34a353"/>
+                        <path d="M50.1,83.8c-1.9-5.7-1.9-11.9,0-17.6L34.9,54.4c-6.5,13-6.5,28.3,0,41.2L50.1,83.8Z" fill="#f6b704"/>
+                        <path d="M75.9,47.3c6.5-.1,12.9,2.4,17.6,6.9L106.6,41c-8.3-7.8-19.3-12-30.7-11.9-17.4,0-33.2,9.8-41,25.3L50.1,66.2c3.7-10.9,13.8-18.9,25.8-18.9Z" fill="#e54335"/>
+                    </g>
                 </svg>
             </span>
             <span class="text">

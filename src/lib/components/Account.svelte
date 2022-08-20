@@ -35,16 +35,6 @@
                     Math: {questions.filter((question) => question.category === "math").length}
                 </p>
             {/if}
-            {#if $session.lucia?.user.user_id === userData.id}
-                <br />
-                <button
-                    on:click={() => {
-                        goto("/account")
-                    }}
-                >
-                    Edit
-                </button>
-            {/if}
         </p>
     </div>
 </div>
@@ -100,8 +90,6 @@
     #card {
         position: relative;
         margin: auto;
-        width: 80vw;
-        max-width: 60em;
         min-height: 30em;
         margin-bottom: 50px;
         background-color: $background-2;

@@ -36,10 +36,12 @@
 <script lang="ts">
     import QuestionPreview from "$lib/components/QuestionPreview.svelte"
     import AccountEdit from "$lib/components/AccountEdit.svelte"
-    import type { DatabaseUserSafe, Question, UserSettings } from "$lib/mongo"
+    import type { DatabaseUserSafe, Question } from "$lib/mongo"
+    import Account from "$lib/components/Account.svelte";
     export let questions: Question[]
     export let userData: DatabaseUserSafe
-    export let userSettings: UserSettings
+
+    let editing = false
 </script>
 
 <svelte:head>
@@ -48,22 +50,33 @@
 
 <main>
     <div id="account">
-        <AccountEdit bind:userData bind:userSettings bind:questions />
+        {#if editing}
+            <AccountEdit {userData} on:save={() => editing = false} on:back={() => editing = false} />
+        {:else}
+            <Account {userData} {questions} />
+            <button class="settings" on:click={() => editing = true}>Settings</button>
+        {/if}
     </div>
-    <div id="questions-wrapper">
-        <div id="questions">
-            {#if questions}
+    {#if questions?.length}
+        <div id="questions-wrapper">
+            <div id="questions">
                 {#each questions as question}
                     <QuestionPreview {question} />
                 {/each}
-            {/if}
+            </div>
         </div>
-    </div>
+    {:else}
+        <p class="no-questions">No questions written</p>
+    {/if}
 </main>
 
 <style lang="scss">
     #account {
         margin-top: 1.2em;
+        position: relative;
+        margin-inline: auto;
+        width: 80vw;
+        max-width: 60em;
     }
     #questions-wrapper {
         width: 100%;
@@ -80,5 +93,27 @@
         margin: 5em;
         width: 90vw;
         max-width: 1400px;
+    }
+
+    .no-questions {
+        text-align: center;
+        font-size: 20px;
+    }
+
+    button {
+        @extend %button-secondary;
+
+        position: absolute;
+        right: 1em;
+        bottom: 1em;
+        font-size: 20px;
+
+        @media (max-width: 600px) {
+            position: absolute;
+            bottom: 1em;
+            left: 1em;
+            right: 1em;
+            display: block;
+        }
     }
 </style>

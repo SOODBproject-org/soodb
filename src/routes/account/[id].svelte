@@ -33,20 +33,27 @@
         <Account {userData} {questions} />
     </div>
     <div id="questions-wrapper">
-        <div id="questions">
-            {#if questions}
+        {#if questions?.length}
+            <div id="questions">
                 {#each questions as question}
                     <QuestionPreview {question} />
                 {/each}
-            {/if}
-        </div>
+            </div>
+        {:else}
+            <p class="no-questions">No questions written</p>
+        {/if}
     </div>
 </main>
 
 <style lang="scss">
     #account {
         margin-top: 1.2em;
+        position: relative;
+        margin-inline: auto;
+        width: 80vw;
+        max-width: 60em;
     }
+
     #questions-wrapper {
         width: 100%;
         display: grid;
@@ -62,5 +69,10 @@
         margin: 5em;
         width: 90vw;
         max-width: 1400px;
+    }
+
+    .no-questions {
+        text-align: center;
+        font-size: 20px;
     }
 </style>

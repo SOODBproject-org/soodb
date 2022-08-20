@@ -51,7 +51,7 @@ export type RefreshToken = {
 }
 
 import { env } from "$env/dynamic/private"
-import MongoDataAPI from "atlas-data-api"
+import MongoDataAPI, { Document } from "atlas-data-api"
 import type { DatabaseUser } from "lucia-sveltekit/types"
 import { createSearchString } from "./functions/databaseUtils"
 import type { DistributiveOmit } from "./utils"
@@ -159,11 +159,12 @@ export type DatabaseUserSafe = Omit<DatabaseUser<UserData>, 'hashed_password' | 
 
 export async function getUserByIDSafe(id: string) {
     const { document } = await collections.users.findOne({ filter: { id } })
-    return document ? {
-        ...Object.fromEntries(
-            Object.entries(document)
-            .filter(x => ![ "hashed_password", "identifier_token" ].includes(x[0]))) as DatabaseUserSafe
-    } : null
+    return document ? removePrivateFields(document) : null
+}
+
+export async function getUserByUsernameSafe(username: string) {
+    const { document } = await collections.users.findOne({ filter: { username } })
+    return document ? removePrivateFields(document) : null
 }
 
 export async function updateUser(id: string, data: Partial<UserData>) {
@@ -196,4 +197,13 @@ export async function getRandomQuestion() {
     } else {
         return null
     }
+}
+
+function removePrivateFields<T extends Document = Document>(doc: T): Omit<T, 'hashed_password' | 'identifier_token'> {
+    return {
+        ...Object.fromEntries(
+            Object.entries(doc)
+            .filter(x => ![ "hashed_password", "identifier_token" ].includes(x[0]))
+        )
+    } as Omit<T, 'hashed_password' | 'identifier_token'>
 }

@@ -26,7 +26,8 @@
                 <li><a href="/question-search" sveltekit:prefetch>Search</a></li>
                 <!-- Do not prefetch write or URL will get changed -->
                 <li><a href="/write">Write</a></li>
-                <li><a href="/packet-submit" sveltekit:prefetch>Packet Submit</a></li>
+                <!-- Do not prefetch packet-submit or URL will get changed -->
+                <li><a href="/packet-submit">Packet Submit</a></li>
                 {#if $session.lucia}
                     <li><a href="/account" sveltekit:prefetch>Account</a></li>
                     <li><button class="logout" on:click={logout}>Logout</button></li>

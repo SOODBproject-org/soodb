@@ -5,7 +5,7 @@
     export const load: Load = async function ({ fetch, url }) {
         const paramQueryEntries = [...url.searchParams.entries()]
             .filter(([key, _]) => [
-                "authorName",
+                "authorId",
                 "keywords",
                 "source",
                 "start",
@@ -78,7 +78,7 @@
     let menuOpen = false
     let querySent = false
     async function sendQuery(queryBox: Record<string, any>) {
-        query.authorName = queryBox.authorName || undefined
+        query.authorId = queryBox.authorId || undefined
         query.keywords = queryBox.keywords || undefined
         query.source = queryBox.source || undefined
         query.types = queryBox.types.length ? queryBox.types : undefined

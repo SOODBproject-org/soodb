@@ -2,10 +2,11 @@
     import { createEventDispatcher } from "svelte"
     import Select from 'svelte-select'
     import { page } from "$app/stores"
-    import type { Category } from "$lib/mongo";
+    import type { Category, DatabaseUserSafe } from "$lib/mongo";
+    import UserSearch from "./UserSearch.svelte";
     
     type Inputs = {
-        authorName: string
+        authorId: string
         keywords: string
         source: string
         start: string
@@ -13,8 +14,8 @@
         types: ("MCQ" | "SA")[]
         categories: Category[]
     }
-    let inputs: Inputs = {
-        authorName: "",
+    const defaultInputs: Inputs = {
+        authorId: "",
         keywords: "",
         source: "",
         start: "",
@@ -22,26 +23,36 @@
         types: [],
         categories: [],
     }
+    let inputs = {...defaultInputs}
+
     const categoryNames = [
-        {id:"Biology",value:"bio"},
-        {id:"Earth and Space",value:"earth"},
-        {id:"Chemistry",value:"chem"},
-        {id:"Math",value:"math"},
-        {id:"Physics",value:"physics"},
-        {id:"Energy",value:"energy"}
+        {id:"bio",value:"Biology"},
+        {id:"earth",value:"Earth and Space"},
+        {id:"chem",value:"Chemistry"},
+        {id:"math",value:"Math"},
+        {id:"physics",value:"Physics"},
+        {id:"energy",value:"Energy"}
     ]
     
     export let numQuestions: number
     const dispatch = createEventDispatcher()
 
     export function setQuery(query: Partial<Inputs>) {
-        if (query.authorName) inputs.authorName = query.authorName
+        if (query.authorId) { 
+            inputs.authorId = query.authorId
+            setUser(query.authorId)
+        }
         if (query.keywords) inputs.keywords = query.keywords
         if (query.source) inputs.source = query.source
         if (query.start) inputs.start = query.start
         if (query.end) inputs.end = query.end
         if (query.types) inputs.types = query.types
-        if (query.categories) inputs.categories = query.categories
+        if (query.categories) {
+            inputs.categories = query.categories
+            rawCategoryValue = query.categories
+                .map(c => categoryNames.find(x => x.id === c))
+                .filter(x => x !== undefined) as { id: string, value: string }[]
+        }
     }
 
     async function emitQuery(pageNumber = 1) {
@@ -51,9 +62,27 @@
         })
     }
 
-    function handleCategorySelect(e: CustomEvent<{ id: number, value: string}[]>){
-        if (e.detail) inputs.categories = e.detail.map((i)=>i.value as Category)
+    function clearQuery() {
+        inputs = {...defaultInputs}
+        rawCategoryValue = []
+        clearUser()
+        emitQuery()
+    }
+
+    let rawCategoryValue: { id: string, value: string }[]
+    function handleCategorySelect(e: CustomEvent<{ id: string, value: string}[]>){
+        if (e.detail) inputs.categories = e.detail.map((i) => i.id as Category)
         else inputs.categories = []
+    }
+
+    let setUser: (userId: string) => Promise<void>
+    let clearUser: () => void
+    function handleUserSelect(e: CustomEvent<DatabaseUserSafe>) {
+        inputs.authorId = e.detail.id
+    }
+
+    function handleUserClear() {
+        inputs.authorId = defaultInputs.authorId
     }
 </script>
 
@@ -74,21 +103,15 @@
     }}
 >
     <div style="display: inline-block; text-align: left;">
-        <input
-            type="text"
-            name="author-name"
-            placeholder="Author"
-            id="author-input"
-            bind:value={inputs.authorName}
-        />
+        <UserSearch bind:setUser bind:clearUser on:select={handleUserSelect} on:clear={handleUserClear} />
         <br />
         <input type="text" name="keywords" placeholder="Keywords" id="keyword-input" bind:value={inputs.keywords} />
         <br />
         <input type="text" name="source" placeholder="Source" id="source-input" bind:value={inputs.source} />
         <br />
         <h3>Date Range:</h3>
-        <input type="date" name="start-date" bind:value={inputs.start} />-
-        <input type="date" name="end-date" bind:value={inputs.end} />
+        <input type="date" name="start-date" bind:value={inputs.start} class:empty={!inputs.start} />-
+        <input type="date" name="end-date" bind:value={inputs.end} class:empty={!inputs.end} />
     </div>
     <div class="radio-wrapper">
         <h3>Type</h3>
@@ -110,15 +133,20 @@
         <div class='select'>
             <Select 
                 items={categoryNames}
-                optionIdentifier="value" 
-                labelIdentifier="id"
+                optionIdentifier="id" 
+                labelIdentifier="value"
                 isMulti={true}
-                on:select={handleCategorySelect} 
+                isSearchable={false}
+                placeholder="Category"
+                on:select={handleCategorySelect}
+                bind:value={rawCategoryValue}
             />
         </div>
     </div>
     <br />
-    <button type="submit">Submit Query</button>
+    <button type="submit" class="submit">Submit Query</button>
+    <button type="button" class="clear" on:click={clearQuery}>Clear Query</button>
+    <!-- <button type="button">Clear Query</button> -->
     {#if numQuestions}
         <h3>{numQuestions} questions matched your query</h3>
     {/if}
@@ -134,20 +162,26 @@
         @extend %text-input;
         font-size: 20px;
         width: min(150px,40%);
-        &:focus::placeholder {
-            color: transparent;
+
+        &.empty {
+            color: #757575;
         }
     }
     .select {
-        --input-font-size:20px;
+        --inputFontSize: 20px;
+        --placeholderColor: #757575;
         --background: hsl(48, 18%, 9%);
         --listBackground:hsl(48, 18%, 9%);
-        --itemHoverBG: hsl(218, 38%, 46%);
-        --multiItemBG: hsl(218, 38%, 46%);
+        --itemHoverBG: #{$accent-2};
+        --multiItemBG: #{$accent-2};
+        --multiItemActiveBG: #{scale($accent-2, $saturation: 20%, $lightness: -10%)};
         --itemColor: hsl(32, 30%, 87%);
         --listMaxHeight: 6em;
         --border: transparent 1.5px solid;
+        --borderHoverColor: #{$accent-2};
+        --borderFocusColor: #{$accent-2};
         --border-radius: .2em;
+
         font-size: 20px;
         border: none;
         margin: .5em 0;        
@@ -156,8 +190,19 @@
         position: relative;
         text-align: left;
         font-family: 'Ubuntu';
-        &:focus::placeholder {
-            color: transparent;
+
+        & :global(.listContainer) {
+            @include vertical-scrollable(7px);
+
+            &::-webkit-scrollbar-track-piece:start {
+                margin-top: 0.2em;
+            }
+            
+            &::-webkit-scrollbar-track-piece:end {
+                margin-bottom: 0.2em;
+            }
+
+            overscroll-behavior: contain;
         }
     }
 
@@ -177,11 +222,20 @@
         text-align: left;
         display: inline-block;
     }
+
     label {
         @extend %checkbox-label;
     }
-    button {
+
+    .submit {
         @extend %button-primary;
+
+        font-size: 20px;
+        max-width: 35ch;
+    }
+
+    .clear {
+        @extend %button-secondary;
 
         font-size: 20px;
         max-width: 35ch;

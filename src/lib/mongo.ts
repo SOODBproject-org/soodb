@@ -53,7 +53,7 @@ export type RefreshToken = {
 import { env } from "$env/dynamic/private"
 import MongoDataAPI, { Document } from "atlas-data-api"
 import type { DatabaseUser } from "lucia-sveltekit/types"
-import { createSearchString } from "./functions/databaseUtils"
+import { escapeRegex } from "./functions/databaseUtils"
 import type { DistributiveOmit } from "./utils"
 
 function createID() {
@@ -175,7 +175,6 @@ export async function editQuestion(id: string, newQuestion: Partial<NewQuestionD
         update: {
             $set: {
                 ...newQuestion,
-                searchString: createSearchString(newQuestion),
                 modified: new Date(),
             },
         },
@@ -202,6 +201,14 @@ export async function getUserByIDSafe(id: string) {
 export async function getUserByUsernameSafe(username: string) {
     const { document } = await collections.users.findOne({ filter: { username } })
     return document ? removePrivateFields(document) : null
+}
+
+export async function searchUserByUsernameSafe(username: string) {
+    const { documents } = await collections.users.find({
+        filter: { username: { $regex: escapeRegex(username), $options: 'i' } },
+        limit: 15
+    })
+    return documents.map(removePrivateFields)
 }
 
 export async function updateUser(id: string, data: Partial<UserData>) {

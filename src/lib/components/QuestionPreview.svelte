@@ -6,8 +6,8 @@
         question.questionText.length > numCharacters
             ? question.questionText.slice(0, numCharacters) + "…"
             : question.questionText
-    let modifiedDate = new Date(question.modified ?? "")
-    let modifiedDateString = Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale).format(modifiedDate)
+    let createdDate = new Date(question.created)
+    let createdDateString = Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale).format(createdDate)
     let previewWidth: number
     $: numCharacters = previewWidth / 3 - 20
 
@@ -31,7 +31,7 @@
         {#if question.authorName}
             <a href="/account/{question.authorId}" sveltekit:prefetch>{question.authorName}</a>
         {/if}
-        <i>({modifiedDateString})</i>
+        <i>{createdDateString}</i>
     </p>
 </div>
 

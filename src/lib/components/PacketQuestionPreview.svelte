@@ -24,7 +24,9 @@
         <h3 class="question-text">Y) {question.choices.Y}</h3>
         <h3 class="question-text">Z) {question.choices.Z}</h3>
     {/if}
-    <p>Source - {question.source}</p>
+    {#if question.source}
+        <p>Source - {question.source}</p>
+    {/if}
     <h3 class="correct-answer">{question.correctAnswer}</h3>
 </div>
 

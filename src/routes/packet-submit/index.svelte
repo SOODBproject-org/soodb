@@ -17,7 +17,7 @@
 <script lang="ts">
     import { browser } from "$app/env"
     import { onMount } from "svelte"
-    import PreviewQuestion from "$lib/components/PreviewQuestion.svelte"
+    import PacketQuestionPreview from "$lib/components/PacketQuestionPreview.svelte"
     import type { Category, NewQuestionData } from "$lib/mongo"
     import Notification from "$lib/components/Notification.svelte"
 
@@ -28,8 +28,17 @@
     let created: Date
     export let submitted: string
 
-    const parameters = {
-        tossUp: "TOSSUP",
+    type Parameters = {
+        tossUp: string,
+        bonus: string,
+        categories: string[],
+        shortAnswer: string,
+        multipleChoice: string,
+        ignoreCase: boolean
+    }
+
+    const parameters: Parameters = {
+        tossUp: "TOSS-UP",
         bonus: "BONUS",
         categories: ["BIOLOGY", "CHEMISTRY", "EARTH AND SPACE", "PHYSICS", "MATH", "ENERGY"],
         shortAnswer: "Short Answer",
@@ -62,15 +71,15 @@
         regexPattern = res ? new RegExp(res[1], res[3]) : /^\b$/
     }
 
-    function calcRegexPattern() {
+    function calcRegexPattern(params: Parameters) {
         let catString = ""
-        parameters.categories.forEach((cat) => {
+        params.categories.forEach((cat) => {
             catString += cat + "|"
         })
         catString = catString.slice(0, -1)
-        editableRegex = `/(${parameters.tossUp}|${parameters.bonus}).??\n?.+?(${catString})\n?.+?(${parameters.shortAnswer}|${parameters.multipleChoice}):?((.|\n)+?)ANSWER:?(.+)/gi`
+        editableRegex = `/(${params.tossUp}|${params.bonus}).??\n?.+?(${catString})\n?.+?(${params.shortAnswer}|${params.multipleChoice}):?((.|\n)+?)ANSWER:?(.+)/gi`
         const regex = new RegExp(
-            `(${parameters.tossUp}|${parameters.bonus}).??\n?.+?(${catString})\n?.+?(${parameters.shortAnswer}|${parameters.multipleChoice}):?((.|\n)+?)ANSWER:?(.+)`,
+            `(${params.tossUp}|${params.bonus}).??\n?.+?(${catString})\n?.+?(${params.shortAnswer}|${params.multipleChoice}):?((.|\n)+?)ANSWER:?(.+)`,
             "gi"
         )
         return regex
@@ -122,8 +131,10 @@
     }
 
     $: categoryNames = setCatNames(parameters.categories)
-    let regexPattern = calcRegexPattern()
+    $: regexPattern = calcRegexPattern(parameters)
     $: questions = generatePreviews(plainText, regexPattern, source)
+
+    $: submitDisabled = !questions.length || !source || !created
 </script>
 
 <svelte:head>
@@ -141,7 +152,7 @@
         />
     {/if}    
     <div class="data-entry">
-        <form id="form" action="/packet-submit" method="POST" autocomplete="off" on:input={calcRegexPattern}>
+        <form id="form" action="/packet-submit" method="POST" autocomplete="off">
             <h1>Packet Submission</h1>
             <input
                 type="text"
@@ -197,9 +208,12 @@
                                     type="button"
                                     class="minus"
                                     on:click={() => {
-                                        parameters.categories.splice(i + 6, 1)
+                                        parameters.categories = [
+                                            ...parameters.categories.slice(0, 6 + i),
+                                            ...parameters.categories.slice(6 + i + 1)
+                                        ]
                                         parameters.categories = parameters.categories
-                                        calcRegexPattern()
+                                        calcRegexPattern(parameters)
                                     }}
                                 >
                                     -
@@ -222,7 +236,7 @@
                 <p>Raw Regex:</p>
                 <textarea bind:value={editableRegex} on:input|stopPropagation={manualRegex} />
             </div>
-            <button type="submit" class="submit-button">Submit Questions</button>
+            <button type="submit" class="submit-button" disabled={submitDisabled}>Submit Questions</button>
         </form>
     </div>
     <div id="questions-preview">
@@ -232,7 +246,7 @@
         </p>
         <div id="questions">
             {#each questions as question}
-                <PreviewQuestion bind:question />
+                <PacketQuestionPreview bind:question />
             {/each}
         </div>
     </div>

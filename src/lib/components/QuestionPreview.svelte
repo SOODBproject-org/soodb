@@ -1,18 +1,17 @@
 <script lang="ts">
     import type { Question } from "$lib/mongo"
     export let question: Question & { authorName?: string }
-    console.log(question)
 
     $: truncatedQuestion =
         question.questionText.length > numCharacters
             ? question.questionText.slice(0, numCharacters) + "…"
             : question.questionText
-    let modifiedDate = new Date(question.modified)
+    let modifiedDate = new Date(question.modified ?? "")
     let modifiedDateString = Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale).format(modifiedDate)
     let previewWidth: number
     $: numCharacters = previewWidth / 3 - 20
 
-    const categoryNames = {
+    const categoryNames: Record<string, string> = {
         bio: "Biology",
         earth: "Earth and Space",
         chem: "Chemistry",
@@ -22,18 +21,18 @@
     }
 </script>
 
-<div class={"preview " + question.category} bind:clientWidth={previewWidth}>
+<div class="preview {question.category}" bind:clientWidth={previewWidth}>
     <div class="wrapper">
         <h2>{categoryNames[question.category] ? categoryNames[question.category] : question.category }</h2>
         <a href="/question/{question.id}" sveltekit:prefetch>View</a>
     </div>
     <h3>{truncatedQuestion}</h3>
-    {#if question.authorName}
-        <p>
+    <p>
+        {#if question.authorName}
             <a href="/account/{question.authorId}" sveltekit:prefetch>{question.authorName}</a>
-            <i>({modifiedDateString})</i>
-        </p>
-    {/if}
+        {/if}
+        <i>({modifiedDateString})</i>
+    </p>
 </div>
 
 <style lang="scss">

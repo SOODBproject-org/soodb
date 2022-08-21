@@ -129,6 +129,7 @@ type QuestionQuery = {
     authorName?: string
     authorId?: string
     keywords?: string
+    source?: string
     categories?: Category[]
     types?: ("SA" | "MCQ")[]
     timeRange?: {
@@ -140,6 +141,7 @@ type MongoQuestionQuery = {
     authorName?: string
     authorId?: string
     $text?: { $search: string }
+    source?: string
     category?: { $in: Category[] }
     type?: { $in: ("SA" | "MCQ")[] }
     created?: {
@@ -148,11 +150,12 @@ type MongoQuestionQuery = {
     }
 }
 
-export async function getQuestions({ authorName, authorId, keywords, categories, types, timeRange }: QuestionQuery) {
+export async function getQuestions({ authorName, authorId, keywords, source, categories, types, timeRange }: QuestionQuery) {
     const mongoQuery: MongoQuestionQuery = {}
     if (authorName) mongoQuery.authorName = authorName
     if (authorId) mongoQuery.authorId = authorId
     if (keywords) mongoQuery.$text = { $search: keywords }
+    if (source) mongoQuery.source = source
     if (categories?.length) mongoQuery.category = { $in: categories }
     if (types?.length) mongoQuery.type = { $in: types }
     if (timeRange && (timeRange.startDate || timeRange.endDate)) {

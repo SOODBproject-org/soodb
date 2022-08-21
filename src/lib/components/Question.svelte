@@ -57,15 +57,23 @@
     <div class="line" />
     <div class="bottom">
         <span class="metadata">
-            <a href="/account/{question.authorId}" sveltekit:prefetch>{question.authorName}</a>
-            <i>Created: {createdDateString}</i>
-            <i>{createdDateString!==modifiedDateString ? `; Updated: ${modifiedDateString}` : ""}</i>
+            {#if question.source}
+                <a href="/question-search?source={encodeURIComponent(question.source)}">{question.source}</a>
+            {:else}
+                <a href="/account/{question.authorId}" sveltekit:prefetch>{question.authorName}</a>
+            {/if}
         </span>
+        {#if createdDate}
+            <span class="metadata"><i>Created: {createdDateString}</i></span>
+        {/if}
+        {#if createdDateString !== modifiedDateString}
+            <i>Modified: {modifiedDateString}</i>
+        {/if}
         {#if question.pairId}
             <a href="/question/{question.pairId}">Paired {question.bonus ? "Tossup" : "Bonus"}</a>
         {/if}
-        <span style="margin-left: auto;" />
         {#if $session.lucia && $session.lucia.user.user_id === question.authorId}
+            <span style="margin-left: auto;" />
             <a href="/edit/{question.id}">
                 <Icon data={pencil} class="icon" />
             </a>
@@ -144,8 +152,9 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-        gap: 4ch;
-        height: 1.5em;
+        flex-wrap: wrap;
+        column-gap: 4ch;
+        row-gap: 0.75em;
 
         a {
             display: inline-block;
@@ -163,6 +172,7 @@
     .metadata {
         margin: 0;
         line-height: 1em;
+        white-space: nowrap;
     }
 
     #showanswer {

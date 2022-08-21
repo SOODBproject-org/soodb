@@ -2,12 +2,33 @@
     import type { Load } from "@sveltejs/kit"
     import Cookie from "js-cookie"
 
-    export const load: Load = async function ({ fetch }) {
+    export const load: Load = async function ({ fetch, url }) {
+        const paramQueryEntries = [...url.searchParams.entries()]
+            .filter(([key, _]) => [
+                "authorName",
+                "keywords",
+                "source",
+                "start",
+                "end",
+                "types",
+                "categories"
+            ].includes(key))
+            .map(([key, value]) => {
+                if (key === "types" || key === "categories") {
+                    return [key, value.split(',')]
+                } else {
+                    return [key, value]
+                }
+            })
+
+        const paramQuery = Object.fromEntries(paramQueryEntries)
+
         const previousQuery: Record<string, string | string[]> = browser
             ? JSON.parse(Cookie.get("previousQuery") ?? "{}")
             : {}
         const params = new URLSearchParams({
             ...previousQuery,
+            ...paramQuery,
             includeAuthor: "true",
             // check cookie on SSR request
             checkCookies: "true",
@@ -17,7 +38,10 @@
         })
         return {
             props: {
-                query: previousQuery,
+                query: {
+                    ...previousQuery,
+                    ...paramQuery
+                },
                 questions: await questionsRes.json(),
             },
         }
@@ -41,6 +65,7 @@
 
     let queryBoxComponent: QueryBox
     onMount(() => {
+        history.replaceState({}, '', "/question-search")
         queryBoxComponent?.setQuery(query)
     })
 
@@ -55,6 +80,7 @@
     async function sendQuery(queryBox: Record<string, any>) {
         query.authorName = queryBox.authorName || undefined
         query.keywords = queryBox.keywords || undefined
+        query.source = queryBox.source || undefined
         query.types = queryBox.types.length ? queryBox.types : undefined
         query.categories = queryBox.categories.length ? queryBox.categories : undefined
         query.start = queryBox.start || undefined

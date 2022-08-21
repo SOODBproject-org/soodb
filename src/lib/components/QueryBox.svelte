@@ -7,6 +7,7 @@
     type Inputs = {
         authorName: string
         keywords: string
+        source: string
         start: string
         end: string
         types: ("MCQ" | "SA")[]
@@ -15,6 +16,7 @@
     let inputs: Inputs = {
         authorName: "",
         keywords: "",
+        source: "",
         start: "",
         end: "",
         types: [],
@@ -35,6 +37,7 @@
     export function setQuery(query: Partial<Inputs>) {
         if (query.authorName) inputs.authorName = query.authorName
         if (query.keywords) inputs.keywords = query.keywords
+        if (query.source) inputs.source = query.source
         if (query.start) inputs.start = query.start
         if (query.end) inputs.end = query.end
         if (query.types) inputs.types = query.types
@@ -77,9 +80,12 @@
             placeholder="Author"
             id="author-input"
             bind:value={inputs.authorName}
-        /><br />
-        <input type="text" name="keywords" placeholder="Keywords" id="keyword-input" bind:value={inputs.keywords} /><br
         />
+        <br />
+        <input type="text" name="keywords" placeholder="Keywords" id="keyword-input" bind:value={inputs.keywords} />
+        <br />
+        <input type="text" name="source" placeholder="Source" id="source-input" bind:value={inputs.source} />
+        <br />
         <h3>Date Range:</h3>
         <input type="date" name="start-date" bind:value={inputs.start} />-
         <input type="date" name="end-date" bind:value={inputs.end} />

@@ -1,6 +1,8 @@
 import { auth } from "$lib/lucia"
-import { editQuestion, getQuestionByID, type Category, type NewQuestionData } from "$lib/mongo"
+import { editQuestion, getQuestionByID, type NewQuestionData } from "$lib/mongo"
+import type { Category } from "$lib/types"
 import type { RequestHandler } from "./__types/[id].d"
+import { error } from "$lib/functions/response"
 
 export const PATCH: RequestHandler = async function ({ request, params }) {
     try {
@@ -22,9 +24,7 @@ export const PATCH: RequestHandler = async function ({ request, params }) {
         try {
             const user = await auth.validateRequest(request)
             if (!currentQuestion || user.user_id !== currentQuestion.authorId) {
-                return {
-                    status: 403
-                }
+                return error(403, "You cannot edit this question")
             }
 
             let updatedInfo: Partial<NewQuestionData>

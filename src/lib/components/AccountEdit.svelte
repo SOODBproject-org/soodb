@@ -23,7 +23,7 @@
         return new Promise((resolve) => {
             usernameTakenTimeout = setTimeout(async () => {
                 const response = await fetch(`/api/user/username/${encodeURIComponent(value)}`)
-                const user = await response.json()
+                const user = response.ok ? await response.json() : true
                 resolve(!user)
             }, 700)
         }) as Promise<boolean>

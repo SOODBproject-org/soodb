@@ -2,16 +2,12 @@ import type { RequestHandler } from "./__types/discord.d"
 import { env as publicEnv } from "$env/dynamic/public"
 import { env as privateEnv } from "$env/dynamic/private"
 import { auth } from "$lib/lucia";
+import { error } from "$lib/functions/response";
 
 export const GET: RequestHandler = async function({ url }) {
     const code = url.searchParams.get("code");
     if (!code) {
-        return {
-            status: 400,
-            body: JSON.stringify({
-                message: "Invalid request url parameters.",
-            }),
-        };
+        return error(400, "Invalid request url parameters");
     }
     const accessTokenRes = await fetch(
         `https://discord.com/api/v10/oauth2/token`,
@@ -30,14 +26,7 @@ export const GET: RequestHandler = async function({ url }) {
         }
     );
     if (!accessTokenRes.ok) {
-        console.log(accessTokenRes.status)
-        console.log(await accessTokenRes.text())
-        return {
-            status: 500,
-            body: JSON.stringify({
-                message: "Failed to fetch data from Discord",
-            }),
-        };
+        return error(500, "Failed to fetch data from Discord");
     }
     const { access_token: accessToken } = await accessTokenRes.json() as { access_token: string }
 
@@ -50,12 +39,7 @@ export const GET: RequestHandler = async function({ url }) {
         }
     )
     if (!profileRes.ok) {
-        return {
-            status: 500,
-            body: JSON.stringify({
-                message: "Failed to fetch data from Discord",
-            }),
-        };
+        return error(500, "Failed to fetch data from Discord");
     }
     const profileData = await profileRes.json() as { id: string, username: string }
 
@@ -72,13 +56,7 @@ export const GET: RequestHandler = async function({ url }) {
                 },
             }
         } catch {
-            // Cannot connect to database
-            return {
-                status: 500,
-                body: JSON.stringify({
-                    message: "An unknown error occured",
-                }),
-            }
+            return error(500, "An unknown error occurred")
         }
     }
 
@@ -97,22 +75,12 @@ export const GET: RequestHandler = async function({ url }) {
             },
         }
     } catch (e) {
-        const error = e as Error;
+        const err = e as Error;
         // violates id column unique constraint
-        if (error.message === "AUTH_DUPLICATE_USER_DATA") {
-            return {
-                status: 400,
-                body: JSON.stringify({
-                    message: "ID already in use",
-                }),
-            }
+        if (err.message === "AUTH_DUPLICATE_USER_DATA") {
+            return error(400, "That ID is already in use")
         }
         // database connection error
-        return {
-            status: 500,
-            body: JSON.stringify({
-                message: "An unknown error occured",
-            }),
-        }
+        return error(500, "An unknown error occurred")
     }
 }

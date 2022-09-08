@@ -1,7 +1,8 @@
+import { error, type MaybeError } from "$lib/functions/response"
 import { getUserByIDSafe, type DatabaseUserSafe } from "$lib/mongo"
 import type { RequestHandler } from "./__types/index.d"
 
-export const GET: RequestHandler<DatabaseUserSafe> = async function ({ params }) {
+export const GET: RequestHandler<MaybeError<DatabaseUserSafe>> = async function ({ params }) {
     const { id } = params
 
     const result = await getUserByIDSafe(id)
@@ -11,8 +12,6 @@ export const GET: RequestHandler<DatabaseUserSafe> = async function ({ params })
             body: result,
         }
     } else {
-        return {
-            status: 404,
-        }
+        return error(404, "User not found")
     }
 }

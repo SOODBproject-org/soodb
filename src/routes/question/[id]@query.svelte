@@ -13,12 +13,11 @@
 </script>
 
 <script lang="ts">
-    import type { Question, Category } from "$lib/mongo"
     import QuestionComp from "$lib/components/Question.svelte"
-    import Cookie from "js-cookie"
     import QueryBox from "$lib/components/QueryBox.svelte"
     import Icon from "svelte-icon/Icon.svelte";
     import arrow from "$lib/icons/arrow.svg?raw"
+    import type { Category, Question } from "$lib/types";
 
     export let question: Question & { authorName?: string, authorId?: string }
 

@@ -1,9 +1,8 @@
 <script lang="ts">
-    import { session } from "$app/stores"
-    import { goto } from "$app/navigation"
-    import type { SaQuestion, McqQuestion, DatabaseUserSafe } from "$lib/mongo"
+    import type { DatabaseUserSafe } from "$lib/mongo"
+    import type { Question } from "$lib/types";
     export let userData: DatabaseUserSafe
-    export let questions: (SaQuestion | McqQuestion)[]
+    export let questions: Question[]
 </script>
 
 <div>
@@ -72,21 +71,6 @@
         }
     }
 
-    #icon {
-        width: 10em;
-        height: 10em;
-        position: absolute;
-        display: block;
-        right: 1em;
-        border-radius: 2.5em;
-        // background-image: url("https://cdn.discordapp.com/avatars/453297392608083999/297d47dc844b600551f91a0d602bf4c5.webp?size=160");
-
-        @media (max-width: 600px) {
-            position: static;
-            margin: 1em auto;
-        }
-    }
-
     #card {
         position: relative;
         margin: auto;
@@ -95,18 +79,5 @@
         background-color: $background-2;
         border-radius: 2em;
         padding: 1em;
-    }
-
-    button {
-        @extend %button-primary;
-
-        min-width: 10ch;
-
-        @media (max-width: 600px) {
-            position: static;
-            display: block;
-            margin: 1em auto 0.5em;
-            width: 80%;
-        }
     }
 </style>

@@ -2,9 +2,12 @@
     import { createEventDispatcher } from "svelte"
     import Select from 'svelte-select'
     import { page } from "$app/stores"
-    import type { Category, DatabaseUserSafe } from "$lib/mongo";
+    import type { DatabaseUserSafe } from "$lib/mongo";
     import UserSearch from "./UserSearch.svelte";
+    import type { Category } from "$lib/types";
     
+    // TODO: allow custom category search
+
     type Inputs = {
         authorId: string
         keywords: string

@@ -18,8 +18,9 @@
     import { browser } from "$app/env"
     import { onMount } from "svelte"
     import PacketQuestionPreview from "$lib/components/PacketQuestionPreview.svelte"
-    import type { Category, NewQuestionData } from "$lib/mongo"
+    import type { NewQuestionData } from "$lib/mongo"
     import Notification from "$lib/components/Notification.svelte"
+    import type { Category } from "$lib/types";
 
     let plainText: string
     let settingsVisible = false

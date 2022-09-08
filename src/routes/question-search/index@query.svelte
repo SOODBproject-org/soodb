@@ -52,16 +52,16 @@
     import QuestionPreview from "$lib/components/QuestionPreview.svelte"
     import PageSwitcher from "$lib/components/PageSwitcher.svelte"
     import QueryBox from "$lib/components/QueryBox.svelte"
-    import type { SaQuestion, McqQuestion } from "$lib/mongo"
     import { onMount, tick } from "svelte"
     import { browser } from "$app/env"
     import { removeUndefined } from "$lib/utils"
     import Icon from "svelte-icon/Icon.svelte";
     import bensive from "$lib/icons/bensive.svg?raw"
     import arrow from "$lib/icons/arrow.svg?raw"
+    import type { Question } from "$lib/types";
 
     export let query: Record<string, string>
-    export let questions: (SaQuestion | McqQuestion)[] = []
+    export let questions: Question[] = []
 
     let queryBoxComponent: QueryBox
     onMount(() => {

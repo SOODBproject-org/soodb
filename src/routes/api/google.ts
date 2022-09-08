@@ -2,16 +2,12 @@ import { env as publicEnv } from '$env/dynamic/public'
 import { env as privateEnv } from '$env/dynamic/private'
 import type { RequestHandler } from './__types/google.d'
 import { auth } from '$lib/lucia'
+import { error } from '$lib/functions/response'
 
 export const GET: RequestHandler = async function({ url }) {
     const code = url.searchParams.get('code')
     if (!code) {
-        return {
-            status: 400,
-            body: JSON.stringify({
-                message: "Invalid request url parameters"
-            })
-        }
+        return error(400, "Invalid request url parameters")
     }
 
     const params = new URLSearchParams({
@@ -28,12 +24,7 @@ export const GET: RequestHandler = async function({ url }) {
         }
     })
     if (!accessTokenRes.ok) {
-        return {
-            status: 500,
-            body: JSON.stringify({
-                message: "Failed to fetch data from Google"
-            })
-        }
+        return error(500, "Failed to fetch data from Google")
     }
     const { access_token: accessToken } = await accessTokenRes.json() as { access_token: string }
     
@@ -43,12 +34,7 @@ export const GET: RequestHandler = async function({ url }) {
         }
     })
     if (!profileRes.ok) {
-        return {
-            status: 500,
-            body: JSON.stringify({
-                message: "Failed to fetch data from Goodle"
-            })
-        }
+        return error(500, "Failed to fetch data from Google")
     }
     const profileData = await profileRes.json() as Record<string, string>
 
@@ -65,12 +51,7 @@ export const GET: RequestHandler = async function({ url }) {
                 }
             }
         } catch {
-            return {
-                status: 500,
-                body: JSON.stringify({
-                    message: "An unknown error occured",
-                }),
-            }
+            return error(500, "An unknown error occurred")
         }
     }
 
@@ -89,22 +70,11 @@ export const GET: RequestHandler = async function({ url }) {
             },
         }
     } catch (e) {
-        const error = e as Error;
-        // violates id column unique constraint
-        if (error.message === "AUTH_DUPLICATE_USER_DATA") {
-            return {
-                status: 400,
-                body: JSON.stringify({
-                    message: "ID already in use",
-                }),
-            }
-        }
-        // database connection error
-        return {
-            status: 500,
-            body: JSON.stringify({
-                message: "An unknown error occured",
-            }),
+        const err = e as Error;
+        if (err.message === "AUTH_DUPLICATE_USER_DATA") {
+            return error(400, "ID already in use")
+        } else {
+            return error(500, "An unknown error occurred")
         }
     }
 }

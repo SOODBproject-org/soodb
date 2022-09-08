@@ -1,18 +1,21 @@
-import { getQuestionByID, getUserByID, type McqQuestion, type SaQuestion } from "$lib/mongo"
+import { error, type MaybeError } from "$lib/functions/response"
+import { getQuestionByID, getUserByID } from "$lib/mongo"
+import type { Question } from "$lib/types"
 import type { RequestHandler } from "./__types/[id].d"
 
-export const GET: RequestHandler<SaQuestion | McqQuestion> = async function ({ params, url }) {
+export const GET: RequestHandler<MaybeError<Question>> = async function({ params, url }) {
     const { id } = params
     const includeAuthor = url.searchParams.get("includeAuthor") === "true"
 
     const result = await getQuestionByID(id)
     if (result) {
         if (includeAuthor) {
+            const user = result.authorId ? await getUserByID(result.authorId) : null
             return {
                 status: 200,
                 body: {
                     ...result,
-                    authorName: result.authorId ? (await getUserByID(result.authorId))?.username : undefined,
+                    authorName: user?.username,
                 },
             }
         } else {
@@ -22,8 +25,6 @@ export const GET: RequestHandler<SaQuestion | McqQuestion> = async function ({ p
             }
         }
     } else {
-        return {
-            status: 404,
-        }
+        return error(404, "Question with specified ID does not exist")
     }
 }

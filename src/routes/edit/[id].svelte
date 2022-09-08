@@ -26,10 +26,10 @@
 </script>
 
 <script lang="ts">
-    import type { SaQuestion, McqQuestion } from "$lib/mongo"
     import EditQuestion from "$lib/components/EditQuestion.svelte"
+    import type { Question } from "$lib/types";
 
-    export let question: McqQuestion | SaQuestion
+    export let question: Question
 </script>
 
 <svelte:head>

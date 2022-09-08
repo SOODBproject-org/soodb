@@ -1,15 +1,16 @@
 <script lang="ts">
-    import type { Category, McqQuestion, SaQuestion } from "$lib/mongo"
-    export let question: SaQuestion | McqQuestion
+    import type { Question } from "$lib/types";
 
-    let category: Category = question.category
-    const type: "MCQ" | "SA" = question.type
-    let questionText: string = question.questionText
+    export let question: Question
+
+    let category = question.category
+    const type = question.type
+    let questionText = question.questionText
     const choices = question.type === "MCQ" ? question.choices : { W: "", X: "", Y: "", Z: "" }
-    let optionW: string = choices?.W
-    let optionX: string = choices?.X
-    let optionY: string = choices?.Y
-    let optionZ: string = choices?.Z
+    let optionW = choices?.W
+    let optionX = choices?.X
+    let optionY = choices?.Y
+    let optionZ = choices?.Z
     let correctAnswer = question.correctAnswer
 
     let textareaWidth: number

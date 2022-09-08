@@ -1,49 +1,4 @@
-export type Category = "earth" | "bio" | "chem" | "physics" | "math" | "energy" 
-
-interface QuestionBase {
-    id: string
-    authorId?: string
-    bonus: boolean
-    category: string
-    questionText: string
-    pairId?: string
-    source?: string
-    created: Date
-    modified?: Date
-}
-
-export interface McqQuestion extends QuestionBase {
-    type: "MCQ"
-    choices: {
-        W: string
-        X: string
-        Y: string
-        Z: string
-    }
-    correctAnswer: "W" | "X" | "Y" | "Z"
-}
-
 export type InternalQuestionKey = "id" | "searchString" | "created" | "modified"
-
-export interface SaQuestion extends QuestionBase {
-    type: "SA"
-    correctAnswer: string
-}
-
-export type Question = McqQuestion | SaQuestion
-
-export interface UserData {
-    username: string,
-    email?: string,
-    discordId?: string,
-    googleId?: string
-}
-
-export interface UserSettings {
-    id: string
-    colors: string[]
-    imgUrl?: string
-}
 
 export type RefreshToken = {
     refresh_token: string,
@@ -51,10 +6,11 @@ export type RefreshToken = {
 }
 
 import { env } from "$env/dynamic/private"
-import MongoDataAPI, { Document } from "atlas-data-api"
+import MongoDataAPI from "atlas-data-api"
 import type { DatabaseUser } from "lucia-sveltekit/types"
 import { escapeRegex } from "./functions/databaseUtils"
-import type { DistributiveOmit } from "./utils"
+import type { Category, Question, UserData } from "./types"
+import { removePrivateFields, type DistributiveOmit } from "./utils"
 
 function createID() {
     const time = Date.now()
@@ -74,50 +30,54 @@ const database = api.cluster("SOODB").database("ScibowlOpenDB")
 export const collections = {
     questions: database.collection<Question>("questions"),
     users: database.collection<DatabaseUser<UserData>>("users"),
-    userSettings: database.collection<UserSettings>("userSettings"),
     refreshTokens: database.collection<RefreshToken>("refreshTokens")
 }
 
 export type NewQuestionData = DistributiveOmit<Question, InternalQuestionKey>
 export async function addQuestion(question: NewQuestionData) {
     const date = new Date()
-    return collections.questions.insertOne({
-        document: {
-            ...question,
-            id: createID(),
-            created: date,
-            modified: date,
-        },
-    })
+    const newID = createID()
+    return {
+        response: collections.questions.insertOne({
+            document: {
+                ...question,
+                id: newID,
+                created: date,
+                modified: date,
+            },
+        }),
+        id: newID
+    }
 }
 
-export async function addPacket(questions:NewQuestionData[],created:Date) {
+// TODO: make more robust?
+export async function addPacket(questions: NewQuestionData[], created: Date) {
     const date = new Date()
-    const questionOBJ : (Question)[] = []
-    for (let i=0;i<Math.floor(questions.length/2);i++){
+    const questionOBJ: (Question)[] = []
+    for (let i = 0; i < Math.floor(questions.length / 2); i++) {
         const tossupID =  createID()
         const bonusID = createID()
         questionOBJ.push({
-            ...questions[i*2],
-            id:tossupID,
-            pairId:bonusID,
+            ...questions[i * 2],
+            id: tossupID,
+            pairId: bonusID,
             created,
-            modified:date
+            modified: date
         })
         questionOBJ.push({
-            ...questions[i*2+1],
-            id:bonusID,
-            pairId:tossupID,
+            ...questions[i * 2 + 1],
+            id: bonusID,
+            pairId: tossupID,
             created,
-            modified:date
+            modified: date
         })
     }
-    if (questions.length%2===1) {
+    if (questions.length % 2 === 1) {
         questionOBJ.push({
-            ...questions[questions.length-1],
-            id:createID(),
+            ...questions[questions.length - 1],
+            id: createID(),
             created,
-            modified:date 
+            modified: date 
         })
     }
 
@@ -218,22 +178,6 @@ export async function updateUser(id: string, data: Partial<UserData>) {
     })
 }
 
-export async function getUserSettings(id: string): Promise<UserSettings | null> {
-    const { document } = await collections.userSettings.findOne({ filter: { id } })
-    return document
-}
-
-export async function updateAvatarHash(id: string, avatarHash: string) {
-    return collections.users.updateOne({
-        filter: { id },
-        update: {
-            $set: {
-                avatarHash,
-            },
-        },
-    })
-}
-
 export async function getRandomQuestion() {
     const questions = await getQuestions({})
     if (!(questions.length === 0)) {
@@ -241,13 +185,4 @@ export async function getRandomQuestion() {
     } else {
         return null
     }
-}
-
-function removePrivateFields<T extends Document = Document>(doc: T): Omit<T, 'hashed_password' | 'identifier_token'> {
-    return {
-        ...Object.fromEntries(
-            Object.entries(doc)
-            .filter(x => ![ "hashed_password", "identifier_token" ].includes(x[0]))
-        )
-    } as Omit<T, 'hashed_password' | 'identifier_token'>
 }

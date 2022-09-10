@@ -148,11 +148,8 @@ import HelpBox from "$lib/components/HelpBox.svelte"
 
     $: categoryNames = setCatNames(parameters.categories)
     $: keywords = setKeywords(parameters.keywords)
-    let regexPattern = calcRegexPattern()
     $: questions = generatePreviews(plainText, regexPattern, set, round)
     $: regexPattern = calcRegexPattern(parameters)
-
-    $: submitDisabled = !questions.length || !source || !created
 </script>
 
 <svelte:head>
@@ -268,7 +265,6 @@ import HelpBox from "$lib/components/HelpBox.svelte"
                 <textarea bind:value={editableRegex} on:input|stopPropagation={manualRegex} />
             </div>
             <button type="submit" class="submit-button" disabled={!submitEnabled}>Submit Questions</button>
-            <button type="submit" class="submit-button" disabled={submitDisabled}>Submit Questions</button>
         </form>
     </div>
     <div id="questions-preview">

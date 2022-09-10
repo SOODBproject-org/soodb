@@ -1,7 +1,5 @@
 export type InternalQuestionKey = "id" | "created" | "modified"
 
-
-
 export type RefreshToken = {
     refresh_token: string,
     user_id: string
@@ -156,6 +154,12 @@ export async function getQuestions({ authorName, authorId, keywords, source, cat
     })
     return documents
 }
+
+export async function getPackets(){
+    const { documents } = await collections.sets.find({filter:{}})
+    return documents
+}
+
 
 export async function editQuestion(id: string, newQuestion: Partial<NewQuestionData>) {
     return collections.questions.updateOne({

@@ -31,15 +31,6 @@ import HelpBox from "$lib/components/HelpBox.svelte"
     let created: Date
     $: submitEnabled = created && plainText && set && round
     export let submitted: string
-
-    const parameters = {
-        keywords : {
-            tossUp: "TOSSUP",
-            bonus: "BONUS",
-            shortAnswer: "Short Answer",
-            multipleChoice: "Multiple Choice",
-        },        
-        categories: ["BIOLOGY", "CHEMISTRY", "EARTH AND SPACE", "PHYSICS", "MATH", "ENERGY"]   
     type Parameters = {
         tossUp: string,
         bonus: string,
@@ -49,13 +40,15 @@ import HelpBox from "$lib/components/HelpBox.svelte"
         ignoreCase: boolean
     }
 
-    const parameters: Parameters = {
-        tossUp: "TOSS-UP",
-        bonus: "BONUS",
-        categories: ["BIOLOGY", "CHEMISTRY", "EARTH AND SPACE", "PHYSICS", "MATH", "ENERGY"],
-        shortAnswer: "Short Answer",
-        multipleChoice: "Multiple Choice",
-        ignoreCase: true,
+    const parameters : Parameters = {
+        keywords : {
+            tossUp: "TOSSUP",
+            bonus: "BONUS",
+            shortAnswer: "Short Answer",
+            multipleChoice: "Multiple Choice",
+        },        
+        categories: ["BIOLOGY", "CHEMISTRY", "EARTH AND SPACE", "PHYSICS", "MATH", "ENERGY"], 
+        ignoreCase: true
     }
     let notificationShown = true
 
@@ -100,11 +93,10 @@ import HelpBox from "$lib/components/HelpBox.svelte"
         editableRegex = `/(${parameters.keywords.tossUp}|${parameters.keywords.bonus}).??\n?.+?(${catString})\n?.+?(${parameters.keywords.shortAnswer}|${parameters.keywords.multipleChoice}):?((.|\n)+?)ANSWER:?(.+)/gi`
         const regex = new RegExp(
             `(${parameters.keywords.tossUp}|${parameters.keywords.bonus}).??\n?.*?(${catString})\n?.+?(${parameters.keywords.shortAnswer}|${parameters.keywords.multipleChoice}):?((.|\n)+?)ANSWER:?(.+)`,
-        editableRegex = `/(${params.tossUp}|${params.bonus}).??\n?.+?(${catString})\n?.+?(${params.shortAnswer}|${params.multipleChoice}):?((.|\n)+?)ANSWER:?(.+)/gi`
-        const regex = new RegExp(
-            `(${params.tossUp}|${params.bonus}).??\n?.+?(${catString})\n?.+?(${params.shortAnswer}|${params.multipleChoice}):?((.|\n)+?)ANSWER:?(.+)`,
             "gi"
         )
+        editableRegex = `/(${params.tossUp}|${params.bonus}).??\n?.*?(${catString})\n?.+?(${params.shortAnswer}|${params.multipleChoice}):?((.|\n)+?)ANSWER:?(.+)/gi`
+
         return regex
         //(Tossup|TOSS UP|TOSS-UP|BONUS).+?\n?.+?(BIOLOGY|CHEMISTRY|EARTH AND SPACE|MATH|PHYSICS|GENERAL SCIENCE|ASTRONOMY|EARTH SCIENCE|COMPUTER SCIENCE)\n?.+?(Short Answer|Multiple Choice):?((.|\n)+?)ANSWER:?(.+)
     }
@@ -159,7 +151,6 @@ import HelpBox from "$lib/components/HelpBox.svelte"
     let regexPattern = calcRegexPattern()
     $: questions = generatePreviews(plainText, regexPattern, set, round)
     $: regexPattern = calcRegexPattern(parameters)
-    $: questions = generatePreviews(plainText, regexPattern, source)
 
     $: submitDisabled = !questions.length || !source || !created
 </script>

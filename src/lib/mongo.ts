@@ -1,4 +1,6 @@
-export type InternalQuestionKey = "id" | "searchString" | "created" | "modified"
+export type InternalQuestionKey = "id" | "created" | "modified"
+
+
 
 export type RefreshToken = {
     refresh_token: string,
@@ -9,7 +11,7 @@ import { env } from "$env/dynamic/private"
 import MongoDataAPI from "atlas-data-api"
 import type { DatabaseUser } from "lucia-sveltekit/types"
 import { escapeRegex } from "./functions/databaseUtils"
-import type { Category, Question, UserData } from "./types"
+import type { Category, Question, UserData, set } from "./types"
 import { removePrivateFields, type DistributiveOmit } from "./utils"
 
 function createID() {
@@ -30,6 +32,7 @@ const database = api.cluster("SOODB").database("ScibowlOpenDB")
 export const collections = {
     questions: database.collection<Question>("questions"),
     users: database.collection<DatabaseUser<UserData>>("users"),
+    sets: database.collection<set>("sets"),
     refreshTokens: database.collection<RefreshToken>("refreshTokens")
 }
 
@@ -53,6 +56,7 @@ export async function addQuestion(question: NewQuestionData) {
 // TODO: make more robust?
 export async function addPacket(questions: NewQuestionData[], created: Date) {
     const date = new Date()
+    const ids = []
     const questionOBJ: (Question)[] = []
     for (let i = 0; i < Math.floor(questions.length / 2); i++) {
         const tossupID =  createID()
@@ -71,6 +75,8 @@ export async function addPacket(questions: NewQuestionData[], created: Date) {
             created,
             modified: date
         })
+        ids.push(tossupID)
+        ids.push(bonusID)
     }
     if (questions.length % 2 === 1) {
         questionOBJ.push({
@@ -80,7 +86,29 @@ export async function addPacket(questions: NewQuestionData[], created: Date) {
             modified: date 
         })
     }
+    const currentSet = await (await collections.sets.findOne({filter:{setName:questions[0].set}})).document
+    const setName : string = questions[0].set as string
+    const round : string = questions[0].round as string  
+    if (currentSet) {
+        console.dir(currentSet)
+        currentSet.packets[questions[0].round as string] = ids
+        collections.sets.updateOne({
+            filter:{setName:questions[0].set},
+            update:{
+                $set:{
+                    packets:currentSet.packets
+                }
+            }
 
+        })
+    } else {
+        collections.sets.insertOne({document:{
+            setName,
+            packets:{
+                [round]: ids
+            }
+        }})
+    }
     return collections.questions.insertMany({documents: questionOBJ}) 
     
 }

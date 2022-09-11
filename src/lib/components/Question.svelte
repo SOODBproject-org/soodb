@@ -4,7 +4,6 @@
     import { slide } from "svelte/transition"
     import Icon from "svelte-icon/Icon.svelte";
     import pencil from '$lib/icons/pencil.svg?raw'
-
     export let question: Question & { authorName?: string }
     export let answerVisible = false
 
@@ -12,7 +11,8 @@
     let modifiedDateString = Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale).format(modifiedDate)
     let createdDate = new Date(question.created)
     let createdDateString = Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale).format(createdDate)
-
+    
+    
     const categoryNames: Record<string, string> = {
         bio: "Biology",
         earth: "Earth and Space",
@@ -31,11 +31,14 @@
             showAnswer()
         }
     }
+    
+    
 </script>
 
 <svelte:body on:keydown={keyHandler} />
 
 <div id="question" class={question.category}>
+    
     <div class="top">
         <h1>{categoryNames[question.category] ? categoryNames[question.category] : question.category }</h1>
         <p class="question-text">{question.questionText}</p>
@@ -176,7 +179,9 @@
         line-height: 1em;
         white-space: nowrap;
     }
-
+    #speak {
+        @extend %button-secondary;
+    }
     #showanswer {
         @extend %button-secondary;
 

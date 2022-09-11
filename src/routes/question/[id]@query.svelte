@@ -1,13 +1,44 @@
 <script lang="ts" context="module">
     import type { Load } from "@sveltejs/kit"
+    import Cookie from "js-cookie"
 
-    export const load: Load = async function ({ params, fetch }) {
+    export const load: Load = async function ({ fetch, url, params }) {
+        const paramQueryEntries = [...url.searchParams.entries()]
+            .filter(([key, _]) => [
+                "authorId",
+                "keywords",
+                "set",
+                "round",
+                "start",
+                "end",
+                "types",
+                "categories"
+            ].includes(key))
+            .map(([key, value]) => {
+                if (key === "types" || key === "categories") {
+                    return [key, value.split(',')]
+                } else {
+                    return [key, value]
+                }
+            })
+
+        const paramQuery = Object.fromEntries(paramQueryEntries)
+
+        const previousQuery: Record<string, string | string[]> = browser
+            ? JSON.parse(Cookie.get("previousQuery") ?? "{}")
+            : {}
+        
         const questionRes = await fetch(`/api/question/${params.id}?includeAuthor=true`)
         const question = await questionRes.json()
+        console.dir(question)
         const packetRes = await fetch('/api/packet')
         const sets = await packetRes.json()
         return {
             props: {
+                query: {
+                    ...previousQuery,
+                    ...paramQuery
+                },
                 question,
                 sets 
             },
@@ -20,53 +51,57 @@
     import QueryBox from "$lib/components/QueryBox.svelte"
     import Icon from "svelte-icon/Icon.svelte";
     import arrow from "$lib/icons/arrow.svg?raw"
+    import { browser } from "$app/env"
     import type { Category, Question, set } from "$lib/types";
-
-    export let question: Question & { authorName?: string, authorId?: string }
+    import { removeUndefined } from "$lib/utils"
+    import { tick } from "svelte"; 
+import Speech from "$lib/components/Speech.svelte";
+    export let question: Question 
     export let sets : set[]
     let menuOpen = false
     let answerVisible = false
     const loaded = true
     let noMatch = false
-    const questionsSeen: string[] = []
-    let authorSearch: string
-    let types: ("MCQ" | "SA")[] = []
-    let categories: Category[] = []
-    let start, end
+    const questionsSeen: string[] = [question.id]
+    
+    let queryBoxComponent: QueryBox
+    export let query: Record<string, string>
+    let querySent = false
+    async function sendQuery(queryBox: Record<string, any>) {
+        console.log("sent")
+        query.authorId = queryBox.authorId || undefined
+        query.keywords = queryBox.keywords || undefined
+        query.setName = queryBox.set.length ? queryBox.set : undefined
+        query.round = queryBox.round.length ? queryBox.round : undefined
+        query.types = queryBox.types.length ? queryBox.types : undefined
+        query.categories = queryBox.categories.length ? queryBox.categories : undefined
+        query.start = queryBox.start || undefined
+        query.end = queryBox.end || undefined
 
-    // onMount(async () => {
-    //     const stored = JSON.parse(Cookie.get("lastQuery") || "{}")
-    //     author = stored.author
-    //     types = !stored.types ? [] : stored.types
-    //     categories = !stored.categories ? [] : stored.categories
-    //     start = stored.start || undefined
-    //     end = stored.end || undefined
-    //     sendQuery({
-    //         author: authorSearch,
-    //         types: types.join(","),
-    //         categories: categories.join(","),
-    //         start,
-    //         end,
-    //     })
-    // })
+        query = removeUndefined(query)
 
-    async function sendQuery(inputs: Record<string, string>) {
-        answerVisible = false
-        const params = new URLSearchParams(inputs)
-        const res = await fetch("/api/question/random?" + params.toString())
-        if (res.ok) {
-            noMatch = false
-            question = await res.json()
-            questionsSeen.push(question.id)
-            history.pushState(null, "", "/question/" + question.id)
-        } else {
-            noMatch = true
+        Cookie.set("previousQuery", JSON.stringify(query))
+        const params = new URLSearchParams(query)
+        let currentq:Question = question
+        while (questionsSeen.includes(currentq.id)){
+            const res = await fetch("/api/question/random?" + params.toString(), {
+                credentials: "include",
+            })
+            currentq = await res.json()
         }
+        questionsSeen.push(currentq.id)
+        question = currentq
+        await tick()
+        history.replaceState({},'',`${question.id}`)
+        menuOpen = false
+        querySent = true
     }
 
     function toggleMenu() {
         menuOpen = !menuOpen
     }
+    console.dir(question)
+    
 </script>
 
 <svelte:head>
@@ -78,8 +113,10 @@
         <QueryBox
             bind:sets={sets}
             numQuestions={0}
+            bind:this={queryBoxComponent}
             on:sendQuery={async (event) => {
-                sendQuery(event.detail.inputs)
+                await sendQuery(event.detail.inputs)
+                await tick()
             }}
         />
     </div>
@@ -89,8 +126,10 @@
         <QueryBox
             bind:sets={sets}
             numQuestions={0}
-            on:sendQuery={(event) => {
-                sendQuery(event.detail.inputs)
+            bind:this={queryBoxComponent}
+            on:sendQuery={async (event) => {
+                await sendQuery(event.detail.inputs)
+                await tick()
             }}
         />
     </div>
@@ -99,13 +138,14 @@
     </button>
 </div>
 <main>
-    {#if noMatch}
+    {#if !question}
         <h1>No questions matched that query</h1>
     {:else if loaded}
         <QuestionComp {question} bind:answerVisible />
     {:else}
         <h1>Loading...</h1>
     {/if}
+    <Speech bind:question></Speech>
 </main>
 
 <style lang="scss">

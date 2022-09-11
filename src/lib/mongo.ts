@@ -143,9 +143,25 @@ export async function getQuestions({ authorName, authorId, keywords, setName, ro
         if (timeRange.endDate) mongoQuery.created.$lt = timeRange.endDate
     }
     console.dir(mongoQuery)
-    const { documents } = await collections.questions.find({
+    const  mongoReturn = await collections.questions.find({
         filter: mongoQuery,
+        limit: 50000
     })
+    const documents = mongoReturn.documents
+    console.log(documents.length)
+    const setsObj: set[] = []
+    documents.forEach((q)=>{
+        if (q.set && !setsObj.map((s)=>s.setName).includes(q.set as string)){
+            setsObj.push({setName:q.set,packets:{}})
+        }
+        if (setsObj[setsObj.findIndex(s=>s.setName===q.set)]?.packets[q.round as string]){
+            setsObj[setsObj.findIndex(s=>s.setName===q.set)].packets[q.round as string].push(q.id)
+        } else {
+            setsObj[setsObj.findIndex(s=>s.setName===q.set)].packets[q.round as string] = [q.id]
+        }
+    })
+    await collections.sets.deleteMany({filter:{}})
+    await collections.sets.insertMany({documents:setsObj})
     return documents
 }
 

@@ -83,7 +83,12 @@ import HelpBox from "$lib/components/HelpBox.svelte"
 
     function manualRegex() {
         const res = editableRegex.match(/\/((\n|.)+?)\/(.{0,6})/)
-        regexPattern = res ? new RegExp(res[1], res[3]) : /^\b$/
+        try {
+            regexPattern = res ? new RegExp(res[1], res[3]) : /^\b$/
+        } catch (error) {
+            console.log(error)
+        }
+        
     }
 
     function calcRegexPattern(params: Parameters) {
@@ -106,44 +111,46 @@ import HelpBox from "$lib/components/HelpBox.svelte"
     function generatePreviews(text: string, pattern: RegExp, set: string, round: string) {
         const result: NewQuestionData[] = []
         if (text) {
-            const results = [...text.matchAll(pattern)]
-            results.forEach((question) => {
-                const category = categoryNames[question[2].toLowerCase()]
-                    ? categoryNames[question[2].toLowerCase()]
-                    : (question[2] as Category)
-                const bonus = keywords[question[1].toLowerCase()]=="bonus"
-                if (keywords[question[3].toLowerCase()]=="multipleChoice") {
-                    const splitQuestion = [...(question[4].match(/(.+?)W\)(.+?)X\)(.+?)Y\)(.+?)Z\)(.+)/is) ?? [])]
-                    const answerChoice = [...(question[6].match(/(W|X|Y|Z).??/i) ?? [])]
-                    const thisQ: NewQuestionData = {
-                        type: "MCQ",
-                        category,
-                        set,
-                        round,
-                        bonus,
-                        questionText: splitQuestion[1],
-                        choices: {
-                            W: splitQuestion[2],
-                            X: splitQuestion[3],
-                            Y: splitQuestion[4],
-                            Z: splitQuestion[5],
-                        },
-                        correctAnswer: answerChoice[1].toUpperCase() as "W" | "X" | "Y" | "Z"
+            try{
+                const results = [...text.matchAll(pattern)]
+                results.forEach((question) => {
+                    const category = categoryNames[question[2].toLowerCase()]
+                        ? categoryNames[question[2].toLowerCase()]
+                        : (question[2] as Category)
+                    const bonus = keywords[question[1].toLowerCase()]=="bonus"
+                    if (keywords[question[3].toLowerCase()]=="multipleChoice") {
+                        const splitQuestion = [...(question[4].match(/(.+?)W\)(.+?)X\)(.+?)Y\)(.+?)Z\)(.+)/is) ?? [])]
+                        const answerChoice = [...(question[6].match(/(W|X|Y|Z).??/i) ?? [])]
+                        const thisQ: NewQuestionData = {
+                            type: "MCQ",
+                            category,
+                            set,
+                            round,
+                            bonus,
+                            questionText: splitQuestion[1],
+                            choices: {
+                                W: splitQuestion[2],
+                                X: splitQuestion[3],
+                                Y: splitQuestion[4],
+                                Z: splitQuestion[5],
+                            },
+                            correctAnswer: answerChoice[1].toUpperCase() as "W" | "X" | "Y" | "Z"
+                        }
+                        result.push(thisQ)
+                    } else {
+                        const thisQ: NewQuestionData = {
+                            type: "SA",
+                            category,
+                            set,
+                            round,
+                            bonus,
+                            questionText: question[4],
+                            correctAnswer: question[6]
+                        }
+                        result.push(thisQ)
                     }
-                    result.push(thisQ)
-                } else {
-                    const thisQ: NewQuestionData = {
-                        type: "SA",
-                        category,
-                        set,
-                        round,
-                        bonus,
-                        questionText: question[4],
-                        correctAnswer: question[6]
-                    }
-                    result.push(thisQ)
-                }
-            })
+                })
+            }catch{}
         }
         return result
     }
@@ -151,7 +158,7 @@ import HelpBox from "$lib/components/HelpBox.svelte"
     $: categoryNames = setCatNames(parameters.categories)
     $: keywords = setKeywords(parameters.keywords)
     $: questions = generatePreviews(plainText, regexPattern, set, round)
-    $: regexPattern = calcRegexPattern(parameters)
+    let regexPattern = calcRegexPattern(parameters)
 </script>
 
 <svelte:head>
@@ -207,7 +214,7 @@ import HelpBox from "$lib/components/HelpBox.svelte"
             </button>
             <div id="advancedSettings" class:visible={settingsVisible}>
                 
-                <div id="categoryContainer">
+                <div id="categoryContainer" on:input={()=>regexPattern =calcRegexPattern(parameters)}>
                     <p>Keywords:</p>
                     <p></p>
                     <p></p>
@@ -243,7 +250,7 @@ import HelpBox from "$lib/components/HelpBox.svelte"
                                             ...parameters.categories.slice(6 + i + 1)
                                         ]
                                         parameters.categories = parameters.categories
-                                        calcRegexPattern(parameters)
+                                        regexPattern = calcRegexPattern(parameters)
                                     }}
                                 >
                                     -
@@ -256,7 +263,7 @@ import HelpBox from "$lib/components/HelpBox.svelte"
                             on:click={() => {
                                 parameters.categories.push("")
                                 parameters.categories = parameters.categories
-                                calcRegexPattern(parameters)
+                                regexPattern = calcRegexPattern(parameters)
                             }}
                         >
                             +
@@ -265,7 +272,7 @@ import HelpBox from "$lib/components/HelpBox.svelte"
                     
                     <input type="hidden" name="questions" value={JSON.stringify(questions)} />
                 </div>
-                <input type="checkbox" name="ignoreCase" bind:checked={parameters.ignoreCase} on:change={()=>calcRegexPattern(parameters)}/> Ignore Case
+                <input type="checkbox" name="ignoreCase" bind:checked={parameters.ignoreCase} on:change={()=>regexPattern = calcRegexPattern(parameters)}/> Ignore Case
                 <p>Raw Regex:<HelpBox>Edit this if your questions arent detected by the current regex filter. Questions are categoriezed into categories using the names above, so make sure you edit the boxes above first before editing the regex. Changes to the boxes above will edit the regex below and overwrite any changes you make to it.</HelpBox></p> 
                 <textarea bind:value={editableRegex} on:input|stopPropagation={manualRegex} />
             </div>

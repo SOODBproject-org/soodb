@@ -4,9 +4,12 @@
     export const load: Load = async function ({ params, fetch }) {
         const questionRes = await fetch(`/api/question/${params.id}?includeAuthor=true`)
         const question = await questionRes.json()
+        const packetRes = await fetch('/api/packet')
+        const sets = await packetRes.json()
         return {
             props: {
                 question,
+                sets 
             },
         }
     }
@@ -17,10 +20,10 @@
     import QueryBox from "$lib/components/QueryBox.svelte"
     import Icon from "svelte-icon/Icon.svelte";
     import arrow from "$lib/icons/arrow.svg?raw"
-    import type { Category, Question } from "$lib/types";
+    import type { Category, Question, set } from "$lib/types";
 
     export let question: Question & { authorName?: string, authorId?: string }
-
+    export let sets : set[]
     let menuOpen = false
     let answerVisible = false
     const loaded = true
@@ -50,7 +53,7 @@
     async function sendQuery(inputs: Record<string, string>) {
         answerVisible = false
         const params = new URLSearchParams(inputs)
-        const res = await fetch("/api/random?" + params.toString())
+        const res = await fetch("/api/question/random?" + params.toString())
         if (res.ok) {
             noMatch = false
             question = await res.json()
@@ -73,6 +76,7 @@
 <div id="desktop-menu-wrapper">
     <div id="desktop-menu">
         <QueryBox
+            bind:sets={sets}
             numQuestions={0}
             on:sendQuery={async (event) => {
                 sendQuery(event.detail.inputs)
@@ -83,6 +87,7 @@
 <div id="mobile-menu-wrapper" class:opened={menuOpen}>
     <div id="mobile-menu">
         <QueryBox
+            bind:sets={sets}
             numQuestions={0}
             on:sendQuery={(event) => {
                 sendQuery(event.detail.inputs)

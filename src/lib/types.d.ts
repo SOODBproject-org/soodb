@@ -10,6 +10,7 @@ interface QuestionBase {
     pairId?: string
     set?: string
     round?: string
+    visual?: string
     created: Date
     modified?: Date
 }

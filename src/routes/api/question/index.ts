@@ -32,7 +32,8 @@ export const GET: RequestHandler<MaybeError<Question[]>> = async function ({ req
     const authorName = url.searchParams.get("authorName") ?? undefined
     const authorId = url.searchParams.get("authorId") ?? undefined
     const keywords = url.searchParams.get("keywords") ?? undefined
-    const source = url.searchParams.get('source') ?? undefined
+    const setName = url.searchParams.get('setName') ?? undefined
+    const round = url.searchParams.get('round') ?? undefined
     const categories = url.searchParams.get("categories")?.split(",") as string[]
     const types = url.searchParams.get("types")?.split(",") as ("MCQ" | "SA")[]
     const startDate = url.searchParams.get("start") ? new Date(url.searchParams.get("start") as string) : undefined
@@ -58,7 +59,8 @@ export const GET: RequestHandler<MaybeError<Question[]>> = async function ({ req
             ...removeUndefined({
                 authorId,
                 authorName,
-                source,
+                setName,
+                round,
                 categories,
                 types,
                 timeRange: { startDate, endDate },

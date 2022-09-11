@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Question } from "../mongo"
+    import type { Question } from "../types"
     import { session } from "$app/stores"
     import { slide } from "svelte/transition"
     import Icon from "svelte-icon/Icon.svelte";
@@ -48,7 +48,9 @@
                 <li class="question-text">Z) {question.choices.Z}</li>
             </ul>
         {/if}
-
+        {#if question.visual}
+            <img src={question.visual} alt="visual bonus could not load" />
+        {/if}
         <button id="showanswer" on:click={showAnswer}>{answerVisible ? "Hide" : "Show"} Answer</button>
         {#if answerVisible}
             <p id="correct-answer" transition:slide={{ duration: 200 }}>{question.correctAnswer}</p>
@@ -57,8 +59,8 @@
     <div class="line" />
     <div class="bottom">
         <span class="metadata">
-            {#if question.source}
-                <a href="/question-search?source={encodeURIComponent(question.source)}">{question.source}</a>
+            {#if question.set && question.round}
+                <a href="/question-search?round={encodeURIComponent(question.round)}&set={encodeURIComponent(question.set)}">{question.set}-{question.round}</a>
             {:else}
                 <a href="/account/{question.authorId}" sveltekit:prefetch>{question.authorName}</a>
             {/if}

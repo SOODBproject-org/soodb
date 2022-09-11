@@ -4,14 +4,15 @@
     import { page } from "$app/stores"
     import type { DatabaseUserSafe } from "$lib/mongo";
     import UserSearch from "./UserSearch.svelte";
-    import type { Category } from "$lib/types";
+    import type { Category, set } from "$lib/types";
     
     // TODO: allow custom category search
 
     type Inputs = {
         authorId: string
         keywords: string
-        source: string
+        set: string[]
+        round: string[]
         start: string
         end: string
         types: ("MCQ" | "SA")[]
@@ -20,7 +21,8 @@
     const defaultInputs: Inputs = {
         authorId: "",
         keywords: "",
-        source: "",
+        set: [],
+        round:[],
         start: "",
         end: "",
         types: [],
@@ -37,6 +39,7 @@
         {id:"energy",value:"Energy"}
     ]
     
+    export let sets : set[]
     export let numQuestions: number
     const dispatch = createEventDispatcher()
 
@@ -46,7 +49,14 @@
             setUser(query.authorId)
         }
         if (query.keywords) inputs.keywords = query.keywords
-        if (query.source) inputs.source = query.source
+        if (query.set) {
+            inputs.set = query.set
+            rawSetValue = query.set?.map(s => sets.find(x => x.setName === s))
+                .filter(x => x !== undefined) as set[]
+        }
+        if (query.round) {
+            inputs.round = query.round
+        }
         if (query.start) inputs.start = query.start
         if (query.end) inputs.end = query.end
         if (query.types) inputs.types = query.types
@@ -68,6 +78,8 @@
     function clearQuery() {
         inputs = {...defaultInputs}
         rawCategoryValue = []
+        rawSetValue = []
+        rawRoundValue = []
         clearUser()
         emitQuery()
     }
@@ -76,6 +88,18 @@
     function handleCategorySelect(e: CustomEvent<{ id: string, value: string}[]>){
         if (e.detail) inputs.categories = e.detail.map((i) => i.id as Category)
         else inputs.categories = []
+    }
+
+    let rawSetValue : set[] = []
+    function handleSetSelect(e: CustomEvent<set[]>){
+        if (e.detail) inputs.set = e.detail.map((i) => i.setName as string)
+        else inputs.set = []
+    }
+
+    let rawRoundValue : {index:number,value:string,label:string}[]
+    function handleRoundSelect(e:CustomEvent<{index:number,value:string,label:string}[]>){
+        if (e.detail) inputs.round = e.detail.map((i) => i.value as string)
+        else inputs.set = []
     }
 
     let setUser: (userId: string) => Promise<void>
@@ -110,7 +134,28 @@
         <br />
         <input type="text" name="keywords" placeholder="Keywords" id="keyword-input" bind:value={inputs.keywords} />
         <br />
-        <input type="text" name="source" placeholder="Source" id="source-input" bind:value={inputs.source} />
+        <div class='select'>
+            <Select 
+                items={sets}
+                labelIdentifier="setName"
+                isMulti={true}
+                on:select={handleSetSelect}
+                placeholder="Set"
+                bind:value={rawSetValue}
+            />
+        </div>
+        <br />
+        <div class='select'>
+            {#if rawSetValue.length==1}
+            <Select 
+                items={Object.keys(rawSetValue[0].packets)}
+                isMulti={true}
+                placeholder="Set"
+                on:select={handleRoundSelect}
+                bind:value={rawRoundValue}
+            />
+            {/if}
+        </div>
         <br />
         <h3>Date Range:</h3>
         <input type="date" name="start-date" bind:value={inputs.start} class:empty={!inputs.start} />-

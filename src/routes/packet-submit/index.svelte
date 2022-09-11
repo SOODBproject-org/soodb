@@ -32,11 +32,13 @@ import HelpBox from "$lib/components/HelpBox.svelte"
     $: submitEnabled = created && plainText && set && round
     export let submitted: string
     type Parameters = {
-        tossUp: string,
-        bonus: string,
+        keywords : {
+            tossUp: string,
+            bonus: string,
+            shortAnswer: string,
+            multipleChoice: string,
+        }
         categories: string[],
-        shortAnswer: string,
-        multipleChoice: string,
         ignoreCase: boolean
     }
 
@@ -47,7 +49,7 @@ import HelpBox from "$lib/components/HelpBox.svelte"
             shortAnswer: "Short Answer",
             multipleChoice: "Multiple Choice",
         },        
-        categories: ["BIOLOGY", "CHEMISTRY", "EARTH AND SPACE", "PHYSICS", "MATH", "ENERGY"], 
+        categories: ["BIOLOGY|Biology", "CHEMISTRY|Chemistry", "EARTH AND SPACE|Earth and Space", "PHYSICS|Physics", "MATH|Math", "ENERGY|Energy"], 
         ignoreCase: true
     }
     let notificationShown = true
@@ -90,13 +92,13 @@ import HelpBox from "$lib/components/HelpBox.svelte"
             catString += cat + "|"
         })
         catString = catString.slice(0, -1)
-        editableRegex = `/(${parameters.keywords.tossUp}|${parameters.keywords.bonus}).??\n?.+?(${catString})\n?.+?(${parameters.keywords.shortAnswer}|${parameters.keywords.multipleChoice}):?((.|\n)+?)ANSWER:?(.+)/gi`
+        editableRegex = `/(${params.keywords.tossUp}|${params.keywords.bonus}).??\n?.*?(${catString})\n?.+?(${params.keywords.shortAnswer}|${params.keywords.multipleChoice}):?((.|\n)+?)ANSWER:?(.+)/g${parameters.ignoreCase ? 'i' : ""}`
         const regex = new RegExp(
-            `(${parameters.keywords.tossUp}|${parameters.keywords.bonus}).??\n?.*?(${catString})\n?.+?(${parameters.keywords.shortAnswer}|${parameters.keywords.multipleChoice}):?((.|\n)+?)ANSWER:?(.+)`,
-            "gi"
-        )
-        editableRegex = `/(${params.tossUp}|${params.bonus}).??\n?.*?(${catString})\n?.+?(${params.shortAnswer}|${params.multipleChoice}):?((.|\n)+?)ANSWER:?(.+)/gi`
+            `(${params.keywords.tossUp}|${params.keywords.bonus}).??\n?.*?(${catString})\n?.*?(${params.keywords.shortAnswer}|${params.keywords.multipleChoice}):?((.|\n)+?)ANSWER:?(.+)`,
+            `g${parameters.ignoreCase ? 'i' : ""}`
 
+        )
+        
         return regex
         //(Tossup|TOSS UP|TOSS-UP|BONUS).+?\n?.+?(BIOLOGY|CHEMISTRY|EARTH AND SPACE|MATH|PHYSICS|GENERAL SCIENCE|ASTRONOMY|EARTH SCIENCE|COMPUTER SCIENCE)\n?.+?(Short Answer|Multiple Choice):?((.|\n)+?)ANSWER:?(.+)
     }
@@ -254,13 +256,16 @@ import HelpBox from "$lib/components/HelpBox.svelte"
                             on:click={() => {
                                 parameters.categories.push("")
                                 parameters.categories = parameters.categories
+                                calcRegexPattern(parameters)
                             }}
                         >
                             +
                         </button>
                     </div>
+                    
                     <input type="hidden" name="questions" value={JSON.stringify(questions)} />
                 </div>
+                <input type="checkbox" name="ignoreCase" bind:checked={parameters.ignoreCase} on:change={()=>calcRegexPattern(parameters)}/> Ignore Case
                 <p>Raw Regex:<HelpBox>Edit this if your questions arent detected by the current regex filter. Questions are categoriezed into categories using the names above, so make sure you edit the boxes above first before editing the regex. Changes to the boxes above will edit the regex below and overwrite any changes you make to it.</HelpBox></p> 
                 <textarea bind:value={editableRegex} on:input|stopPropagation={manualRegex} />
             </div>

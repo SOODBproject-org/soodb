@@ -19,7 +19,7 @@
     import { browser } from "$app/env"
     import Notification from "$lib/components/Notification.svelte"
     import { onMount } from "svelte"
-import type { Category } from "$lib/types";
+    import type { Category } from "$lib/types";
 
     export let submitted: string
     let notificationShown = true

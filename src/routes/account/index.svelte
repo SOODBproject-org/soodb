@@ -39,12 +39,36 @@
     import AccountEdit from "$lib/components/AccountEdit.svelte"
     import type { DatabaseUserSafe } from "$lib/mongo"
     import Account from "$lib/components/Account.svelte";
+    import { session } from "$app/stores";
     import type { Question } from "$lib/types";
     
     export let questions: Question[]
     export let userData: DatabaseUserSafe
 
     let editing = false
+    let error: string
+    let updateSettings: (data: { username: string }) => void
+
+    async function handleSave(e: CustomEvent<{ username: string }>) {
+        const data = new URLSearchParams({
+            username: e.detail.username
+        })
+
+        const res = await fetch('/api/user', {
+            method: "PATCH",
+            body: data,
+            headers: {
+                Authorization: `Bearer ${$session.lucia?.access_token}`
+            }
+        })
+
+        if (res.ok) {
+            const resBody = await res.json() as { user: { username: string } }
+            updateSettings({ username: resBody.user.username })
+        } else {
+            error = "Failed to save settings"
+        }
+    }
 </script>
 
 <svelte:head>
@@ -54,7 +78,8 @@
 <main>
     <div id="account">
         {#if editing}
-            <AccountEdit {userData} on:save={() => editing = false} on:back={() => editing = false} />
+            <AccountEdit {userData} {error} bind:updateSettings
+                on:save={handleSave} on:back={() => editing = false} />
         {:else}
             <Account {userData} {questions} />
             <button class="settings" on:click={() => editing = true}>Settings</button>

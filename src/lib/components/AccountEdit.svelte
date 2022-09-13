@@ -1,7 +1,7 @@
 <script lang="ts">
     import type { DatabaseUserSafe } from "$lib/mongo"
     import { session } from "$app/stores";
-    import { form, field } from 'svelte-forms';
+    import { form as svelteForm, field } from 'svelte-forms';
     import { pattern } from 'svelte-forms/validators'
     import EditableField from "./EditableField.svelte"
     import { createEventDispatcher } from "svelte"
@@ -9,9 +9,13 @@
     const dispatch = createEventDispatcher()
 
     export let userData: DatabaseUserSafe
+    export let error: string | undefined = undefined
+    export const updateSettings = function({ username }: { username: string }) {
+        initialUserData.username = username
+        $usernameField.value = username
+    }
 
     let initialUserData = userData
-    let error: string
 
     let usernameTakenTimeout: NodeJS.Timeout | null = null
     async function checkUsernameTaken(value: string) {
@@ -39,53 +43,32 @@
         "usernameTaken": "That username is already taken"
     }
 
-    const settingsForm = form(usernameField)
+    const settingsForm = svelteForm(usernameField)
 
-    async function submitChanges() {
-        const reqBody = new URLSearchParams({
-            username: $usernameField.value,
+    async function handleSubmit(e: SubmitEvent) {
+        dispatch('save', {
+            username: $usernameField.value
         })
-
-        const res = await fetch("/api/user", {
-            method: "PATCH",
-            body: reqBody,
-            headers: {
-                Authorization: `Bearer ${$session.lucia?.access_token}`
-            }
-        })
-        if (!res.ok) {
-            error = "Failed to save settings"
-        } else {
-            const resBody = await res.json()
-            initialUserData.username = resBody.user.username
-            $usernameField.value = resBody.user.username
-            dispatch("save")
-        }
     }
 </script>
 
-<div>
-    <div id="card">
-        <!-- <img
-            id="icon"
-            src={`https://cdn.discordapp.com/avatars/${userData.id}/${userData.avatarHash}.png`}
-            alt="Profile"
-        /> -->
+<div id="card">
+    <form method="POST" action="/account" on:submit={handleSubmit}>
         <div class="username-edit">
             <EditableField bind:value={$usernameField.value} />
         </div>
         {#if $usernameField.errors.length && usernameErrors[$usernameField.errors[0]]}
             <p class="error">{usernameErrors[$usernameField.errors[0]]}</p>
         {/if}
-
+    
         {#if error}
             <p class="error">{error}</p>
         {/if}
         <div class="buttons">
             <button class="back" on:click={() => dispatch("back")}>Back</button>
-            <button class="save" disabled={!$settingsForm.valid} on:click={submitChanges}> Save Changes</button>
+            <button class="save" type="submit" disabled={!$settingsForm.valid}>Save Changes</button>
         </div>
-    </div>
+    </form>
 </div>
 
 <style lang="scss">

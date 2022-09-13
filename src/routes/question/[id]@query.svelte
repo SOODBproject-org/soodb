@@ -55,7 +55,7 @@
     import type { Category, Question, set } from "$lib/types";
     import { removeUndefined } from "$lib/utils"
     import { tick } from "svelte"; 
-import Speech from "$lib/components/Speech.svelte";
+    import Speech from "$lib/components/Speech.svelte";
     export let question: Question 
     export let sets : set[]
     let menuOpen = false
@@ -64,6 +64,7 @@ import Speech from "$lib/components/Speech.svelte";
     let noMatch = false
     const questionsSeen: string[] = [question.id]
     
+    
     let queryBoxComponent: QueryBox
     export let query: Record<string, string>
     let querySent = false
@@ -71,9 +72,9 @@ import Speech from "$lib/components/Speech.svelte";
         console.log("sent")
         query.authorId = queryBox.authorId || undefined
         query.keywords = queryBox.keywords || undefined
-        query.setName = queryBox.set.length ? queryBox.set : undefined
-        query.round = queryBox.round.length ? queryBox.round : undefined
-        query.types = queryBox.types.length ? queryBox.types : undefined
+        query.setName = queryBox.set?.length ? queryBox.set : undefined
+        query.round = queryBox.round?.length ? queryBox.round : undefined
+        query.types = queryBox.types?.length ? queryBox.types : undefined
         query.categories = queryBox.categories.length ? queryBox.categories : undefined
         query.start = queryBox.start || undefined
         query.end = queryBox.end || undefined
@@ -101,12 +102,14 @@ import Speech from "$lib/components/Speech.svelte";
         menuOpen = !menuOpen
     }
     console.dir(question)
-    
+    let windowWidth :number
 </script>
 
 <svelte:head>
     <title>View Question</title>
 </svelte:head>
+<svelte:window bind:innerWidth={windowWidth} />
+
 
 <div id="desktop-menu-wrapper">
     <div id="desktop-menu">
@@ -121,7 +124,9 @@ import Speech from "$lib/components/Speech.svelte";
         />
     </div>
 </div>
+{#if windowWidth < 650}
 <div id="mobile-menu-wrapper" class:opened={menuOpen}>
+    
     <div id="mobile-menu">
         <QueryBox
             bind:sets={sets}
@@ -137,6 +142,7 @@ import Speech from "$lib/components/Speech.svelte";
         <Icon data={arrow} class="toggle-menu" />
     </button>
 </div>
+{/if}
 <main>
     {#if !question}
         <h1>No questions matched that query</h1>
@@ -145,7 +151,13 @@ import Speech from "$lib/components/Speech.svelte";
     {:else}
         <h1>Loading...</h1>
     {/if}
-    <Speech bind:question></Speech>
+     <Speech 
+        bind:question 
+        on:sendQuery={async () => {
+            await sendQuery(query)
+            await tick()
+        }}
+    /> 
 </main>
 
 <style lang="scss">

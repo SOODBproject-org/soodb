@@ -20,7 +20,7 @@
     import PacketQuestionPreview from "$lib/components/PacketQuestionPreview.svelte"
     import type { NewQuestionData } from "$lib/mongo"
     import Notification from "$lib/components/Notification.svelte"
-import HelpBox from "$lib/components/HelpBox.svelte"
+    import HelpBox from "$lib/components/HelpBox.svelte"
     import type { Category } from "$lib/types";
 
     let plainText: string
@@ -113,7 +113,10 @@ import HelpBox from "$lib/components/HelpBox.svelte"
         if (text) {
             try{
                 const results = [...text.matchAll(pattern)]
+                console.dir(results)
+                let i=0
                 results.forEach((question) => {
+                    i++
                     const category = categoryNames[question[2].toLowerCase()]
                         ? categoryNames[question[2].toLowerCase()]
                         : (question[2] as Category)
@@ -121,6 +124,7 @@ import HelpBox from "$lib/components/HelpBox.svelte"
                     if (keywords[question[3].toLowerCase()]=="multipleChoice") {
                         const splitQuestion = [...(question[4].match(/(.+?)W\)(.+?)X\)(.+?)Y\)(.+?)Z\)(.+)/is) ?? [])]
                         const answerChoice = [...(question[6].match(/(W|X|Y|Z).??/i) ?? [])]
+                        console.dir(answerChoice)
                         const thisQ: NewQuestionData = {
                             type: "MCQ",
                             category,
@@ -149,11 +153,18 @@ import HelpBox from "$lib/components/HelpBox.svelte"
                         }
                         result.push(thisQ)
                     }
+                
                 })
-            }catch{}
+                console.log(i)
+            }catch(e){
+                console.log(e)
+            }
         }
+        
         return result
     }
+
+    
 
     $: categoryNames = setCatNames(parameters.categories)
     $: keywords = setKeywords(parameters.keywords)
@@ -207,6 +218,7 @@ import HelpBox from "$lib/components/HelpBox.svelte"
                 placeholder="Paste in your packet here. Ctrl + A, Ctrl+C, Ctrl+V should work."
                 id="question-input"
                 bind:value={plainText}
+                on:change|stopPropagation={()=>plainText=plainText.replaceAll(new RegExp(`(.)${parameters.keywords.tossUp}`,"gi"),(k)=>k[0]+`\n${parameters.keywords.tossUp}`)}
                 style:min-height="10em"
             />
             <button type="button" class="settings-button" on:click={() => (settingsVisible = !settingsVisible)}>

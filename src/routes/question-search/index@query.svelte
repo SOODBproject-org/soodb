@@ -7,7 +7,8 @@
             .filter(([key, _]) => [
                 "authorId",
                 "keywords",
-                "source",
+                "set",
+                "round",
                 "start",
                 "end",
                 "types",
@@ -36,6 +37,7 @@
         const questionsRes = await fetch("/api/question?" + params.toString(), {
             credentials: "include",
         })
+        const packetRes = await fetch("/api/packet")
         return {
             props: {
                 query: {
@@ -43,6 +45,7 @@
                     ...paramQuery
                 },
                 questions: await questionsRes.json(),
+                sets: await packetRes.json()
             },
         }
     }
@@ -58,10 +61,11 @@
     import Icon from "svelte-icon/Icon.svelte";
     import bensive from "$lib/icons/bensive.svg?raw"
     import arrow from "$lib/icons/arrow.svg?raw"
-    import type { Question } from "$lib/types";
+    import type { Question, set } from "$lib/types";
 
     export let query: Record<string, string>
     export let questions: Question[] = []
+    export let sets: set[] = []
 
     let queryBoxComponent: QueryBox
     onMount(() => {
@@ -80,7 +84,8 @@
     async function sendQuery(queryBox: Record<string, any>) {
         query.authorId = queryBox.authorId || undefined
         query.keywords = queryBox.keywords || undefined
-        query.source = queryBox.source || undefined
+        query.setName = queryBox.set.length ? queryBox.set : undefined
+        query.round = queryBox.round.length ? queryBox.round : undefined
         query.types = queryBox.types.length ? queryBox.types : undefined
         query.categories = queryBox.categories.length ? queryBox.categories : undefined
         query.start = queryBox.start || undefined
@@ -115,6 +120,7 @@
     <div id="desktop-menu">
         <QueryBox
             bind:numQuestions={questions.length}
+            bind:sets={sets}
             bind:this={queryBoxComponent}
             on:sendQuery={async (event) => {
                 await sendQuery(event.detail.inputs)
@@ -129,6 +135,7 @@
 <div id="mobile-menu-wrapper" class:opened={menuOpen}>
     <div id="mobile-menu">
         <QueryBox
+            bind:sets={sets}
             bind:numQuestions={questions.length}
             on:sendQuery={(event) => {
                 sendQuery(event.detail.inputs)

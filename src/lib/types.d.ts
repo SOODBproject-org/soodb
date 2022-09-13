@@ -8,7 +8,9 @@ interface QuestionBase {
     customCategory?: string
     questionText: string
     pairId?: string
-    source?: string
+    set?: string
+    round?: string
+    visual?: string
     created: Date
     modified?: Date
 }
@@ -36,4 +38,9 @@ export interface UserData {
     email?: string,
     discordId?: string,
     googleId?: string
+}
+
+export interface set {
+    setName: string
+    packets: Record<string,string[]>
 }

@@ -1,4 +1,4 @@
-export type InternalQuestionKey = "id" | "searchString" | "created" | "modified"
+export type InternalQuestionKey = "id" | "created" | "modified"
 
 export type RefreshToken = {
     refresh_token: string,
@@ -9,7 +9,7 @@ import { env } from "$env/dynamic/private"
 import MongoDataAPI from "atlas-data-api"
 import type { DatabaseUser } from "lucia-sveltekit/types"
 import { escapeRegex } from "./functions/databaseUtils"
-import type { Category, Question, UserData } from "./types"
+import type { Category, Question, UserData, set } from "./types"
 import { removePrivateFields, type DistributiveOmit } from "./utils"
 
 function createID() {
@@ -30,6 +30,7 @@ const database = api.cluster("SOODB").database("ScibowlOpenDB")
 export const collections = {
     questions: database.collection<Question>("questions"),
     users: database.collection<DatabaseUser<UserData>>("users"),
+    sets: database.collection<set>("sets"),
     refreshTokens: database.collection<RefreshToken>("refreshTokens")
 }
 
@@ -53,34 +54,48 @@ export async function addQuestion(question: NewQuestionData) {
 // TODO: make more robust?
 export async function addPacket(questions: NewQuestionData[], created: Date) {
     const date = new Date()
+    const ids : string[] = []
     const questionOBJ: (Question)[] = []
-    for (let i = 0; i < Math.floor(questions.length / 2); i++) {
-        const tossupID =  createID()
-        const bonusID = createID()
+    let lastType = true
+    let lastId = ""
+    questions.forEach((q,i)=>{
+        const id:string = createID()
+        ids.push(id)
         questionOBJ.push({
-            ...questions[i * 2],
-            id: tossupID,
-            pairId: bonusID,
+            ...q,
+            id,
             created,
-            modified: date
+            modified:date
         })
-        questionOBJ.push({
-            ...questions[i * 2 + 1],
-            id: bonusID,
-            pairId: tossupID,
-            created,
-            modified: date
-        })
-    }
-    if (questions.length % 2 === 1) {
-        questionOBJ.push({
-            ...questions[questions.length - 1],
-            id: createID(),
-            created,
-            modified: date 
-        })
-    }
+        if (!lastType && q.bonus){
+            questionOBJ[i].pairId = ids[i-1]
+            questionOBJ[i-1].pairId = id
+        } 
+        lastType = q.bonus
+    })
+    const currentSet = await (await collections.sets.findOne({filter:{setName:questions[0].set}})).document
+    const setName : string = questions[0].set as string
+    const round : string = questions[0].round as string  
+    if (currentSet) {
+        console.dir(currentSet)
+        currentSet.packets[questions[0].round as string] = ids
+        collections.sets.updateOne({
+            filter:{setName:questions[0].set},
+            update:{
+                $set:{
+                    packets:currentSet.packets
+                }
+            }
 
+        })
+    } else {
+        collections.sets.insertOne({document:{
+            setName,
+            packets:{
+                [round]: ids
+            }
+        }})
+    }
     return collections.questions.insertMany({documents: questionOBJ}) 
     
 }
@@ -88,8 +103,9 @@ export async function addPacket(questions: NewQuestionData[], created: Date) {
 type QuestionQuery = {
     authorName?: string
     authorId?: string
-    keywords?: string
-    source?: string
+    setName? : string
+    keywords? : string
+    round?: string
     categories?: Category[]
     types?: ("SA" | "MCQ")[]
     timeRange?: {
@@ -101,7 +117,8 @@ type MongoQuestionQuery = {
     authorName?: string
     authorId?: string
     $text?: { $search: string }
-    source?: string
+    set? : string
+    round?: string
     category?: { $in: Category[] }
     type?: { $in: ("SA" | "MCQ")[] }
     created?: {
@@ -110,12 +127,14 @@ type MongoQuestionQuery = {
     }
 }
 
-export async function getQuestions({ authorName, authorId, keywords, source, categories, types, timeRange }: QuestionQuery) {
+export async function getQuestions({ authorName, authorId, keywords, setName, round, categories, types, timeRange }: QuestionQuery) {
+    
     const mongoQuery: MongoQuestionQuery = {}
     if (authorName) mongoQuery.authorName = authorName
     if (authorId) mongoQuery.authorId = authorId
     if (keywords) mongoQuery.$text = { $search: keywords }
-    if (source) mongoQuery.source = source
+    if (setName) mongoQuery.set = setName
+    if (round) mongoQuery.round = round
     if (categories?.length) mongoQuery.category = { $in: categories }
     if (types?.length) mongoQuery.type = { $in: types }
     if (timeRange && (timeRange.startDate || timeRange.endDate)) {
@@ -123,11 +142,34 @@ export async function getQuestions({ authorName, authorId, keywords, source, cat
         if (timeRange.startDate) mongoQuery.created.$gte = timeRange.startDate
         if (timeRange.endDate) mongoQuery.created.$lt = timeRange.endDate
     }
-    const { documents } = await collections.questions.find({
+    console.dir(mongoQuery)
+    const  mongoReturn = await collections.questions.find({
         filter: mongoQuery,
+        limit: 50000
     })
+    const documents = mongoReturn.documents
+    console.log(documents.length)
+    const setsObj: set[] = []
+    documents.forEach((q)=>{
+        if (q.set && !setsObj.map((s)=>s.setName).includes(q.set as string)){
+            setsObj.push({setName:q.set,packets:{}})
+        }
+        if (setsObj[setsObj.findIndex(s=>s.setName===q.set)]?.packets[q.round as string]){
+            setsObj[setsObj.findIndex(s=>s.setName===q.set)].packets[q.round as string].push(q.id)
+        } else {
+            setsObj[setsObj.findIndex(s=>s.setName===q.set)].packets[q.round as string] = [q.id]
+        }
+    })
+    await collections.sets.deleteMany({filter:{}})
+    await collections.sets.insertMany({documents:setsObj})
     return documents
 }
+
+export async function getPackets(){
+    const { documents } = await collections.sets.find({filter:{}})
+    return documents
+}
+
 
 export async function editQuestion(id: string, newQuestion: Partial<NewQuestionData>) {
     return collections.questions.updateOne({

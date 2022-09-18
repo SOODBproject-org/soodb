@@ -52,12 +52,12 @@
     import Icon from "svelte-icon/Icon.svelte";
     import arrow from "$lib/icons/arrow.svg?raw"
     import { browser } from "$app/env"
-    import type { Category, Question, set } from "$lib/types";
+    import type { Category, Question, PacketSet } from "$lib/types";
     import { removeUndefined } from "$lib/utils"
     import { tick } from "svelte"; 
     import Speech from "$lib/components/Speech.svelte";
     export let question: Question 
-    export let sets : set[]
+    export let sets : PacketSet[]
     let menuOpen = false
     let answerVisible = false
     const loaded = true

@@ -22,15 +22,21 @@
     import Notification from "$lib/components/Notification.svelte"
     import HelpBox from "$lib/components/HelpBox.svelte"
     import type { Category } from "$lib/types";
+    import SetSearch from "$lib/components/SetSearch.svelte"
+
+    export let submitted: string
 
     let plainText: string
     let settingsVisible = false
     let editableRegex: string
-    let set: string
-    let round : string
+    let chooseSet: string
+    let setName: string
+    let setId: string | undefined
+    let packetName: string
     let created: Date
-    $: submitEnabled = created && plainText && set && round
-    export let submitted: string
+
+    $: submitEnabled = created && plainText && packetName && chooseSet
+    
     type Parameters = {
         keywords : {
             tossUp: string,
@@ -128,8 +134,6 @@
                         const thisQ: NewQuestionData = {
                             type: "MCQ",
                             category,
-                            set,
-                            round,
                             bonus,
                             questionText: splitQuestion[1],
                             choices: {
@@ -145,8 +149,6 @@
                         const thisQ: NewQuestionData = {
                             type: "SA",
                             category,
-                            set,
-                            round,
                             bonus,
                             questionText: question[4],
                             correctAnswer: question[6]
@@ -164,11 +166,18 @@
         return result
     }
 
-    
+    function handleSetSelect(e: CustomEvent) {
+        setName = e.detail.name
+        setId = e.detail.id
+    }
+
+    function handleSetClear() {
+
+    }
 
     $: categoryNames = setCatNames(parameters.categories)
     $: keywords = setKeywords(parameters.keywords)
-    $: questions = generatePreviews(plainText, regexPattern, set, round)
+    $: questions = generatePreviews(plainText, regexPattern, setName, packetName)
     let regexPattern = calcRegexPattern(parameters)
 </script>
 
@@ -189,22 +198,55 @@
     <div class="data-entry">
         <form id="form" action="/packet-submit" method="POST" autocomplete="off">
             <h1>Packet Submission</h1>
-            <div style="background:hsl(48, 18%, 9%);border-radius:.3em; margin:.3em; padding:0 .2em">
-                <input
-                    type="text"
-                    bind:value={set}
-                    placeholder="Set Name ex:Official-Set2"
-                    style="width:25ch;max-width:45%;margin:.2em 0;border-radius: .3em 0 0 .3em"
-                />
-                <input
-                    type="text"
-                    bind:value={round}
-                    placeholder="Round Name ex: Round3"
-                    style="width:25ch;max-width:45%;margin:0;border-radius:0 .3em .3em 0"
-                />
+            <input
+                type="text"
+                name="packet-name"
+                placeholder="Packet Name"
+                bind:value={packetName}
+            />
+            <br />
+            <div class="radio-wrapper">
+                <label for="new-set" class="radio-label">
+                    <input id="new-set" type="radio" name="choose-set" value="new" bind:group={chooseSet} />
+                    <span />
+                    New Set
+                </label>
+                {#if chooseSet === "new"}
+                    <br />
+                    <input
+                        type="text"
+                        name="new-set-name"
+                        placeholder="New Set Name"
+                        bind:value={setName}
+                        style:margin-left="2em"
+                    />
+                {/if}
+                <br />
+                <label for="existing-set" class="radio-label">
+                    <input id="existing-set" type="radio" name="choose-set" value="existing" bind:group={chooseSet} />
+                    <span />
+                    Existing Set
+                </label>
+                {#if chooseSet === "existing"}
+                    <br />
+                    <div style:margin-left="2em">
+                        <SetSearch 
+                            on:select={handleSetSelect}
+                            on:clear={handleSetClear}
+                        />
+                    </div>
+                    <input type="hidden" name="set-id" value={setId} />
+                {/if}
+                <br />
+                <label for="no-set" class="radio-label">
+                    <input id="no-set" type="radio" name="choose-set" value="none" bind:group={chooseSet} />
+                    <span />
+                    No Set
+                </label>
             </div>
+            <br />
             <div style="background:hsl(48, 18%, 9%);border-radius:.3em">
-                <label for="created" style="display: inline-block;margin:0 .3em;font-size:20px;">Date packet was created:  </label>
+                <label for="created" style="display: inline-block;margin:0 .3em;font-size:20px;">Packet Creation Date:</label>
                 <input
                     id="created"
                     name="created"
@@ -334,6 +376,23 @@
         align-items: center;
     }
 
+    .radio-wrapper {
+        text-align: left;
+        display: inline-block;
+        width: 35ch;
+        max-width: 80vw;
+
+        input[type="text"] {
+            max-width: 70vw;
+        }
+    }
+
+    .radio-label {
+        @extend %radio-label;
+
+        font-size: 18px;
+    }
+
     #advancedSettings {
         display: none;
         &.visible {
@@ -399,7 +458,7 @@
         @extend %button-secondary;
 
         width: 3ch;
-        font-size: 18px;
+        font-size: 22px;
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
         margin-left: 0;
@@ -417,14 +476,14 @@
     input[type="text"] {
         @extend %text-input;
 
-        font-size: 18px;
-        width: 15ch;
+        font-size: 22px;
+        width: 20ch;
         max-width: 80vw;
         text-align: center;
     }
     input[type="date"] {
         @extend %text-input;
-        font-size: 20px;
+        font-size: 22px;
         &:focus::placeholder {
             color: transparent;
         }

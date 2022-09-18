@@ -45,7 +45,7 @@
         (type !== "MCQ" || (optionW && optionX && optionY && optionZ))
 
     let formElement: HTMLFormElement
-    async function handleSubmit(e: SubmitEvent) {
+    async function handleSubmit(e: Omit<SubmitEvent, 'submitter'>) {
         e.preventDefault()
 
         type = undefined

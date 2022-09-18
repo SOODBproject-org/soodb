@@ -4,7 +4,7 @@
     import { page } from "$app/stores"
     import type { DatabaseUserSafe } from "$lib/mongo";
     import UserSearch from "./UserSearch.svelte";
-    import type { Category, set } from "$lib/types";
+    import type { Category, PacketSet } from "$lib/types";
     
     // TODO: allow custom category search
 
@@ -39,7 +39,7 @@
         {id:"energy",value:"Energy"}
     ]
     
-    export let sets : set[]
+    export let sets : PacketSet[]
     export let numQuestions: number
     const dispatch = createEventDispatcher()
 
@@ -52,11 +52,9 @@
         if (query.set) {
             inputs.set = query.set
             rawSetValue = query.set?.map(s => sets.find(x => x.setName === s))
-                .filter(x => x !== undefined) as set[]
+                .filter(x => x !== undefined) as PacketSet[]
         }
-        if (query.round) {
-            inputs.round = query.round
-        }
+        if (query.round) inputs.round = query.round
         if (query.start) inputs.start = query.start
         if (query.end) inputs.end = query.end
         if (query.types) inputs.types = query.types
@@ -90,8 +88,8 @@
         else inputs.categories = []
     }
 
-    let rawSetValue : set[] = []
-    function handleSetSelect(e: CustomEvent<set[]>){
+    let rawSetValue : PacketSet[] = []
+    function handleSetSelect(e: CustomEvent<PacketSet[]>){
         if (e.detail) inputs.set = e.detail.map((i) => i.setName as string)
         else inputs.set = []
     }

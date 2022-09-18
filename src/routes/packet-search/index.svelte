@@ -14,8 +14,8 @@
 
 <script lang="ts">
     import Set from "$lib/components/Set.svelte"
-    import type { set } from "$lib/types"
-    export let sets : set[] = []
+    import type { PacketSet } from "$lib/types"
+    export let sets : PacketSet[] = []
 </script>
 
 

@@ -3,13 +3,13 @@
     import playButton from '$lib/icons/play-button.svg?raw'
     import pauseButton from '$lib/icons/pause-button.svg?raw'
     import Icon from "svelte-icon/Icon.svelte";
-    import type Question from '$lib/types';
+    import type { Question } from '$lib/types';
     import { createEventDispatcher } from "svelte"
     import Select from "svelte-select";
+    import { browser } from "$app/env";
 
-
-    let synth : SpeechSynthesis
-    export let question : Question
+    export let question: Question
+    let synth: SpeechSynthesis
     const dispatch = createEventDispatcher()
     const categoryNames: Record<string, string> = {
         bio: "Biology",
@@ -22,12 +22,12 @@
     
     let questionWords  = (question.bonus ? "Bonus " : "Tossup ") + categoryNames[question.category] + (question.type === "MCQ" ? "Multiple Choice " : "Short Answer ")  +" "+ question.questionText + (question.type === "MCQ" ? " W " + question.choices.W +" X " + question.choices.X+" Y " + question.choices.Y+" Z " + question.choices.Z :"" ) 
     let answerWords = "The Correct Answer Is " + question.correctAnswer
-    let questionUtterance :SpeechSynthesisUtterance
-    let answerUtternance :SpeechSynthesisUtterance
+    let questionUtterance: SpeechSynthesisUtterance
+    let answerUtternance: SpeechSynthesisUtterance
     
-    let voices:SpeechSynthesisVoice[] = []  
+    let voices: SpeechSynthesisVoice[] = []  
     let listedVoices: string[]
-    onMount(()=>{
+    if (browser) {
         synth = window.speechSynthesis
         voices = synth.getVoices()
         synth.cancel()
@@ -35,7 +35,7 @@
         listedVoices = voices.map((v)=>v.name)
         questionUtterance = new SpeechSynthesisUtterance(questionWords)
         answerUtternance = new SpeechSynthesisUtterance(answerWords)
-    })
+    }
 
     let questionRead :boolean= false
     let answerRead : boolean = false

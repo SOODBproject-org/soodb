@@ -61,11 +61,11 @@
     import Icon from "svelte-icon/Icon.svelte";
     import bensive from "$lib/icons/bensive.svg?raw"
     import arrow from "$lib/icons/arrow.svg?raw"
-    import type { Question, set } from "$lib/types";
+    import type { Question, PacketSet } from "$lib/types";
 
     export let query: Record<string, string>
     export let questions: Question[] = []
-    export let sets: set[] = []
+    export let sets: PacketSet[] = []
 
     let queryBoxComponent: QueryBox
     onMount(() => {

@@ -1,8 +1,8 @@
 <script lang="ts">
     import Icon from "svelte-icon/Icon.svelte"
-    import type {set} from "$lib/types"
+    import type {PacketSet} from "$lib/types"
     import arrow from '$lib/icons/arrow.svg?raw'
-    export let set : set
+    export let set : PacketSet
     let open :boolean = false
     
 </script>

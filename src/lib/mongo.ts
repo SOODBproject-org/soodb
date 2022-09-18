@@ -9,7 +9,7 @@ import { env } from "$env/dynamic/private"
 import MongoDataAPI from "atlas-data-api"
 import type { DatabaseUser } from "lucia-sveltekit/types"
 import { escapeRegex } from "./functions/databaseUtils"
-import type { Category, Question, UserData, set } from "./types"
+import type { Category, Question, UserData, PacketSet, Packet } from "./types"
 import { removePrivateFields, type DistributiveOmit } from "./utils"
 
 function createID() {
@@ -30,7 +30,8 @@ const database = api.cluster("SOODB").database("ScibowlOpenDB")
 export const collections = {
     questions: database.collection<Question>("questions"),
     users: database.collection<DatabaseUser<UserData>>("users"),
-    sets: database.collection<set>("sets"),
+    packets: database.collection<Packet>("packets"),
+    sets: database.collection<PacketSet>("sets"),
     refreshTokens: database.collection<RefreshToken>("refreshTokens")
 }
 
@@ -51,53 +52,101 @@ export async function addQuestion(question: NewQuestionData) {
     }
 }
 
-// TODO: make more robust?
-export async function addPacket(questions: NewQuestionData[], created: Date) {
-    const date = new Date()
-    const ids : string[] = []
-    const questionOBJ: (Question)[] = []
-    let lastType = true
-    let lastId = ""
-    questions.forEach((q,i)=>{
-        const id:string = createID()
-        ids.push(id)
-        questionOBJ.push({
-            ...q,
-            id,
-            created,
-            modified:date
-        })
-        if (!lastType && q.bonus){
-            questionOBJ[i].pairId = ids[i-1]
-            questionOBJ[i-1].pairId = id
-        } 
-        lastType = q.bonus
-    })
-    const currentSet = await (await collections.sets.findOne({filter:{setName:questions[0].set}})).document
-    const setName : string = questions[0].set as string
-    const round : string = questions[0].round as string  
-    if (currentSet) {
-        console.dir(currentSet)
-        currentSet.packets[questions[0].round as string] = ids
-        collections.sets.updateOne({
-            filter:{setName:questions[0].set},
-            update:{
-                $set:{
-                    packets:currentSet.packets
-                }
-            }
+type PacketInfo = {
+    created: Date,
+    name: string,
+    setId?: string,
+    setName?: string
+}
 
-        })
-    } else {
-        collections.sets.insertOne({document:{
-            setName,
-            packets:{
-                [round]: ids
+// TODO: make more robust?
+export async function addPacket(questions: NewQuestionData[], { name, setId, setName, created }: PacketInfo) {
+    const date = new Date()
+    const packetId = createID()
+    const newSetId = createID()
+    const questionsData = questions.map(q => ({
+        ...q,
+        id: createID(),
+        created: date,
+        modified: date,
+        packetId
+    }))
+
+    collections.sets.updateOne({
+        filter: {
+            id: setId
+        },
+        update: {
+            $push: {
+                packetIds: packetId
+            },
+            $setOnInsert: {
+                id: newSetId,
+                name: setName
             }
-        }})
-    }
-    return collections.questions.insertMany({documents: questionOBJ}) 
-    
+        },
+        upsert: true
+    })
+    collections.packets.insertOne({
+        document: {
+            id: packetId,
+            name,
+            setId: setId || newSetId,
+            created,
+            questionIds: questionsData.map(q => q.id)
+        }
+    })
+    collections.questions.insertMany({
+        documents: questionsData
+    })
+}
+
+export async function getPackets(){
+    const { documents } = await collections.sets.find({filter:{}})
+    return documents
+}
+
+export async function getPacketByID(id: string) {
+    const { document } = await collections.packets.findOne({
+        filter: {
+            id
+        }
+    })
+    return document
+}
+
+export async function searchPacketsByName(name: string) {
+    const { documents } = await collections.packets.find({
+        filter: {
+            name: { $regex: escapeRegex(name), $options: 'i' }
+        },
+        limit: 15
+    })
+    return documents
+}
+
+export async function getSets() {
+    const { documents } = await collections.sets.find({ filter: {} })
+    return documents
+}
+
+export async function getSetByID(id: string) {
+    const { document } = await collections.sets.findOne({
+        filter: {
+            id
+        }
+    })
+    return document
+}
+
+export async function searchSetsByName(name: string) {
+    const { documents } = await collections.sets.find({
+        filter: {
+            name: { $regex: escapeRegex(name), $options: 'i' }
+        },
+        limit: 15
+    })
+    return documents
 }
 
 type QuestionQuery = {
@@ -128,7 +177,6 @@ type MongoQuestionQuery = {
 }
 
 export async function getQuestions({ authorName, authorId, keywords, setName, round, categories, types, timeRange }: QuestionQuery) {
-    
     const mongoQuery: MongoQuestionQuery = {}
     if (authorName) mongoQuery.authorName = authorName
     if (authorId) mongoQuery.authorId = authorId
@@ -142,31 +190,10 @@ export async function getQuestions({ authorName, authorId, keywords, setName, ro
         if (timeRange.startDate) mongoQuery.created.$gte = timeRange.startDate
         if (timeRange.endDate) mongoQuery.created.$lt = timeRange.endDate
     }
-    console.dir(mongoQuery)
-    const  mongoReturn = await collections.questions.find({
+    const { documents } = await collections.questions.find({
         filter: mongoQuery,
         limit: 50000
     })
-    const documents = mongoReturn.documents
-    console.log(documents.length)
-    const setsObj: set[] = []
-    documents.forEach((q)=>{
-        if (q.set && !setsObj.map((s)=>s.setName).includes(q.set as string)){
-            setsObj.push({setName:q.set,packets:{}})
-        }
-        if (setsObj[setsObj.findIndex(s=>s.setName===q.set)]?.packets[q.round as string]){
-            setsObj[setsObj.findIndex(s=>s.setName===q.set)].packets[q.round as string].push(q.id)
-        } else {
-            setsObj[setsObj.findIndex(s=>s.setName===q.set)].packets[q.round as string] = [q.id]
-        }
-    })
-    await collections.sets.deleteMany({filter:{}})
-    await collections.sets.insertMany({documents:setsObj})
-    return documents
-}
-
-export async function getPackets(){
-    const { documents } = await collections.sets.find({filter:{}})
     return documents
 }
 
@@ -205,7 +232,7 @@ export async function getUserByUsernameSafe(username: string) {
     return document ? removePrivateFields(document) : null
 }
 
-export async function searchUserByUsernameSafe(username: string) {
+export async function searchUsersByUsernameSafe(username: string) {
     const { documents } = await collections.users.find({
         filter: { username: { $regex: escapeRegex(username), $options: 'i' } },
         limit: 15

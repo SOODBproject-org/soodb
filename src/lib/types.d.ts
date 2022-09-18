@@ -8,8 +8,7 @@ interface QuestionBase {
     customCategory?: string
     questionText: string
     pairId?: string
-    set?: string
-    round?: string
+    packetId?: string
     visual?: string
     created: Date
     modified?: Date
@@ -40,7 +39,16 @@ export interface UserData {
     googleId?: string
 }
 
-export interface set {
-    setName: string
-    packets: Record<string,string[]>
+export interface Packet {
+    id: string
+    name: string
+    created: Date
+    questionIds: string[]
+    setId?: string
+}
+
+export interface PacketSet {
+    id: string
+    name: string
+    packetIds: string[]
 }

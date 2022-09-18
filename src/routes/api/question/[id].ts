@@ -3,7 +3,7 @@ import { getQuestionByID, getUserByID } from "$lib/mongo"
 import type { Question } from "$lib/types"
 import type { RequestHandler } from "./__types/[id].d"
 
-export const GET: RequestHandler<MaybeError<Question>> = async function({ params, url }) {
+export const GET: RequestHandler<MaybeError<Question>> = async function ({ params, url }) {
     const { id } = params
     const includeAuthor = url.searchParams.get("includeAuthor") === "true"
 

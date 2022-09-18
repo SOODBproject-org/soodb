@@ -52,17 +52,17 @@ export const PATCH: RequestHandler = async function ({ request, params }) {
             await editQuestion(id, updatedInfo)
 
             return {
-                status: 200
+                status: 200,
             }
         } catch {
             return {
-                status: 401
+                status: 401,
             }
         }
     } catch (e) {
         console.error(e)
         return {
-            status: 500
+            status: 500,
         }
     }
 }

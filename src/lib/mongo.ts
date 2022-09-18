@@ -1,7 +1,7 @@
 export type InternalQuestionKey = "id" | "created" | "modified"
 
 export type RefreshToken = {
-    refresh_token: string,
+    refresh_token: string
     user_id: string
 }
 
@@ -32,7 +32,7 @@ export const collections = {
     users: database.collection<DatabaseUser<UserData>>("users"),
     packets: database.collection<Packet>("packets"),
     sets: database.collection<PacketSet>("sets"),
-    refreshTokens: database.collection<RefreshToken>("refreshTokens")
+    refreshTokens: database.collection<RefreshToken>("refreshTokens"),
 }
 
 export type NewQuestionData = DistributiveOmit<Question, InternalQuestionKey>
@@ -48,14 +48,14 @@ export async function addQuestion(question: NewQuestionData) {
                 modified: date,
             },
         }),
-        id: newID
+        id: newID,
     }
 }
 
 type PacketInfo = {
-    created: Date,
-    name: string,
-    setId?: string,
+    created: Date
+    name: string
+    setId?: string
     setName?: string
 }
 
@@ -64,28 +64,28 @@ export async function addPacket(questions: NewQuestionData[], { name, setId, set
     const date = new Date()
     const packetId = createID()
     const newSetId = createID()
-    const questionsData = questions.map(q => ({
+    const questionsData = questions.map((q) => ({
         ...q,
         id: createID(),
         created: date,
         modified: date,
-        packetId
+        packetId,
     }))
 
     collections.sets.updateOne({
         filter: {
-            id: setId
+            id: setId,
         },
         update: {
             $push: {
-                packetIds: packetId
+                packetIds: packetId,
             },
             $setOnInsert: {
                 id: newSetId,
-                name: setName
-            }
+                name: setName,
+            },
         },
-        upsert: true
+        upsert: true,
     })
     collections.packets.insertOne({
         document: {
@@ -93,24 +93,24 @@ export async function addPacket(questions: NewQuestionData[], { name, setId, set
             name,
             setId: setId || newSetId,
             created,
-            questionIds: questionsData.map(q => q.id)
-        }
+            questionIds: questionsData.map((q) => q.id),
+        },
     })
     collections.questions.insertMany({
-        documents: questionsData
+        documents: questionsData,
     })
 }
 
-export async function getPackets(){
-    const { documents } = await collections.sets.find({filter:{}})
+export async function getPackets() {
+    const { documents } = await collections.sets.find({ filter: {} })
     return documents
 }
 
 export async function getPacketByID(id: string) {
     const { document } = await collections.packets.findOne({
         filter: {
-            id
-        }
+            id,
+        },
     })
     return document
 }
@@ -118,9 +118,9 @@ export async function getPacketByID(id: string) {
 export async function searchPacketsByName(name: string) {
     const { documents } = await collections.packets.find({
         filter: {
-            name: { $regex: escapeRegex(name), $options: 'i' }
+            name: { $regex: escapeRegex(name), $options: "i" },
         },
-        limit: 15
+        limit: 15,
     })
     return documents
 }
@@ -133,8 +133,8 @@ export async function getSets() {
 export async function getSetByID(id: string) {
     const { document } = await collections.sets.findOne({
         filter: {
-            id
-        }
+            id,
+        },
     })
     return document
 }
@@ -142,9 +142,9 @@ export async function getSetByID(id: string) {
 export async function searchSetsByName(name: string) {
     const { documents } = await collections.sets.find({
         filter: {
-            name: { $regex: escapeRegex(name), $options: 'i' }
+            name: { $regex: escapeRegex(name), $options: "i" },
         },
-        limit: 15
+        limit: 15,
     })
     return documents
 }
@@ -152,8 +152,8 @@ export async function searchSetsByName(name: string) {
 type QuestionQuery = {
     authorName?: string
     authorId?: string
-    setName? : string
-    keywords? : string
+    setName?: string
+    keywords?: string
     round?: string
     categories?: Category[]
     types?: ("SA" | "MCQ")[]
@@ -166,7 +166,7 @@ type MongoQuestionQuery = {
     authorName?: string
     authorId?: string
     $text?: { $search: string }
-    set? : string
+    set?: string
     round?: string
     category?: { $in: Category[] }
     type?: { $in: ("SA" | "MCQ")[] }
@@ -176,7 +176,16 @@ type MongoQuestionQuery = {
     }
 }
 
-export async function getQuestions({ authorName, authorId, keywords, setName, round, categories, types, timeRange }: QuestionQuery) {
+export async function getQuestions({
+    authorName,
+    authorId,
+    keywords,
+    setName,
+    round,
+    categories,
+    types,
+    timeRange,
+}: QuestionQuery) {
     const mongoQuery: MongoQuestionQuery = {}
     if (authorName) mongoQuery.authorName = authorName
     if (authorId) mongoQuery.authorId = authorId
@@ -192,11 +201,10 @@ export async function getQuestions({ authorName, authorId, keywords, setName, ro
     }
     const { documents } = await collections.questions.find({
         filter: mongoQuery,
-        limit: 50000
+        limit: 50000,
     })
     return documents
 }
-
 
 export async function editQuestion(id: string, newQuestion: Partial<NewQuestionData>) {
     return collections.questions.updateOne({
@@ -220,7 +228,7 @@ export async function getUserByID(id: string) {
     return document
 }
 
-export type DatabaseUserSafe = Omit<DatabaseUser<UserData>, 'hashed_password' | 'identifier_token'>
+export type DatabaseUserSafe = Omit<DatabaseUser<UserData>, "hashed_password" | "identifier_token">
 
 export async function getUserByIDSafe(id: string) {
     const { document } = await collections.users.findOne({ filter: { id } })
@@ -234,8 +242,8 @@ export async function getUserByUsernameSafe(username: string) {
 
 export async function searchUsersByUsernameSafe(username: string) {
     const { documents } = await collections.users.find({
-        filter: { username: { $regex: escapeRegex(username), $options: 'i' } },
-        limit: 15
+        filter: { username: { $regex: escapeRegex(username), $options: "i" } },
+        limit: 15,
     })
     return documents.map(removePrivateFields)
 }

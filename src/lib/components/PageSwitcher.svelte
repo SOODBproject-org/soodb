@@ -1,7 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte"
-    import Icon from 'svelte-icon/Icon.svelte'
-    import arrow from '$lib/icons/arrow.svg?raw'
+    import Icon from "svelte-icon/Icon.svelte"
+    import arrow from "$lib/icons/arrow.svg?raw"
 
     export let numPages: number
     export let pageNumber: number

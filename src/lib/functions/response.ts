@@ -11,8 +11,8 @@ export function error(status: number, message: string) {
     return {
         status,
         body: {
-            message
-        }
+            message,
+        },
     }
 }
 

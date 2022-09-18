@@ -21,7 +21,7 @@
     import type { NewQuestionData } from "$lib/mongo"
     import Notification from "$lib/components/Notification.svelte"
     import HelpBox from "$lib/components/HelpBox.svelte"
-    import type { Category } from "$lib/types";
+    import type { Category } from "$lib/types"
     import SetSearch from "$lib/components/SetSearch.svelte"
 
     export let submitted: string
@@ -36,27 +36,34 @@
     let created: Date
 
     $: submitEnabled = created && plainText && packetName && chooseSet
-    
+
     type Parameters = {
-        keywords : {
-            tossUp: string,
-            bonus: string,
-            shortAnswer: string,
-            multipleChoice: string,
+        keywords: {
+            tossUp: string
+            bonus: string
+            shortAnswer: string
+            multipleChoice: string
         }
-        categories: string[],
+        categories: string[]
         ignoreCase: boolean
     }
 
-    const parameters : Parameters = {
-        keywords : {
+    const parameters: Parameters = {
+        keywords: {
             tossUp: "TOSSUP",
             bonus: "BONUS",
             shortAnswer: "Short Answer",
             multipleChoice: "Multiple Choice",
-        },        
-        categories: ["BIOLOGY|Biology", "CHEMISTRY|Chemistry", "EARTH AND SPACE|Earth and Space", "PHYSICS|Physics", "MATH|Math", "ENERGY|Energy"], 
-        ignoreCase: true
+        },
+        categories: [
+            "BIOLOGY|Biology",
+            "CHEMISTRY|Chemistry",
+            "EARTH AND SPACE|Earth and Space",
+            "PHYSICS|Physics",
+            "MATH|Math",
+            "ENERGY|Energy",
+        ],
+        ignoreCase: true,
     }
     let notificationShown = true
 
@@ -67,11 +74,11 @@
             }, 5000)
         })
     }
-    function setKeywords(keywords : Record<string,string>) {
+    function setKeywords(input: Record<string, string>) {
         const tempObj: Record<string, string> = {}
-        Object.values(keywords).forEach((k,n)=>{
+        Object.values(input).forEach((k, n) => {
             k.split("|").forEach((term) => {
-                tempObj[term.toLowerCase()] = Object.keys(keywords)[n]
+                tempObj[term.toLowerCase()] = Object.keys(input)[n]
             })
         })
         return tempObj
@@ -94,7 +101,6 @@
         } catch (error) {
             console.log(error)
         }
-        
     }
 
     function calcRegexPattern(params: Parameters) {
@@ -103,13 +109,14 @@
             catString += cat + "|"
         })
         catString = catString.slice(0, -1)
-        editableRegex = `/(${params.keywords.tossUp}|${params.keywords.bonus}).??\n?.*?(${catString})\n?.+?(${params.keywords.shortAnswer}|${params.keywords.multipleChoice}):?((.|\n)+?)ANSWER:?(.+)/g${parameters.ignoreCase ? 'i' : ""}`
+        editableRegex = `/(${params.keywords.tossUp}|${params.keywords.bonus}).??\n?.*?(${catString})\n?.+?(${
+            params.keywords.shortAnswer
+        }|${params.keywords.multipleChoice}):?((.|\n)+?)ANSWER:?(.+)/g${parameters.ignoreCase ? "i" : ""}`
         const regex = new RegExp(
             `(${params.keywords.tossUp}|${params.keywords.bonus}).??\n?.*?(${catString})\n?.*?(${params.keywords.shortAnswer}|${params.keywords.multipleChoice}):?((.|\n)+?)ANSWER:?(.+)`,
-            `g${parameters.ignoreCase ? 'i' : ""}`
-
+            `g${parameters.ignoreCase ? "i" : ""}`
         )
-        
+
         return regex
         //(Tossup|TOSS UP|TOSS-UP|BONUS).+?\n?.+?(BIOLOGY|CHEMISTRY|EARTH AND SPACE|MATH|PHYSICS|GENERAL SCIENCE|ASTRONOMY|EARTH SCIENCE|COMPUTER SCIENCE)\n?.+?(Short Answer|Multiple Choice):?((.|\n)+?)ANSWER:?(.+)
     }
@@ -117,17 +124,17 @@
     function generatePreviews(text: string, pattern: RegExp, set: string, round: string) {
         const result: NewQuestionData[] = []
         if (text) {
-            try{
+            try {
                 const results = [...text.matchAll(pattern)]
                 console.dir(results)
-                let i=0
+                let i = 0
                 results.forEach((question) => {
                     i++
                     const category = categoryNames[question[2].toLowerCase()]
                         ? categoryNames[question[2].toLowerCase()]
                         : (question[2] as Category)
-                    const bonus = keywords[question[1].toLowerCase()]=="bonus"
-                    if (keywords[question[3].toLowerCase()]=="multipleChoice") {
+                    const bonus = keywords[question[1].toLowerCase()] === "bonus"
+                    if (keywords[question[3].toLowerCase()] === "multipleChoice") {
                         const splitQuestion = [...(question[4].match(/(.+?)W\)(.+?)X\)(.+?)Y\)(.+?)Z\)(.+)/is) ?? [])]
                         const answerChoice = [...(question[6].match(/(W|X|Y|Z).??/i) ?? [])]
                         console.dir(answerChoice)
@@ -142,7 +149,7 @@
                                 Y: splitQuestion[4],
                                 Z: splitQuestion[5],
                             },
-                            correctAnswer: answerChoice[1].toUpperCase() as "W" | "X" | "Y" | "Z"
+                            correctAnswer: answerChoice[1].toUpperCase() as "W" | "X" | "Y" | "Z",
                         }
                         result.push(thisQ)
                     } else {
@@ -151,18 +158,17 @@
                             category,
                             bonus,
                             questionText: question[4],
-                            correctAnswer: question[6]
+                            correctAnswer: question[6],
                         }
                         result.push(thisQ)
                     }
-                
                 })
                 console.log(i)
-            }catch(e){
+            } catch (e) {
                 console.log(e)
             }
         }
-        
+
         return result
     }
 
@@ -171,9 +177,7 @@
         setId = e.detail.id
     }
 
-    function handleSetClear() {
-
-    }
+    function handleSetClear() {}
 
     $: categoryNames = setCatNames(parameters.categories)
     $: keywords = setKeywords(parameters.keywords)
@@ -194,16 +198,11 @@
             text="An error occurred and your question was not submitted"
             shown={notificationShown}
         />
-    {/if}    
+    {/if}
     <div class="data-entry">
         <form id="form" action="/packet-submit" method="POST" autocomplete="off">
             <h1>Packet Submission</h1>
-            <input
-                type="text"
-                name="packet-name"
-                placeholder="Packet Name"
-                bind:value={packetName}
-            />
+            <input type="text" name="packet-name" placeholder="Packet Name" bind:value={packetName} />
             <br />
             <div class="radio-wrapper">
                 <label for="new-set" class="radio-label">
@@ -230,10 +229,7 @@
                 {#if chooseSet === "existing"}
                     <br />
                     <div style:margin-left="2em">
-                        <SetSearch 
-                            on:select={handleSetSelect}
-                            on:clear={handleSetClear}
-                        />
+                        <SetSearch on:select={handleSetSelect} on:clear={handleSetClear} />
                     </div>
                     <input type="hidden" name="set-id" value={setId} />
                 {/if}
@@ -246,7 +242,9 @@
             </div>
             <br />
             <div style="background:hsl(48, 18%, 9%);border-radius:.3em">
-                <label for="created" style="display: inline-block;margin:0 .3em;font-size:20px;">Packet Creation Date:</label>
+                <label for="created" style="display: inline-block;margin:0 .3em;font-size:20px;"
+                    >Packet Creation Date:</label
+                >
                 <input
                     id="created"
                     name="created"
@@ -260,19 +258,22 @@
                 placeholder="Paste in your packet here. Ctrl + A, Ctrl+C, Ctrl+V should work."
                 id="question-input"
                 bind:value={plainText}
-                on:change|stopPropagation={()=>plainText=plainText.replaceAll(new RegExp(`(.)${parameters.keywords.tossUp}`,"gi"),(k)=>k[0]+`\n${parameters.keywords.tossUp}`)}
+                on:change|stopPropagation={() =>
+                    (plainText = plainText.replaceAll(
+                        new RegExp(`(.)${parameters.keywords.tossUp}`, "gi"),
+                        (k) => k[0] + `\n${parameters.keywords.tossUp}`
+                    ))}
                 style:min-height="10em"
             />
             <button type="button" class="settings-button" on:click={() => (settingsVisible = !settingsVisible)}>
                 {settingsVisible ? "Hide" : "Show"} parsing settings
             </button>
             <div id="advancedSettings" class:visible={settingsVisible}>
-                
-                <div id="categoryContainer" on:input={()=>regexPattern =calcRegexPattern(parameters)}>
+                <div id="categoryContainer" on:input={() => (regexPattern = calcRegexPattern(parameters))}>
                     <p>Keywords:</p>
-                    <p></p>
-                    <p></p>
-                    <p></p>
+                    <p />
+                    <p />
+                    <p />
                     <p>Biology:</p>
                     <p>Chemistry:</p>
                     <p>Earth and Space:</p>
@@ -294,14 +295,18 @@
                     <div>
                         {#each Array(parameters.categories.length - 6) as _, i}
                             <div class="removableCat">
-                                <input type="text" bind:value={parameters.categories[i + 6]} style="width:12ch;border-radius:.3em 0 0 .3em " />
+                                <input
+                                    type="text"
+                                    bind:value={parameters.categories[i + 6]}
+                                    style="width:12ch;border-radius:.3em 0 0 .3em "
+                                />
                                 <button
                                     type="button"
                                     class="minus"
                                     on:click={() => {
                                         parameters.categories = [
                                             ...parameters.categories.slice(0, 6 + i),
-                                            ...parameters.categories.slice(6 + i + 1)
+                                            ...parameters.categories.slice(6 + i + 1),
                                         ]
                                         parameters.categories = parameters.categories
                                         regexPattern = calcRegexPattern(parameters)
@@ -323,11 +328,24 @@
                             +
                         </button>
                     </div>
-                    
+
                     <input type="hidden" name="questions" value={JSON.stringify(questions)} />
                 </div>
-                <input type="checkbox" name="ignoreCase" bind:checked={parameters.ignoreCase} on:change={()=>regexPattern = calcRegexPattern(parameters)}/> Ignore Case
-                <p>Raw Regex:<HelpBox>Edit this if your questions arent detected by the current regex filter. Questions are categoriezed into categories using the names above, so make sure you edit the boxes above first before editing the regex. Changes to the boxes above will edit the regex below and overwrite any changes you make to it.</HelpBox></p> 
+                <input
+                    type="checkbox"
+                    name="ignoreCase"
+                    bind:checked={parameters.ignoreCase}
+                    on:change={() => (regexPattern = calcRegexPattern(parameters))}
+                />
+                Ignore Case
+                <p>
+                    Raw Regex:<HelpBox
+                        >Edit this if your questions arent detected by the current regex filter. Questions are
+                        categoriezed into categories using the names above, so make sure you edit the boxes above first
+                        before editing the regex. Changes to the boxes above will edit the regex below and overwrite any
+                        changes you make to it.</HelpBox
+                    >
+                </p>
                 <textarea bind:value={editableRegex} on:input|stopPropagation={manualRegex} />
             </div>
             <button type="submit" class="submit-button" disabled={!submitEnabled}>Submit Questions</button>
@@ -450,7 +468,7 @@
 
     .plus {
         @extend %button-secondary;
-        padding-top:.3em;
+        padding-top: 0.3em;
         width: 6ch;
     }
 
@@ -462,7 +480,7 @@
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
         margin-left: 0;
-        padding-top:.2em;
+        padding-top: 0.2em;
         box-sizing: border-box;
         height: 1.9em;
     }

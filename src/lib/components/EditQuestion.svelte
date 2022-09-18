@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Question } from "$lib/types";
+    import type { Question } from "$lib/types"
 
     export let question: Question
 

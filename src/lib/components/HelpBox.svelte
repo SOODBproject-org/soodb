@@ -1,4 +1,4 @@
-<script lang='ts'>
+<script lang="ts">
     let helpBoxOpen: boolean
     let helpBoxElement: HTMLElement
 
@@ -9,15 +9,21 @@
     }
 </script>
 
-<svelte:window on:click={handleWindowClick}></svelte:window>
-<span class="question-box-wrapper" bind:this={helpBoxElement}><span class="questionMark" on:click={()=>{helpBoxOpen=!helpBoxOpen}}>?</span>
+<svelte:window on:click={handleWindowClick} />
+<span class="question-box-wrapper" bind:this={helpBoxElement}
+    ><span
+        class="questionMark"
+        on:click={() => {
+            helpBoxOpen = !helpBoxOpen
+        }}>?</span
+    >
     <div class="question-box" class:visible={helpBoxOpen}>
-        <slot></slot>
+        <slot />
     </div>
 </span>
 
 <style lang="scss">
-    .question-box-wrapper{ 
+    .question-box-wrapper {
         position: relative;
     }
 
@@ -26,25 +32,25 @@
         font-size: 16px;
         font-weight: 500;
         position: absolute;
-        top:1.6em;right:0em;
+        top: 1.6em;
+        right: 0em;
         background-color: $accent-1;
-        padding: .5em;
+        padding: 0.5em;
         border-radius: 1em;
         width: 16em;
         display: none;
-        
+
         &.visible {
             display: block;
-            &:hover{
+            &:hover {
                 display: block;
             }
         }
-        
     }
 
-    .questionMark{
+    .questionMark {
         cursor: pointer;
-        padding:.2em .6em;
+        padding: 0.2em 0.6em;
         background-color: var(--color-3);
         border-radius: 1em;
         color: white;

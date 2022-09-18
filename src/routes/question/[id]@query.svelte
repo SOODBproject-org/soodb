@@ -4,19 +4,12 @@
 
     export const load: Load = async function ({ fetch, url, params }) {
         const paramQueryEntries = [...url.searchParams.entries()]
-            .filter(([key, _]) => [
-                "authorId",
-                "keywords",
-                "set",
-                "round",
-                "start",
-                "end",
-                "types",
-                "categories"
-            ].includes(key))
+            .filter(([key, _]) =>
+                ["authorId", "keywords", "set", "round", "start", "end", "types", "categories"].includes(key)
+            )
             .map(([key, value]) => {
                 if (key === "types" || key === "categories") {
-                    return [key, value.split(',')]
+                    return [key, value.split(",")]
                 } else {
                     return [key, value]
                 }
@@ -27,20 +20,20 @@
         const previousQuery: Record<string, string | string[]> = browser
             ? JSON.parse(Cookie.get("previousQuery") ?? "{}")
             : {}
-        
+
         const questionRes = await fetch(`/api/question/${params.id}?includeAuthor=true`)
         const question = await questionRes.json()
         console.dir(question)
-        const packetRes = await fetch('/api/packet')
+        const packetRes = await fetch("/api/packet")
         const sets = await packetRes.json()
         return {
             props: {
                 query: {
                     ...previousQuery,
-                    ...paramQuery
+                    ...paramQuery,
                 },
                 question,
-                sets 
+                sets,
             },
         }
     }
@@ -49,22 +42,21 @@
 <script lang="ts">
     import QuestionComp from "$lib/components/Question.svelte"
     import QueryBox from "$lib/components/QueryBox.svelte"
-    import Icon from "svelte-icon/Icon.svelte";
+    import Icon from "svelte-icon/Icon.svelte"
     import arrow from "$lib/icons/arrow.svg?raw"
     import { browser } from "$app/env"
-    import type { Category, Question, PacketSet } from "$lib/types";
+    import type { Category, Question, PacketSet } from "$lib/types"
     import { removeUndefined } from "$lib/utils"
-    import { tick } from "svelte"; 
-    import Speech from "$lib/components/Speech.svelte";
-    export let question: Question 
-    export let sets : PacketSet[]
+    import { tick } from "svelte"
+    import Speech from "$lib/components/Speech.svelte"
+    export let question: Question
+    export let sets: PacketSet[]
     let menuOpen = false
     let answerVisible = false
     const loaded = true
-    let noMatch = false
+    const noMatch = false
     const questionsSeen: string[] = [question.id]
-    
-    
+
     let queryBoxComponent: QueryBox
     export let query: Record<string, string>
     let querySent = false
@@ -83,8 +75,8 @@
 
         Cookie.set("previousQuery", JSON.stringify(query))
         const params = new URLSearchParams(query)
-        let currentq:Question = question
-        while (questionsSeen.includes(currentq.id)){
+        let currentq: Question = question
+        while (questionsSeen.includes(currentq.id)) {
             const res = await fetch("/api/question/random?" + params.toString(), {
                 credentials: "include",
             })
@@ -93,7 +85,7 @@
         questionsSeen.push(currentq.id)
         question = currentq
         await tick()
-        history.replaceState({},'',`${question.id}`)
+        history.replaceState({}, "", `${question.id}`)
         menuOpen = false
         querySent = true
     }
@@ -102,7 +94,7 @@
         menuOpen = !menuOpen
     }
     console.dir(question)
-    let windowWidth :number
+    let windowWidth: number
 </script>
 
 <svelte:head>
@@ -110,11 +102,10 @@
 </svelte:head>
 <svelte:window bind:innerWidth={windowWidth} />
 
-
 <div id="desktop-menu-wrapper">
     <div id="desktop-menu">
         <QueryBox
-            bind:sets={sets}
+            bind:sets
             numQuestions={0}
             bind:this={queryBoxComponent}
             on:sendQuery={async (event) => {
@@ -125,23 +116,22 @@
     </div>
 </div>
 {#if windowWidth < 650}
-<div id="mobile-menu-wrapper" class:opened={menuOpen}>
-    
-    <div id="mobile-menu">
-        <QueryBox
-            bind:sets={sets}
-            numQuestions={0}
-            bind:this={queryBoxComponent}
-            on:sendQuery={async (event) => {
-                await sendQuery(event.detail.inputs)
-                await tick()
-            }}
-        />
+    <div id="mobile-menu-wrapper" class:opened={menuOpen}>
+        <div id="mobile-menu">
+            <QueryBox
+                bind:sets
+                numQuestions={0}
+                bind:this={queryBoxComponent}
+                on:sendQuery={async (event) => {
+                    await sendQuery(event.detail.inputs)
+                    await tick()
+                }}
+            />
+        </div>
+        <button id="toggle-button" on:click={toggleMenu}>
+            <Icon data={arrow} class="toggle-menu" />
+        </button>
     </div>
-    <button id="toggle-button" on:click={toggleMenu}>
-        <Icon data={arrow} class="toggle-menu" />
-    </button>
-</div>
 {/if}
 <main>
     {#if !question}
@@ -151,13 +141,13 @@
     {:else}
         <h1>Loading...</h1>
     {/if}
-     <Speech 
-        bind:question 
+    <Speech
+        bind:question
         on:sendQuery={async () => {
             await sendQuery(query)
             await tick()
         }}
-    /> 
+    />
 </main>
 
 <style lang="scss">
@@ -182,7 +172,7 @@
             display: inline-block;
             width: 60%;
             height: 60%;
-            transition: transform 0.4s cubic-bezier(0.215, 0.610, 0.355, 1);
+            transition: transform 0.4s cubic-bezier(0.215, 0.61, 0.355, 1);
             transform: rotate(180deg);
         }
     }

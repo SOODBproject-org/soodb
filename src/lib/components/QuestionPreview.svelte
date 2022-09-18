@@ -1,13 +1,13 @@
 <script lang="ts">
-    import type { Question } from "$lib/mongo"
+    import type { Question } from "$lib/types"
     export let question: Question & { authorName?: string }
 
     $: truncatedQuestion =
         question.questionText.length > numCharacters
             ? question.questionText.slice(0, numCharacters) + "…"
             : question.questionText
-    let createdDate = new Date(question.created)
-    let createdDateString = Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale).format(createdDate)
+    const createdDate = new Date(question.created)
+    const createdDateString = Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale).format(createdDate)
     let previewWidth: number
     $: numCharacters = previewWidth / 3 - 20
 
@@ -23,7 +23,7 @@
 
 <div class="preview {question.category}" bind:clientWidth={previewWidth}>
     <div class="wrapper">
-        <h2>{categoryNames[question.category] ? categoryNames[question.category] : question.category }</h2>
+        <h2>{categoryNames[question.category] ? categoryNames[question.category] : question.category}</h2>
         <a href="/question/{question.id}" sveltekit:prefetch>View</a>
     </div>
     <h3>{truncatedQuestion}</h3>

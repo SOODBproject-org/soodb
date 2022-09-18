@@ -11,24 +11,22 @@
 
         const userRes = await fetch(`/api/user`, {
             headers: {
-                Authorization: `Bearer ${session.lucia.access_token}`
-            }
+                Authorization: `Bearer ${session.lucia.access_token}`,
+            },
         })
         const userSettingsRes = await fetch(`/api/user/settings`, {
             headers: {
-                Authorization: `Bearer ${session.lucia.access_token}`
-            }
+                Authorization: `Bearer ${session.lucia.access_token}`,
+            },
         })
         const questionsRes = await fetch(`/api/question?authorId=${session.lucia.user.user_id}`)
-        const userData = await userRes.json() as DatabaseUserSafe
-        const questions = await questionsRes.json() as Question[]
+        const userData = (await userRes.json()) as DatabaseUserSafe
+        const questions = (await questionsRes.json()) as Question[]
         return {
             props: {
                 userData,
                 userSettings: await userSettingsRes.json(),
-                questions: questions.map(
-                    x => ({ ...x, authorName: userData.username })
-                ),
+                questions: questions.map((x) => ({ ...x, authorName: userData.username })),
             },
         }
     }
@@ -38,10 +36,10 @@
     import QuestionPreview from "$lib/components/QuestionPreview.svelte"
     import AccountEdit from "$lib/components/AccountEdit.svelte"
     import type { DatabaseUserSafe } from "$lib/mongo"
-    import Account from "$lib/components/Account.svelte";
-    import { session } from "$app/stores";
-    import type { Question } from "$lib/types";
-    
+    import Account from "$lib/components/Account.svelte"
+    import { session } from "$app/stores"
+    import type { Question } from "$lib/types"
+
     export let questions: Question[]
     export let userData: DatabaseUserSafe
 
@@ -51,19 +49,19 @@
 
     async function handleSave(e: CustomEvent<{ username: string }>) {
         const data = new URLSearchParams({
-            username: e.detail.username
+            username: e.detail.username,
         })
 
-        const res = await fetch('/api/user', {
+        const res = await fetch("/api/user", {
             method: "PATCH",
             body: data,
             headers: {
-                Authorization: `Bearer ${$session.lucia?.access_token}`
-            }
+                Authorization: `Bearer ${$session.lucia?.access_token}`,
+            },
         })
 
         if (res.ok) {
-            const resBody = await res.json() as { user: { username: string } }
+            const resBody = (await res.json()) as { user: { username: string } }
             updateSettings({ username: resBody.user.username })
         } else {
             error = "Failed to save settings"
@@ -78,11 +76,16 @@
 <main>
     <div id="account">
         {#if editing}
-            <AccountEdit {userData} {error} bind:updateSettings
-                on:save={handleSave} on:back={() => editing = false} />
+            <AccountEdit
+                {userData}
+                {error}
+                bind:updateSettings
+                on:save={handleSave}
+                on:back={() => (editing = false)}
+            />
         {:else}
             <Account {userData} {questions} />
-            <button class="settings" on:click={() => editing = true}>Settings</button>
+            <button class="settings" on:click={() => (editing = true)}>Settings</button>
         {/if}
     </div>
     {#if questions?.length}

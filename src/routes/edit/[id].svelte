@@ -27,7 +27,7 @@
 
 <script lang="ts">
     import EditQuestion from "$lib/components/EditQuestion.svelte"
-    import type { Question } from "$lib/types";
+    import type { Question } from "$lib/types"
 
     export let question: Question
 </script>

@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { tick } from "svelte";
+    import { tick } from "svelte"
     export let value: string
-    let className: string = ""
+    let className = ""
     export { className as class }
-    
+
     let editing = false
     let wrapper: HTMLElement
     let inputElement: HTMLInputElement
@@ -27,10 +27,10 @@
 
 <div class={className} bind:this={wrapper}>
     {#if editing}
-        <input type="text" bind:value bind:this={inputElement} /> 
+        <input type="text" bind:value bind:this={inputElement} />
     {:else}
         <p>{value}</p>
-        <button on:click={() => edit()}> </button>
+        <button on:click={() => edit()} />
     {/if}
 </div>
 
@@ -62,7 +62,7 @@
         border: none;
         width: 0.75em;
         height: 0.75em;
-        background: url('/pencil.png');
+        background: url("/pencil.png");
         background-size: contain;
         padding: 0;
         cursor: pointer;

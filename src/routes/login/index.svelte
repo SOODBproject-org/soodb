@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { goto } from "$app/navigation";
+    import { goto } from "$app/navigation"
     import { env } from "$env/dynamic/public"
-    import Icon from "svelte-icon/Icon.svelte";
-    import githubIcon from '$lib/icons/github.svg?raw'
-    import discordIcon from '$lib/icons/discord.svg?raw'
-    import googleIcon from '$lib/icons/google.svg?raw'
+    import Icon from "svelte-icon/Icon.svelte"
+    import githubIcon from "$lib/icons/github.svg?raw"
+    import discordIcon from "$lib/icons/discord.svg?raw"
+    import googleIcon from "$lib/icons/google.svg?raw"
 
     let username: string
     let password: string
@@ -13,23 +13,48 @@
 <main>
     <h1>Login</h1>
     <form action="/api/login" method="POST">
-        <button type="button" class="github" on:click={() => goto(`https://github.com/login/oauth/authorize?client_id=${env.PUBLIC_GITHUB_CLIENT_ID}&scope=${encodeURIComponent("user:email read:user")}`)}>
+        <button
+            type="button"
+            class="github"
+            on:click={() =>
+                goto(
+                    `https://github.com/login/oauth/authorize?client_id=${
+                        env.PUBLIC_GITHUB_CLIENT_ID
+                    }&scope=${encodeURIComponent("user:email read:user")}`
+                )}
+        >
             <Icon data={githubIcon} class="github-icon" />
-            <span class="text">
-                Sign in with Github
-            </span>
+            <span class="text"> Sign in with Github </span>
         </button>
-        <button type="button" class="discord" on:click={() => goto(`https://discord.com/api/oauth2/authorize?response_type=code&client_id=${env.PUBLIC_DISCORD_CLIENT_ID}&scope=identify%20guilds.join&redirect_uri=${encodeURIComponent(env.PUBLIC_HOST_URL + "/api/discord")}&prompt=consent`)}>
+        <button
+            type="button"
+            class="discord"
+            on:click={() =>
+                goto(
+                    `https://discord.com/api/oauth2/authorize?response_type=code&client_id=${
+                        env.PUBLIC_DISCORD_CLIENT_ID
+                    }&scope=identify%20guilds.join&redirect_uri=${encodeURIComponent(
+                        env.PUBLIC_HOST_URL + "/api/discord"
+                    )}&prompt=consent`
+                )}
+        >
             <Icon data={discordIcon} class="discord-icon" />
-            <span class="text">
-                Sign in with Discord
-            </span>
+            <span class="text"> Sign in with Discord </span>
         </button>
-        <button type="button" class="google" on:click={() => goto(`https://accounts.google.com/o/oauth2/v2/auth?client_id=${env.PUBLIC_GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(env.PUBLIC_HOST_URL + "/api/google")}&response_type=code&scope=${encodeURIComponent("openid email profile")}`)}>
+        <button
+            type="button"
+            class="google"
+            on:click={() =>
+                goto(
+                    `https://accounts.google.com/o/oauth2/v2/auth?client_id=${
+                        env.PUBLIC_GOOGLE_CLIENT_ID
+                    }&redirect_uri=${encodeURIComponent(
+                        env.PUBLIC_HOST_URL + "/api/google"
+                    )}&response_type=code&scope=${encodeURIComponent("openid email profile")}`
+                )}
+        >
             <Icon data={googleIcon} class="google-icon" />
-            <span class="text">
-                Sign in with Google
-            </span>
+            <span class="text"> Sign in with Google </span>
         </button>
         <div class="separator">
             <div class="line" />
@@ -80,7 +105,7 @@
         position: relative;
 
         &::after {
-            content: '';
+            content: "";
             position: absolute;
             top: 50%;
             left: 0;
@@ -90,7 +115,8 @@
         }
     }
 
-    input[type="text"], input[type="password"] {
+    input[type="text"],
+    input[type="password"] {
         @extend %text-input;
 
         font-size: 24px;

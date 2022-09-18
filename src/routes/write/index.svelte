@@ -19,7 +19,7 @@
     import { browser } from "$app/env"
     import Notification from "$lib/components/Notification.svelte"
     import { onMount } from "svelte"
-    import type { Category } from "$lib/types";
+    import type { Category } from "$lib/types"
 
     export let submitted: string
     let notificationShown = true
@@ -45,7 +45,7 @@
         (type !== "MCQ" || (optionW && optionX && optionY && optionZ))
 
     let formElement: HTMLFormElement
-    async function handleSubmit(e: Omit<SubmitEvent, 'submitter'>) {
+    async function handleSubmit(e: Omit<SubmitEvent, "submitter">) {
         e.preventDefault()
 
         type = undefined
@@ -58,17 +58,17 @@
         correctAnswer = undefined
 
         const formData = new FormData(formElement)
-        const res = await fetch('/api/question', {
+        const res = await fetch("/api/question", {
             method: "POST",
             body: formData,
             headers: {
-                Authorization: `Bearer ${$session.lucia?.access_token}` ?? ""
-            }
+                Authorization: $session.lucia?.access_token ? `Bearer ${$session.lucia?.access_token}` : "",
+            },
         })
-        
+
         submitted = res.ok ? "success" : "error"
         notificationShown = true
-        setTimeout(() => notificationShown = false, 5000)
+        setTimeout(() => (notificationShown = false), 5000)
     }
 </script>
 

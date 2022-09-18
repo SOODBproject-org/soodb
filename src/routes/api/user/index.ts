@@ -3,14 +3,14 @@ import { auth } from "$lib/lucia"
 import { getUserByIDSafe, getUserByUsernameSafe, updateUser, type DatabaseUserSafe } from "$lib/mongo"
 import type { RequestHandler } from "./__types/index.d"
 
-export const GET: RequestHandler = async function({ request }) {
+export const GET: RequestHandler = async function ({ request }) {
     try {
         const user = await auth.validateRequest(request)
         const userData = await getUserByIDSafe(user.user_id)
         if (userData) {
             return {
                 status: 200,
-                body: userData
+                body: userData,
             }
         } else {
             return error(401, "User data not found")

@@ -12,13 +12,13 @@ export const GET: RequestHandler<MaybeError<Question[]>> = async function ({ req
     try {
         const parsed: Record<string, string> = checkCookies
             ? JSON.parse(
-                decodeURIComponent(
-                    request.headers
-                        .get("cookie")
-                        ?.split("; ")
-                        .find((x) => x.split("=")[0] === "previousQuery")
-                        ?.split("=")[1] ?? "{}"
-                )
+                  decodeURIComponent(
+                      request.headers
+                          .get("cookie")
+                          ?.split("; ")
+                          .find((x) => x.split("=")[0] === "previousQuery")
+                          ?.split("=")[1] ?? "{}"
+                  )
               )
             : {}
         cookieQuery = {
@@ -32,8 +32,8 @@ export const GET: RequestHandler<MaybeError<Question[]>> = async function ({ req
     const authorName = url.searchParams.get("authorName") ?? undefined
     const authorId = url.searchParams.get("authorId") ?? undefined
     const keywords = url.searchParams.get("keywords") ?? undefined
-    const setName = url.searchParams.get('setName') ?? undefined
-    const round = url.searchParams.get('round') ?? undefined
+    const setName = url.searchParams.get("setName") ?? undefined
+    const round = url.searchParams.get("round") ?? undefined
     const categories = url.searchParams.get("categories")?.split(",") as string[]
     const types = url.searchParams.get("types")?.split(",") as ("MCQ" | "SA")[]
     const startDate = url.searchParams.get("start") ? new Date(url.searchParams.get("start") as string) : undefined
@@ -52,7 +52,7 @@ export const GET: RequestHandler<MaybeError<Question[]>> = async function ({ req
                 },
             }
         )
-        result = res.ok ? await res.json() as Question[] : []
+        result = res.ok ? ((await res.json()) as Question[]) : []
     } else {
         result = await getQuestions({
             ...removeUndefined(cookieQuery),
@@ -86,7 +86,7 @@ export const GET: RequestHandler<MaybeError<Question[]>> = async function ({ req
     }
 }
 
-export const POST: RequestHandler = async function({ request }) {
+export const POST: RequestHandler = async function ({ request }) {
     const formData = await request.formData()
     const type = formData.get("type") as "MCQ" | "SA"
     const category = formData.get("category") as Category
@@ -145,7 +145,7 @@ export const POST: RequestHandler = async function({ request }) {
     return {
         status: 201,
         headers: {
-            Location: `/api/question/${id}`
-        }
+            Location: `/api/question/${id}`,
+        },
     }
 }

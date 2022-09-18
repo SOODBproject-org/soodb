@@ -4,19 +4,12 @@
 
     export const load: Load = async function ({ fetch, url }) {
         const paramQueryEntries = [...url.searchParams.entries()]
-            .filter(([key, _]) => [
-                "authorId",
-                "keywords",
-                "set",
-                "round",
-                "start",
-                "end",
-                "types",
-                "categories"
-            ].includes(key))
+            .filter(([key, _]) =>
+                ["authorId", "keywords", "set", "round", "start", "end", "types", "categories"].includes(key)
+            )
             .map(([key, value]) => {
                 if (key === "types" || key === "categories") {
-                    return [key, value.split(',')]
+                    return [key, value.split(",")]
                 } else {
                     return [key, value]
                 }
@@ -42,10 +35,10 @@
             props: {
                 query: {
                     ...previousQuery,
-                    ...paramQuery
+                    ...paramQuery,
                 },
                 questions: await questionsRes.json(),
-                sets: await packetRes.json()
+                sets: await packetRes.json(),
             },
         }
     }
@@ -58,10 +51,10 @@
     import { onMount, tick } from "svelte"
     import { browser } from "$app/env"
     import { removeUndefined } from "$lib/utils"
-    import Icon from "svelte-icon/Icon.svelte";
+    import Icon from "svelte-icon/Icon.svelte"
     import bensive from "$lib/icons/bensive.svg?raw"
     import arrow from "$lib/icons/arrow.svg?raw"
-    import type { Question, PacketSet } from "$lib/types";
+    import type { Question, PacketSet } from "$lib/types"
 
     export let query: Record<string, string>
     export let questions: Question[] = []
@@ -69,7 +62,7 @@
 
     let queryBoxComponent: QueryBox
     onMount(() => {
-        history.replaceState({}, '', "/question-search")
+        history.replaceState({}, "", "/question-search")
         queryBoxComponent?.setQuery(query)
     })
 
@@ -120,7 +113,7 @@
     <div id="desktop-menu">
         <QueryBox
             bind:numQuestions={questions.length}
-            bind:sets={sets}
+            bind:sets
             bind:this={queryBoxComponent}
             on:sendQuery={async (event) => {
                 await sendQuery(event.detail.inputs)
@@ -135,7 +128,7 @@
 <div id="mobile-menu-wrapper" class:opened={menuOpen}>
     <div id="mobile-menu">
         <QueryBox
-            bind:sets={sets}
+            bind:sets
             bind:numQuestions={questions.length}
             on:sendQuery={(event) => {
                 sendQuery(event.detail.inputs)
@@ -194,7 +187,7 @@
             display: inline-block;
             width: 60%;
             height: 60%;
-            transition: transform 0.4s cubic-bezier(0.215, 0.610, 0.355, 1);
+            transition: transform 0.4s cubic-bezier(0.215, 0.61, 0.355, 1);
             transform: rotate(180deg);
         }
     }

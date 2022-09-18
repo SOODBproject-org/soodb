@@ -1,9 +1,9 @@
 <script lang="ts">
-    import type { DatabaseUserSafe } from "$lib/mongo";
-    import Icon from "svelte-icon/Icon.svelte";
-    import search from '$lib/icons/search.svg?raw'
-    import Select from 'svelte-select'
-    import { createEventDispatcher } from 'svelte'
+    import type { DatabaseUserSafe } from "$lib/mongo"
+    import Icon from "svelte-icon/Icon.svelte"
+    import search from "$lib/icons/search.svg?raw"
+    import Select from "svelte-select"
+    import { createEventDispatcher } from "svelte"
 
     const dispatch = createEventDispatcher()
 
@@ -15,7 +15,7 @@
         const res = await fetch(`/api/user/${encodeURIComponent(userId)}`)
         const result = await res.json()
         if (result) {
-            users = [ result ]
+            users = [result]
             rawUserValue = result
         }
     }
@@ -36,7 +36,7 @@
     function handleClear() {
         username = ""
         users = null
-        dispatch('clear')
+        dispatch("clear")
     }
 
     function clearSelect() {
@@ -47,7 +47,13 @@
 
 <div class="user-search">
     <div class="wrapper">
-        <input type="text" bind:value={username} on:input={clearSelect} placeholder="User search" class:grayed={!!users} />
+        <input
+            type="text"
+            bind:value={username}
+            on:input={clearSelect}
+            placeholder="User search"
+            class:grayed={!!users}
+        />
         <button type="button" class="search-button" on:click={getUsers}><Icon data={search} /></button>
     </div>
     {#if users}
@@ -67,14 +73,14 @@
 
 <style lang="scss">
     .user-search {
-        max-width: min(300px,80%);
+        max-width: min(300px, 80%);
     }
 
     .select {
         --inputFontSize: 20px;
         --placeholderColor: #757575;
         --background: hsl(48, 18%, 9%);
-        --listBackground:hsl(48, 18%, 9%);
+        --listBackground: hsl(48, 18%, 9%);
         --itemHoverBG: #{$accent-2};
         --multiItemBG: #{$accent-2};
         --multiItemActiveBG: #{scale($accent-2, $saturation: 20%, $lightness: -10%)};
@@ -83,23 +89,23 @@
         --border: transparent 1.5px solid;
         --borderHoverColor: #{$accent-2};
         --borderFocusColor: #{$accent-2};
-        --border-radius: .2em;
+        --border-radius: 0.2em;
 
         font-size: 20px;
         border: none;
-        margin: .5em 0;        
+        margin: 0.5em 0;
         box-sizing: border-box;
         position: relative;
         text-align: left;
-        font-family: 'Ubuntu';
-    
+        font-family: "Ubuntu";
+
         :global(.listContainer) {
             @include vertical-scrollable(7px);
 
             &::-webkit-scrollbar-track-piece:start {
                 margin-top: 0.2em;
             }
-            
+
             &::-webkit-scrollbar-track-piece:end {
                 margin-bottom: 0.2em;
             }

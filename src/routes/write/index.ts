@@ -1,9 +1,10 @@
-import { redirect } from '$lib/functions/response'
-import { auth } from '$lib/lucia'
-import type { Category } from '$lib/types'
-import type { RequestHandler } from '@sveltejs/kit'
+import { redirect } from "$lib/functions/response"
+import { auth } from "$lib/lucia"
+import { addQuestion, type NewQuestionData } from "$lib/mongo"
+import type { Category } from "$lib/types"
+import type { RequestHandler } from "@sveltejs/kit"
 
-export const POST: RequestHandler = async function({ request }) {
+export const POST: RequestHandler = async function ({ request }) {
     const formData = await request.formData()
     const type = formData.get("type") as "MCQ" | "SA"
     const category = formData.get("category") as Category
@@ -27,7 +28,7 @@ export const POST: RequestHandler = async function({ request }) {
             const user = await auth.validateRequest(request)
             authorId = user.user_id
         } catch {
-            return redirect('/write?submitted=error')
+            return redirect("/write?submitted=error")
         }
     }
 
@@ -54,10 +55,10 @@ export const POST: RequestHandler = async function({ request }) {
             correctAnswer: answer,
         }
     } else {
-        return redirect('/write?submitted=error')
+        return redirect("/write?submitted=error")
     }
 
-    const { id } = await addQuestion(question)
+    await addQuestion(question)
 
-    return redirect('/write?submitted=success')
+    return redirect("/write?submitted=success")
 }

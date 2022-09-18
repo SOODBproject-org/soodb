@@ -1,20 +1,20 @@
-import type { MaybeError } from '$lib/functions/response'
-import { getPacketByID } from '$lib/mongo'
-import type { Packet } from '$lib/types'
-import type { RequestHandler } from './__types/index.d'
+import type { MaybeError } from "$lib/functions/response"
+import { getPacketByID } from "$lib/mongo"
+import type { Packet } from "$lib/types"
+import type { RequestHandler } from "./__types/index.d"
 
-export const GET: RequestHandler<MaybeError<Packet>> = async function({ params }) {
+export const GET: RequestHandler<MaybeError<Packet>> = async function ({ params }) {
     const { id } = params
 
     const result = await getPacketByID(id)
     if (result) {
         return {
             status: 200,
-            body: result
+            body: result,
         }
     } else {
         return {
-            status: 404
+            status: 404,
         }
     }
 }

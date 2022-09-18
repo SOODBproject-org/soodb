@@ -4,13 +4,14 @@
     export const load: Load = async function ({ params, fetch }) {
         const userRes = await fetch(`/api/user/${params.id}`)
         const questionsRes = await fetch(`/api/question?authorId=${params.id}`)
-        const userData = await userRes.json() as DatabaseUserSafe
+        const userData = (await userRes.json()) as DatabaseUserSafe
         return {
             props: {
                 userData,
-                questions: (await questionsRes.json() as Question[]).map(
-                    x => ({ ...x, authorName: userData.username })
-                ),
+                questions: ((await questionsRes.json()) as Question[]).map((x) => ({
+                    ...x,
+                    authorName: userData.username,
+                })),
             },
         }
     }

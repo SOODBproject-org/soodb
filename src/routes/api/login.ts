@@ -3,23 +3,19 @@ import { auth } from "$lib/lucia"
 import type { Error } from "lucia-sveltekit"
 import type { RequestHandler } from "./__types/login.d"
 
-export const POST: RequestHandler = async function({ request }) {
+export const POST: RequestHandler = async function ({ request }) {
     const data = await request.formData()
     const username = data.get("username") as string
     const password = data.get("password") as string
     try {
-        const authenticateUser = await auth.authenticateUser(
-            "username",
-            username,
-            password
-        )
-        
+        const authenticateUser = await auth.authenticateUser("username", username, password)
+
         return {
             status: 302,
             headers: {
                 "Set-Cookie": authenticateUser.cookies,
-                "Location": "/account"
-            }
+                "Location": "/account",
+            },
         }
     } catch (e) {
         const err = e as Error

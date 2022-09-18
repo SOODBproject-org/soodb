@@ -1,8 +1,8 @@
 <script lang="ts">
     import type { DatabaseUserSafe } from "$lib/mongo"
-    import { session } from "$app/stores";
-    import { form as svelteForm, field } from 'svelte-forms';
-    import { pattern } from 'svelte-forms/validators'
+    import { session } from "$app/stores"
+    import { form as svelteForm, field } from "svelte-forms"
+    import { pattern } from "svelte-forms/validators"
     import EditableField from "./EditableField.svelte"
     import { createEventDispatcher } from "svelte"
 
@@ -10,12 +10,12 @@
 
     export let userData: DatabaseUserSafe
     export let error: string | undefined = undefined
-    export const updateSettings = function({ username }: { username: string }) {
+    export const updateSettings = function ({ username }: { username: string }) {
         initialUserData.username = username
         $usernameField.value = username
     }
 
-    let initialUserData = userData
+    const initialUserData = userData
 
     let usernameTakenTimeout: NodeJS.Timeout | null = null
     async function checkUsernameTaken(value: string) {
@@ -33,21 +33,26 @@
         }) as Promise<boolean>
     }
 
-    const usernameField = field("username", userData.username, [
-        pattern(/[\S]{6,30}/),
-        (value) => ({ valid: value !== initialUserData.username, name: "usernameChanged" }),
-        async (value) => ({ valid: await checkUsernameTaken(value), name: "usernameTaken" })
-    ], { checkOnInit: true })
+    const usernameField = field(
+        "username",
+        userData.username,
+        [
+            pattern(/[\S]{6,30}/),
+            (value) => ({ valid: value !== initialUserData.username, name: "usernameChanged" }),
+            async (value) => ({ valid: await checkUsernameTaken(value), name: "usernameTaken" }),
+        ],
+        { checkOnInit: true }
+    )
     const usernameErrors: Record<string, string> = {
-        "pattern": "Username may not contain spaces and must be between 6 and 30 characters",
-        "usernameTaken": "That username is already taken"
+        pattern: "Username may not contain spaces and must be between 6 and 30 characters",
+        usernameTaken: "That username is already taken",
     }
 
     const settingsForm = svelteForm(usernameField)
 
     async function handleSubmit(e: SubmitEvent) {
-        dispatch('save', {
-            username: $usernameField.value
+        dispatch("save", {
+            username: $usernameField.value,
         })
     }
 </script>
@@ -60,7 +65,7 @@
         {#if $usernameField.errors.length && usernameErrors[$usernameField.errors[0]]}
             <p class="error">{usernameErrors[$usernameField.errors[0]]}</p>
         {/if}
-    
+
         {#if error}
             <p class="error">{error}</p>
         {/if}
@@ -121,7 +126,7 @@
     .save {
         @extend %button-primary;
 
-        font-size: 20px;        
+        font-size: 20px;
     }
 
     .back {

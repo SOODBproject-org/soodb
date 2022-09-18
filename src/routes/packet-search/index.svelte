@@ -15,9 +15,8 @@
 <script lang="ts">
     import Set from "$lib/components/Set.svelte"
     import type { PacketSet } from "$lib/types"
-    export let sets : PacketSet[] = []
+    export let sets: PacketSet[] = []
 </script>
-
 
 <main>
     {#each sets as s}
@@ -25,7 +24,5 @@
     {/each}
 </main>
 
-
 <style lang="scss">
-
 </style>

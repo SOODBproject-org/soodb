@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { beforeNavigate } from "$app/navigation";
+    import { beforeNavigate } from "$app/navigation"
     import { session } from "$app/stores"
     import { slide } from "svelte/transition"
     import Icon from "svelte-icon/Icon.svelte"
     import hamburger from "$lib/icons/hamburger.svg?raw"
-    import { signOut } from 'lucia-sveltekit/client'
+    import { signOut } from "lucia-sveltekit/client"
 
     let menuOpen = false
 

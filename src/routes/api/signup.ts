@@ -4,31 +4,27 @@ import type { UserData } from "$lib/types"
 import type { Error } from "lucia-sveltekit"
 import type { RequestHandler } from "./__types/signup.d"
 
-export const POST: RequestHandler = async function({ request }) {
+export const POST: RequestHandler = async function ({ request }) {
     const data = await request.formData()
     const username = data.get("username") as string
     const password = data.get("password") as string
     const confirmPassword = data.get("confirm-password") as string
-    
-    if (password !== confirmPassword) return redirect('signup')
+
+    if (password !== confirmPassword) return redirect("signup")
     try {
-        const createdUser = await auth.createUser(
-            "username",
-            username,
-            {
-                password,
-                user_data: {
-                    username
-                } as UserData
-            }
-        )
-    
+        const createdUser = await auth.createUser("username", username, {
+            password,
+            user_data: {
+                username,
+            } as UserData,
+        })
+
         return {
             status: 302,
             headers: {
                 "Set-Cookie": createdUser.cookies,
-                "Location": "/account"
-            }
+                "Location": "/account",
+            },
         }
     } catch (e) {
         const err = e as Error

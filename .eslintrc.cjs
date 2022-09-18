@@ -18,6 +18,9 @@ module.exports = {
 		es2017: true,
 		node: true
 	},
+    globals: {
+        "NodeJS": true
+    },
     rules: {
         "array-callback-return": "error",
         "no-await-in-loop": "warn",
@@ -39,6 +42,6 @@ module.exports = {
         "no-shadow": "error",
         "no-var": "error",
         "no-void": "error",
-        "prefer-const": "warn",
+        "prefer-const": "warn"
     },
 }

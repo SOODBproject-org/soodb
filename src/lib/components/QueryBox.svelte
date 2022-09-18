@@ -1,11 +1,11 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte"
-    import Select from 'svelte-select'
+    import Select from "svelte-select"
     import { page } from "$app/stores"
-    import type { DatabaseUserSafe } from "$lib/mongo";
-    import UserSearch from "./UserSearch.svelte";
-    import type { Category, PacketSet } from "$lib/types";
-    
+    import type { DatabaseUserSafe } from "$lib/mongo"
+    import UserSearch from "./UserSearch.svelte"
+    import type { Category, PacketSet } from "$lib/types"
+
     // TODO: allow custom category search
 
     type Inputs = {
@@ -22,37 +22,38 @@
         authorId: "",
         keywords: "",
         set: [],
-        round:[],
+        round: [],
         start: "",
         end: "",
         types: [],
         categories: [],
     }
-    let inputs = {...defaultInputs}
+    let inputs = { ...defaultInputs }
 
     const categoryNames = [
-        {id:"bio",value:"Biology"},
-        {id:"earth",value:"Earth and Space"},
-        {id:"chem",value:"Chemistry"},
-        {id:"math",value:"Math"},
-        {id:"physics",value:"Physics"},
-        {id:"energy",value:"Energy"}
+        { id: "bio", value: "Biology" },
+        { id: "earth", value: "Earth and Space" },
+        { id: "chem", value: "Chemistry" },
+        { id: "math", value: "Math" },
+        { id: "physics", value: "Physics" },
+        { id: "energy", value: "Energy" },
     ]
-    
-    export let sets : PacketSet[]
+
+    export let sets: PacketSet[]
     export let numQuestions: number
     const dispatch = createEventDispatcher()
 
     export function setQuery(query: Partial<Inputs>) {
-        if (query.authorId) { 
+        if (query.authorId) {
             inputs.authorId = query.authorId
             setUser(query.authorId)
         }
         if (query.keywords) inputs.keywords = query.keywords
         if (query.set) {
             inputs.set = query.set
-            rawSetValue = query.set?.map(s => sets.find(x => x.setName === s))
-                .filter(x => x !== undefined) as PacketSet[]
+            rawSetValue = query.set
+                ?.map((s) => sets.find((x) => x.setName === s))
+                .filter((x) => x !== undefined) as PacketSet[]
         }
         if (query.round) inputs.round = query.round
         if (query.start) inputs.start = query.start
@@ -61,8 +62,8 @@
         if (query.categories) {
             inputs.categories = query.categories
             rawCategoryValue = query.categories
-                .map(c => categoryNames.find(x => x.id === c))
-                .filter(x => x !== undefined) as { id: string, value: string }[]
+                .map((c) => categoryNames.find((x) => x.id === c))
+                .filter((x) => x !== undefined) as { id: string; value: string }[]
         }
     }
 
@@ -74,7 +75,7 @@
     }
 
     function clearQuery() {
-        inputs = {...defaultInputs}
+        inputs = { ...defaultInputs }
         rawCategoryValue = []
         rawSetValue = []
         rawRoundValue = []
@@ -82,20 +83,20 @@
         emitQuery()
     }
 
-    let rawCategoryValue: { id: string, value: string }[]
-    function handleCategorySelect(e: CustomEvent<{ id: string, value: string}[]>){
+    let rawCategoryValue: { id: string; value: string }[]
+    function handleCategorySelect(e: CustomEvent<{ id: string; value: string }[]>) {
         if (e.detail) inputs.categories = e.detail.map((i) => i.id as Category)
         else inputs.categories = []
     }
 
-    let rawSetValue : PacketSet[] = []
-    function handleSetSelect(e: CustomEvent<PacketSet[]>){
+    let rawSetValue: PacketSet[] = []
+    function handleSetSelect(e: CustomEvent<PacketSet[]>) {
         if (e.detail) inputs.set = e.detail.map((i) => i.setName as string)
         else inputs.set = []
     }
 
-    let rawRoundValue : {index:number,value:string,label:string}[]
-    function handleRoundSelect(e:CustomEvent<{index:number,value:string,label:string}[]>){
+    let rawRoundValue: { index: number; value: string; label: string }[]
+    function handleRoundSelect(e: CustomEvent<{ index: number; value: string; label: string }[]>) {
         if (e.detail) inputs.round = e.detail.map((i) => i.value as string)
         else inputs.set = []
     }
@@ -132,8 +133,8 @@
         <br />
         <input type="text" name="keywords" placeholder="Keywords" id="keyword-input" bind:value={inputs.keywords} />
         <br />
-        <div class='select'>
-            <Select 
+        <div class="select">
+            <Select
                 items={sets}
                 labelIdentifier="setName"
                 isMulti={true}
@@ -143,15 +144,15 @@
             />
         </div>
         <br />
-        <div class='select'>
-            {#if rawSetValue.length==1}
-            <Select 
-                items={Object.keys(rawSetValue[0].packets)}
-                isMulti={true}
-                placeholder="Set"
-                on:select={handleRoundSelect}
-                bind:value={rawRoundValue}
-            />
+        <div class="select">
+            {#if rawSetValue.length == 1}
+                <Select
+                    items={Object.keys(rawSetValue[0].packets)}
+                    isMulti={true}
+                    placeholder="Set"
+                    on:select={handleRoundSelect}
+                    bind:value={rawRoundValue}
+                />
             {/if}
         </div>
         <br />
@@ -176,10 +177,10 @@
     <br />
     <div class="checkbox-wrapper">
         <h3>Categories</h3>
-        <div class='select'>
-            <Select 
+        <div class="select">
+            <Select
                 items={categoryNames}
-                optionIdentifier="id" 
+                optionIdentifier="id"
                 labelIdentifier="value"
                 isMulti={true}
                 isSearchable={false}
@@ -207,7 +208,7 @@
     input[type="date"] {
         @extend %text-input;
         font-size: 20px;
-        width: min(150px,40%);
+        width: min(150px, 40%);
 
         &.empty {
             color: #757575;
@@ -217,7 +218,7 @@
         --inputFontSize: 20px;
         --placeholderColor: #757575;
         --background: hsl(48, 18%, 9%);
-        --listBackground:hsl(48, 18%, 9%);
+        --listBackground: hsl(48, 18%, 9%);
         --itemHoverBG: #{$accent-2};
         --multiItemBG: #{$accent-2};
         --multiItemActiveBG: #{scale($accent-2, $saturation: 20%, $lightness: -10%)};
@@ -226,16 +227,16 @@
         --border: transparent 1.5px solid;
         --borderHoverColor: #{$accent-2};
         --borderFocusColor: #{$accent-2};
-        --border-radius: .2em;
+        --border-radius: 0.2em;
 
         font-size: 20px;
         border: none;
-        margin: .5em 0;        
+        margin: 0.5em 0;
         box-sizing: border-box;
-        max-width: min(300px,80%);
+        max-width: min(300px, 80%);
         position: relative;
         text-align: left;
-        font-family: 'Ubuntu';
+        font-family: "Ubuntu";
 
         & :global(.listContainer) {
             @include vertical-scrollable(7px);
@@ -243,7 +244,7 @@
             &::-webkit-scrollbar-track-piece:start {
                 margin-top: 0.2em;
             }
-            
+
             &::-webkit-scrollbar-track-piece:end {
                 margin-bottom: 0.2em;
             }
@@ -256,7 +257,7 @@
         @extend %text-input;
 
         font-size: 20px;
-        max-width: min(300px,80%);
+        max-width: min(300px, 80%);
     }
 
     h3 {

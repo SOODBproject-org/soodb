@@ -1,4 +1,4 @@
-export type Category = "earth" | "bio" | "chem" | "physics" | "math" | "energy" 
+export type Category = "earth" | "bio" | "chem" | "physics" | "math" | "energy"
 
 interface QuestionBase {
     id: string
@@ -33,9 +33,9 @@ export interface SaQuestion extends QuestionBase {
 export type Question = McqQuestion | SaQuestion
 
 export interface UserData {
-    username: string,
-    email?: string,
-    discordId?: string,
+    username: string
+    email?: string
+    discordId?: string
     googleId?: string
 }
 

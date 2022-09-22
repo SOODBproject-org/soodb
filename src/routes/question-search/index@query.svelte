@@ -5,7 +5,7 @@
     export const load: Load = async function ({ fetch, url }) {
         const paramQueryEntries = [...url.searchParams.entries()]
             .filter(([key, _]) =>
-                ["authorId", "keywords", "set", "round", "start", "end", "types", "categories"].includes(key)
+                ["authorId", "keywords", "set", "packet", "start", "end", "types", "categories"].includes(key)
             )
             .map(([key, value]) => {
                 if (key === "types" || key === "categories") {
@@ -30,15 +30,14 @@
         const questionsRes = await fetch("/api/question?" + params.toString(), {
             credentials: "include",
         })
-        const packetRes = await fetch("/api/packet")
+        const questions = questionsRes.ok ? await questionsRes.json() : []
         return {
             props: {
                 query: {
                     ...previousQuery,
                     ...paramQuery,
                 },
-                questions: await questionsRes.json(),
-                sets: await packetRes.json(),
+                questionPages: splitIntoPages(questions),
             },
         }
     }
@@ -54,11 +53,14 @@
     import Icon from "svelte-icon/Icon.svelte"
     import bensive from "$lib/icons/bensive.svg?raw"
     import arrow from "$lib/icons/arrow.svg?raw"
-    import type { Question, PacketSet } from "$lib/types"
+    import type { Question } from "$lib/types"
+    import { splitIntoPages } from "$lib/functions/queryUtils"
+    import { page } from "$app/stores"
 
     export let query: Record<string, string>
-    export let questions: Question[] = []
-    export let sets: PacketSet[] = []
+    export let questionPages: Record<number, Question[]> = {}
+
+    // TODO: split into components (use stores in context?)
 
     let queryBoxComponent: QueryBox
     onMount(() => {
@@ -68,17 +70,19 @@
 
     const resultsPerPage = 24
     let pageNumber =
-        parseInt(Cookie.get("pageNumber") ?? "1") <= Math.ceil(questions.length / resultsPerPage)
+        parseInt(Cookie.get("pageNumber") ?? "1") <= Math.max(...Object.keys(questionPages).map(x => Number(x))) ?? 1
             ? parseInt(Cookie.get("pageNumber") ?? "1")
             : 1
-    $: numPages = Math.ceil(questions.length / resultsPerPage)
+    $: numPages = Math.max(...Object.keys(questionPages).map(x => Number(x)))
+    $: numQuestions = (numPages - 1) * resultsPerPage + questionPages[numPages]?.length
+
     let menuOpen = false
     let querySent = false
     async function sendQuery(queryBox: Record<string, any>) {
         query.authorId = queryBox.authorId || undefined
         query.keywords = queryBox.keywords || undefined
-        query.setName = queryBox.set.length ? queryBox.set : undefined
-        query.round = queryBox.round.length ? queryBox.round : undefined
+        query.sets = queryBox.sets?.length ? queryBox.sets : undefined
+        query.packets = queryBox.packets?.length ? queryBox.packets : undefined
         query.types = queryBox.types.length ? queryBox.types : undefined
         query.categories = queryBox.categories.length ? queryBox.categories : undefined
         query.start = queryBox.start || undefined
@@ -92,12 +96,82 @@
         const res = await fetch("/api/question?" + params.toString(), {
             credentials: "include",
         })
-        questions = await res.json()
+        if (res.ok) {
+            const questionJson = await res.json() as Question[]
+            questionPages = splitIntoPages(questionJson)
+        } else {
+            questionPages = {}
+        }
+        pageNumber = 1
 
         await tick()
         window.scroll(0, 0)
         menuOpen = false
         querySent = true
+    }
+
+    async function handlePageChange({ detail }: CustomEvent<{ new: number, old: number }>) {
+        if (questionPages[detail.new]) {
+            pageNumber = detail.new
+            window.scroll(0, 0)
+            Cookie.set("pageNumber", detail.new.toString())
+        } else {
+            const params = new URLSearchParams({
+                ...query,
+                page: detail.new.toString(),
+                limit: resultsPerPage.toString()
+            })
+            const res = await fetch("/api/question?" + params.toString(), {
+                credentials: "include",
+            })
+            if (res.ok) {
+                const newQuestions = await res.json()
+                if (newQuestions.length > 0) {
+                    questionPages[detail.new] = newQuestions
+                    pageNumber = detail.new
+                    window.scroll(0, 0)
+                    Cookie.set("pageNumber", detail.new.toString())
+                } else {
+                    pageNumber = numPages
+                }
+            } else {
+                pageNumber = numPages
+            }
+        }
+
+        if (!questionPages[detail.new + 2]) {
+            const params = new URLSearchParams({
+                ...query,
+                page: (detail.new + 2).toString(),
+                limit: resultsPerPage.toString()
+            })
+            const res = await fetch("/api/question?" + params.toString(), {
+                credentials: "include",
+            })
+            if (res.ok) {
+                const newQuestions = await res.json()
+                if (newQuestions.length > 0) {
+                    questionPages[detail.new + 2] = newQuestions
+                }
+            }
+        }
+
+        if (!questionPages[Math.max(detail.new - 1, 1)]) {
+            const params = new URLSearchParams({
+                ...query,
+                page: (detail.new - 1).toString(),
+                limit: resultsPerPage.toString()
+            })
+            const res = await fetch("/api/question?" + params.toString(), {
+                credentials: "include",
+            })
+            if (res.ok) {
+                const newQuestions = await res.json()
+                if (newQuestions.length > 0) {
+                    questionPages[detail.new - 1] = newQuestions
+                }
+            }
+        }
     }
 
     function toggleMenu() {
@@ -112,8 +186,7 @@
 <div id="desktop-menu-wrapper">
     <div id="desktop-menu">
         <QueryBox
-            bind:numQuestions={questions.length}
-            bind:sets
+            bind:numQuestions
             bind:this={queryBoxComponent}
             on:sendQuery={async (event) => {
                 await sendQuery(event.detail.inputs)
@@ -128,8 +201,7 @@
 <div id="mobile-menu-wrapper" class:opened={menuOpen}>
     <div id="mobile-menu">
         <QueryBox
-            bind:sets
-            bind:numQuestions={questions.length}
+            bind:numQuestions
             on:sendQuery={(event) => {
                 sendQuery(event.detail.inputs)
             }}
@@ -140,21 +212,16 @@
     </button>
 </div>
 <main>
-    {#if questions.length}
+    {#if questionPages[pageNumber]}
         <div id="questions">
-            {#each questions as q, i}
-                {#if i >= (pageNumber - 1) * resultsPerPage && i < pageNumber * resultsPerPage}
-                    <QuestionPreview question={q} />
-                {/if}
+            {#each questionPages[pageNumber] as q}
+                <QuestionPreview question={q} />
             {/each}
         </div>
         <PageSwitcher
-            bind:numPages
-            bind:pageNumber
-            on:pageChange={(event) => {
-                window.scroll(0, 0)
-                Cookie.set("pageNumber", event.detail.new)
-            }}
+            {numPages}
+            {pageNumber}
+            on:pageChange={handlePageChange}
         />
     {:else}
         <div id="no-results">

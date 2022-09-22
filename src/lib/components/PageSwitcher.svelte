@@ -14,8 +14,8 @@
     const dispatch = createEventDispatcher()
 
     async function handleChange() {
-        if (parseInt(inputValue) > numPages || parseInt(inputValue) < 1) {
-            inputValue = pageNumber.toString()
+        if (parseInt(inputValue) < 1) {
+            inputValue = "1"
         } else {
             inputValue = parseInt(inputValue).toString()
             previousInput = parseInt(inputValue).toString()

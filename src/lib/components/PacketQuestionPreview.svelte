@@ -13,9 +13,9 @@
 </script>
 
 <div id="question" class={categoryNames[question.category] ? question.category : "other"}>
-    <h1>
+    <h2>
         {categoryNames[question.category] ? categoryNames[question.category] : question.category}
-    </h1>
+    </h2>
     <h3 class="question-text">{question.questionText}</h3>
 
     {#if question.type === "MCQ"}
@@ -24,14 +24,11 @@
         <h3 class="question-text">Y) {question.choices.Y}</h3>
         <h3 class="question-text">Z) {question.choices.Z}</h3>
     {/if}
-    {#if question.source}
-        <p>Source - {question.source}</p>
-    {/if}
     <h3 class="correct-answer">{question.correctAnswer}</h3>
 </div>
 
 <style lang="scss">
-    h1 {
+    h2 {
         margin-top: 0.5em;
     }
 
@@ -43,11 +40,6 @@
         display: inline-block;
         text-decoration: underline;
         font-size: 20px;
-    }
-
-    p {
-        font-weight: 400;
-        margin-bottom: 0.5em;
     }
 
     #question {

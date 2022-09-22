@@ -70,6 +70,7 @@ export async function addPacket(questions: NewQuestionData[], { name, setId, set
         created: date,
         modified: date,
         packetId,
+        packetName: name
     }))
 
     collections.sets.updateOne({
@@ -160,7 +161,9 @@ type QuestionQuery = {
     timeRange?: {
         startDate?: Date
         endDate?: Date
-    }
+    },
+    page?: number,
+    limit?: number
 }
 type MongoQuestionQuery = {
     authorName?: string
@@ -185,6 +188,8 @@ export async function getQuestions({
     categories,
     types,
     timeRange,
+    page = 0,
+    limit = 96
 }: QuestionQuery) {
     const mongoQuery: MongoQuestionQuery = {}
     if (authorName) mongoQuery.authorName = authorName
@@ -199,9 +204,11 @@ export async function getQuestions({
         if (timeRange.startDate) mongoQuery.created.$gte = timeRange.startDate
         if (timeRange.endDate) mongoQuery.created.$lt = timeRange.endDate
     }
+
     const { documents } = await collections.questions.find({
         filter: mongoQuery,
-        limit: 50000,
+        skip: page * 24,
+        limit,
     })
     return documents
 }

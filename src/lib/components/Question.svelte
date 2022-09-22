@@ -21,13 +21,21 @@
         energy: "Energy",
     }
 
-    function showAnswer() {
+    export function toggleAnswer() {
         answerVisible = !answerVisible
+    }
+
+    export function showAnswer() {
+        answerVisible = true
+    }
+
+    export function hideAnswer() {
+        answerVisible = false
     }
 
     function keyHandler(e: KeyboardEvent) {
         if (e.code === "Space") {
-            showAnswer()
+            toggleAnswer()
         }
     }
 </script>
@@ -50,7 +58,7 @@
         {#if question.visual}
             <img src={question.visual} alt="visual bonus could not load" />
         {/if}
-        <button id="showanswer" on:click={showAnswer}>{answerVisible ? "Hide" : "Show"} Answer</button>
+        <button id="showanswer" on:click={toggleAnswer}>{answerVisible ? "Hide" : "Show"} Answer</button>
         {#if answerVisible}
             <p id="correct-answer" transition:slide={{ duration: 200 }}>{question.correctAnswer}</p>
         {/if}
@@ -58,11 +66,9 @@
     <div class="line" />
     <div class="bottom">
         <span class="metadata">
-            {#if question.set && question.round}
+            {#if question.packetId}
                 <a
-                    href="/question-search?round={encodeURIComponent(question.round)}&set={encodeURIComponent(
-                        question.set
-                    )}">{question.set}-{question.round}</a
+                    href="/question-search?packet={encodeURIComponent(question.packetId)}">{question.packetName || "Packet"}</a
                 >
             {:else}
                 <a href="/account/{question.authorId}" sveltekit:prefetch>{question.authorName}</a>
@@ -178,9 +184,6 @@
         margin: 0;
         line-height: 1em;
         white-space: nowrap;
-    }
-    #speak {
-        @extend %button-secondary;
     }
     #showanswer {
         @extend %button-secondary;

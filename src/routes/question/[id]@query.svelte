@@ -50,7 +50,6 @@
     import { tick } from "svelte"
     import Speech from "$lib/components/Speech.svelte"
     export let question: Question
-    export let sets: PacketSet[]
     let menuOpen = false
     let answerVisible = false
     const loaded = true
@@ -61,13 +60,12 @@
     export let query: Record<string, string>
     let querySent = false
     async function sendQuery(queryBox: Record<string, any>) {
-        console.log("sent")
         query.authorId = queryBox.authorId || undefined
         query.keywords = queryBox.keywords || undefined
         query.setName = queryBox.set?.length ? queryBox.set : undefined
         query.round = queryBox.round?.length ? queryBox.round : undefined
         query.types = queryBox.types?.length ? queryBox.types : undefined
-        query.categories = queryBox.categories.length ? queryBox.categories : undefined
+        query.categories = queryBox.categories?.length ? queryBox.categories : undefined
         query.start = queryBox.start || undefined
         query.end = queryBox.end || undefined
 
@@ -88,12 +86,15 @@
         history.replaceState({}, "", `${question.id}`)
         menuOpen = false
         querySent = true
+        hideAnswer()
     }
 
     function toggleMenu() {
         menuOpen = !menuOpen
     }
-    console.dir(question)
+
+    let showAnswer: () => void
+    let hideAnswer: () => void
     let windowWidth: number
 </script>
 
@@ -105,7 +106,6 @@
 <div id="desktop-menu-wrapper">
     <div id="desktop-menu">
         <QueryBox
-            bind:sets
             numQuestions={0}
             bind:this={queryBoxComponent}
             on:sendQuery={async (event) => {
@@ -119,7 +119,6 @@
     <div id="mobile-menu-wrapper" class:opened={menuOpen}>
         <div id="mobile-menu">
             <QueryBox
-                bind:sets
                 numQuestions={0}
                 bind:this={queryBoxComponent}
                 on:sendQuery={async (event) => {
@@ -137,7 +136,7 @@
     {#if !question}
         <h1>No questions matched that query</h1>
     {:else if loaded}
-        <QuestionComp {question} bind:answerVisible />
+        <QuestionComp {question} bind:answerVisible bind:showAnswer bind:hideAnswer />
     {:else}
         <h1>Loading...</h1>
     {/if}
@@ -145,8 +144,10 @@
         bind:question
         on:sendQuery={async () => {
             await sendQuery(query)
+            hideAnswer()
             await tick()
         }}
+        on:answerRead={showAnswer}
     />
 </main>
 

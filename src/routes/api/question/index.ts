@@ -40,6 +40,8 @@ export const GET: RequestHandler<MaybeError<Question[]>> = async function ({ req
     const endDate = url.searchParams.get("end") ? new Date(url.searchParams.get("end") as string) : undefined
 
     const includeAuthor = url.searchParams.get("includeAuthor") === "true"
+    const page = Number(url.searchParams.get('page')) || 0
+    const limit = Number(url.searchParams.get('limit')) || 96
 
     let result
     if (keywords) {
@@ -64,6 +66,8 @@ export const GET: RequestHandler<MaybeError<Question[]>> = async function ({ req
                 categories,
                 types,
                 timeRange: { startDate, endDate },
+                page,
+                limit
             }),
         })
     }

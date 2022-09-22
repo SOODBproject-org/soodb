@@ -9,6 +9,7 @@ interface QuestionBase {
     questionText: string
     pairId?: string
     packetId?: string
+    packetName?: string
     visual?: string
     created: Date
     modified?: Date

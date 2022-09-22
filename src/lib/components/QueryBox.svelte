@@ -4,15 +4,15 @@
     import { page } from "$app/stores"
     import type { DatabaseUserSafe } from "$lib/mongo"
     import UserSearch from "./UserSearch.svelte"
-    import type { Category, PacketSet } from "$lib/types"
+    import type { Category } from "$lib/types"
 
     // TODO: allow custom category search
 
     type Inputs = {
         authorId: string
         keywords: string
-        set: string[]
-        round: string[]
+        sets: string[]
+        packets: string[]
         start: string
         end: string
         types: ("MCQ" | "SA")[]
@@ -21,8 +21,8 @@
     const defaultInputs: Inputs = {
         authorId: "",
         keywords: "",
-        set: [],
-        round: [],
+        sets: [],
+        packets: [],
         start: "",
         end: "",
         types: [],
@@ -39,7 +39,6 @@
         { id: "energy", value: "Energy" },
     ]
 
-    export let sets: PacketSet[]
     export let numQuestions: number
     const dispatch = createEventDispatcher()
 
@@ -49,13 +48,13 @@
             setUser(query.authorId)
         }
         if (query.keywords) inputs.keywords = query.keywords
-        if (query.set) {
-            inputs.set = query.set
-            rawSetValue = query.set
-                ?.map((s) => sets.find((x) => x.setName === s))
-                .filter((x) => x !== undefined) as PacketSet[]
-        }
-        if (query.round) inputs.round = query.round
+        // if (query.set) {
+        //     inputs.set = query.set
+        //     rawSetValue = query.set
+        //         ?.map((s) => sets.find((x) => x.setName === s))
+        //         .filter((x) => x !== undefined) as PacketSet[]
+        // }
+        if (query.packets) inputs.packets = query.packets
         if (query.start) inputs.start = query.start
         if (query.end) inputs.end = query.end
         if (query.types) inputs.types = query.types
@@ -77,8 +76,8 @@
     function clearQuery() {
         inputs = { ...defaultInputs }
         rawCategoryValue = []
-        rawSetValue = []
-        rawRoundValue = []
+        // rawSetValue = []
+        // rawRoundValue = []
         clearUser()
         emitQuery()
     }
@@ -89,17 +88,17 @@
         else inputs.categories = []
     }
 
-    let rawSetValue: PacketSet[] = []
-    function handleSetSelect(e: CustomEvent<PacketSet[]>) {
-        if (e.detail) inputs.set = e.detail.map((i) => i.setName as string)
-        else inputs.set = []
-    }
+    // let rawSetValue: PacketSet[] = []
+    // function handleSetSelect(e: CustomEvent<PacketSet[]>) {
+    //     if (e.detail) inputs.set = e.detail.map((i) => i.setName as string)
+    //     else inputs.set = []
+    // }
 
-    let rawRoundValue: { index: number; value: string; label: string }[]
-    function handleRoundSelect(e: CustomEvent<{ index: number; value: string; label: string }[]>) {
-        if (e.detail) inputs.round = e.detail.map((i) => i.value as string)
-        else inputs.set = []
-    }
+    // let rawRoundValue: { index: number; value: string; label: string }[]
+    // function handleRoundSelect(e: CustomEvent<{ index: number; value: string; label: string }[]>) {
+    //     if (e.detail) inputs.round = e.detail.map((i) => i.value as string)
+    //     else inputs.set = []
+    // }
 
     let setUser: (userId: string) => Promise<void>
     let clearUser: () => void
@@ -111,15 +110,6 @@
         inputs.authorId = defaultInputs.authorId
     }
 </script>
-
-<svelte:body
-    on:keydown={(e) => {
-        if (e.code === "Enter" && $page.url.pathname.startsWith("/question/")) {
-            dispatch("sendQuery", {
-                inputs: inputs,
-            })
-        }
-    }} />
 
 <form
     id="query"
@@ -133,7 +123,7 @@
         <br />
         <input type="text" name="keywords" placeholder="Keywords" id="keyword-input" bind:value={inputs.keywords} />
         <br />
-        <div class="select">
+        <!-- <div class="select">
             <Select
                 items={sets}
                 labelIdentifier="setName"
@@ -142,9 +132,9 @@
                 placeholder="Set"
                 bind:value={rawSetValue}
             />
-        </div>
+        </div> -->
         <br />
-        <div class="select">
+        <!-- <div class="select">
             {#if rawSetValue.length == 1}
                 <Select
                     items={Object.keys(rawSetValue[0].packets)}
@@ -154,7 +144,7 @@
                     bind:value={rawRoundValue}
                 />
             {/if}
-        </div>
+        </div> -->
         <br />
         <h3>Date Range:</h3>
         <input type="date" name="start-date" bind:value={inputs.start} class:empty={!inputs.start} />-

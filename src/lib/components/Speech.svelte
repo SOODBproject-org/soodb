@@ -45,7 +45,6 @@
         synth = window.speechSynthesis
         voices = synth.getVoices()
         synth.cancel()
-        console.dir(voices)
         listedVoices = voices.map((v) => v.name)
         questionUtterance = new SpeechSynthesisUtterance(questionWords)
         answerUtternance = new SpeechSynthesisUtterance(answerWords)
@@ -66,6 +65,7 @@
             if (selectedVoice) answerUtternance.voice = selectedVoice
             answerUtternance.rate = speechRate
             synth.speak(answerUtternance)
+            dispatch('answerRead')
             answerRead = true
         } else {
             dispatch("sendQuery", {})
@@ -86,8 +86,10 @@
                 ? " W " + q.choices.W + " X " + q.choices.X + " Y " + q.choices.Y + " Z " + q.choices.Z
                 : "")
         answerWords = "The Correct Answer Is " + q.correctAnswer
-        questionUtterance = new SpeechSynthesisUtterance(questionWords)
-        answerUtternance = new SpeechSynthesisUtterance(answerWords)
+        if (browser) {
+            questionUtterance = new SpeechSynthesisUtterance(questionWords)
+            answerUtternance = new SpeechSynthesisUtterance(answerWords)
+        }
     }
 
     let isSpeaking = false
@@ -102,12 +104,13 @@
     }
 
     $: questionUpdate(question)
+
+    function handleKeydown(e: KeyboardEvent) {
+        if (e.key === "k") toggleSpeech()
+    }
 </script>
 
-<svelte:body
-    on:keydown={(e) => {
-        if (e.key === "k") toggleSpeech()
-    }} />
+<svelte:body on:keydown={handleKeydown} />
 
 <main>
     <h1>Speech Settings</h1>

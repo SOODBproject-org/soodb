@@ -16,6 +16,7 @@
 
 <script lang="ts">
     import { browser } from "$app/env"
+    import { session } from "$app/stores";
     import { onMount } from "svelte"
     import PacketQuestionPreview from "$lib/components/PacketQuestionPreview.svelte"
     import type { NewQuestionData } from "$lib/mongo"
@@ -190,178 +191,190 @@
 </svelte:head>
 
 <main>
-    {#if submitted === "success"}
-        <Notification title="Success" text="Your question has been successfully submitted" shown={notificationShown} />
-    {:else if submitted === "error"}
-        <Notification
-            title="Error"
-            text="An error occurred and your question was not submitted"
-            shown={notificationShown}
-        />
-    {/if}
-    <div class="data-entry">
-        <form id="form" action="/packet-submit" method="POST" autocomplete="off">
-            <h1>Packet Submission</h1>
-            <input type="text" name="packet-name" placeholder="Packet Name" bind:value={packetName} />
-            <br />
-            <div class="radio-wrapper">
-                <label for="new-set" class="radio-label">
-                    <input id="new-set" type="radio" name="choose-set" value="new" bind:group={chooseSet} />
-                    <span />
-                    New Set
-                </label>
-                {#if chooseSet === "new"}
-                    <br />
-                    <input
-                        type="text"
-                        name="new-set-name"
-                        placeholder="New Set Name"
-                        bind:value={setName}
-                        style:margin-left="2em"
-                    />
-                {/if}
-                <br />
-                <label for="existing-set" class="radio-label">
-                    <input id="existing-set" type="radio" name="choose-set" value="existing" bind:group={chooseSet} />
-                    <span />
-                    Existing Set
-                </label>
-                {#if chooseSet === "existing"}
-                    <br />
-                    <div style:margin-left="2em">
-                        <SetSearch on:select={handleSetSelect} on:clear={handleSetClear} />
-                    </div>
-                    <input type="hidden" name="set-id" value={setId} />
-                {/if}
-                <br />
-                <label for="no-set" class="radio-label">
-                    <input id="no-set" type="radio" name="choose-set" value="none" bind:group={chooseSet} />
-                    <span />
-                    No Set
-                </label>
-            </div>
-            <br />
-            <div style="background:hsl(48, 18%, 9%);border-radius:.3em">
-                <label for="created" style="display: inline-block;margin:0 .3em;font-size:20px;"
-                    >Packet Creation Date:</label
-                >
-                <input
-                    id="created"
-                    name="created"
-                    type="date"
-                    bind:value={created}
-                    style="width:13ch;max-width:90%;margin:0;border-radius:0 .3em .3em 0"
-                />
-            </div>
-            <textarea
-                name="plainText"
-                placeholder="Paste in your packet here. Ctrl + A, Ctrl+C, Ctrl+V should work."
-                id="question-input"
-                bind:value={plainText}
-                on:change|stopPropagation={() =>
-                    (plainText = plainText.replaceAll(
-                        new RegExp(`(.)${parameters.keywords.tossUp}`, "gi"),
-                        (k) => k[0] + `\n${parameters.keywords.tossUp}`
-                    ))}
-                style:min-height="10em"
+    {#if $session.lucia?.user.packetSubmitter}
+        {#if submitted === "success"}
+            <Notification title="Success" text="Your question has been successfully submitted" shown={notificationShown} />
+        {:else if submitted === "error"}
+            <Notification
+                title="Error"
+                text="An error occurred and your question was not submitted"
+                shown={notificationShown}
             />
-            <button type="button" class="settings-button" on:click={() => (settingsVisible = !settingsVisible)}>
-                {settingsVisible ? "Hide" : "Show"} parsing settings
-            </button>
-            <div id="advancedSettings" class:visible={settingsVisible}>
-                <div id="categoryContainer" on:input={() => (regexPattern = calcRegexPattern(parameters))}>
-                    <p>Keywords:</p>
-                    <p />
-                    <p />
-                    <p />
-                    <p>Biology:</p>
-                    <p>Chemistry:</p>
-                    <p>Earth and Space:</p>
-                    <p>Physics:</p>
-                    <p>Math:</p>
-                    <p>Energy:</p>
-                    <p style:align-self="start">Other:</p>
-
-                    <input type="text" bind:value={parameters.keywords.tossUp} />
-                    <input type="text" bind:value={parameters.keywords.bonus} />
-                    <input type="text" bind:value={parameters.keywords.shortAnswer} />
-                    <input type="text" bind:value={parameters.keywords.multipleChoice} />
-                    <input type="text" bind:value={parameters.categories[0]} />
-                    <input type="text" bind:value={parameters.categories[1]} />
-                    <input type="text" bind:value={parameters.categories[2]} />
-                    <input type="text" bind:value={parameters.categories[3]} />
-                    <input type="text" bind:value={parameters.categories[4]} />
-                    <input type="text" bind:value={parameters.categories[5]} />
-                    <div>
-                        {#each Array(parameters.categories.length - 6) as _, i}
-                            <div class="removableCat">
-                                <input
-                                    type="text"
-                                    bind:value={parameters.categories[i + 6]}
-                                    style="width:12ch;border-radius:.3em 0 0 .3em "
-                                />
-                                <button
-                                    type="button"
-                                    class="minus"
-                                    on:click={() => {
-                                        parameters.categories = [
-                                            ...parameters.categories.slice(0, 6 + i),
-                                            ...parameters.categories.slice(6 + i + 1),
-                                        ]
-                                        parameters.categories = parameters.categories
-                                        regexPattern = calcRegexPattern(parameters)
-                                    }}
-                                >
-                                    -
-                                </button>
-                            </div>
-                        {/each}
-                        <button
-                            class="plus"
-                            type="button"
-                            on:click={() => {
-                                parameters.categories.push("")
-                                parameters.categories = parameters.categories
-                                regexPattern = calcRegexPattern(parameters)
-                            }}
-                        >
-                            +
-                        </button>
-                    </div>
-
-                    <input type="hidden" name="questions" value={JSON.stringify(questions)} />
+        {/if}
+        <div class="data-entry">
+            <form id="form" action="/packet-submit" method="POST" autocomplete="off">
+                <h1>Packet Submission</h1>
+                <input type="text" name="packet-name" placeholder="Packet Name" bind:value={packetName} />
+                <br />
+                <div class="radio-wrapper">
+                    <label for="new-set" class="radio-label">
+                        <input id="new-set" type="radio" name="choose-set" value="new" bind:group={chooseSet} />
+                        <span />
+                        New Set
+                    </label>
+                    {#if chooseSet === "new"}
+                        <br />
+                        <input
+                            type="text"
+                            name="new-set-name"
+                            placeholder="New Set Name"
+                            bind:value={setName}
+                            style:margin-left="2em"
+                        />
+                    {/if}
+                    <br />
+                    <label for="existing-set" class="radio-label">
+                        <input id="existing-set" type="radio" name="choose-set" value="existing" bind:group={chooseSet} />
+                        <span />
+                        Existing Set
+                    </label>
+                    {#if chooseSet === "existing"}
+                        <br />
+                        <div style:margin-left="2em">
+                            <SetSearch on:select={handleSetSelect} on:clear={handleSetClear} />
+                        </div>
+                        <input type="hidden" name="set-id" value={setId} />
+                    {/if}
+                    <br />
+                    <label for="no-set" class="radio-label">
+                        <input id="no-set" type="radio" name="choose-set" value="none" bind:group={chooseSet} />
+                        <span />
+                        No Set
+                    </label>
                 </div>
-                <input
-                    type="checkbox"
-                    name="ignoreCase"
-                    bind:checked={parameters.ignoreCase}
-                    on:change={() => (regexPattern = calcRegexPattern(parameters))}
-                />
-                Ignore Case
-                <p>
-                    Raw Regex:<HelpBox
-                        >Edit this if your questions arent detected by the current regex filter. Questions are
-                        categoriezed into categories using the names above, so make sure you edit the boxes above first
-                        before editing the regex. Changes to the boxes above will edit the regex below and overwrite any
-                        changes you make to it.</HelpBox
+                <br />
+                <div style="background:hsl(48, 18%, 9%);border-radius:.3em">
+                    <label for="created" style="display: inline-block;margin:0 .3em;font-size:20px;"
+                        >Packet Creation Date:</label
                     >
-                </p>
-                <textarea bind:value={editableRegex} on:input|stopPropagation={manualRegex} />
-            </div>
-            <button type="submit" class="submit-button" disabled={!submitEnabled}>Submit Questions</button>
-        </form>
-    </div>
-    <div id="questions-preview">
-        <h1>Question Previews</h1>
-        <p>
-            We've detected {questions.length} questions. If you are missing any, try changing the regex filter.
-        </p>
-        <div id="questions">
-            {#each questions as question}
-                <PacketQuestionPreview bind:question />
-            {/each}
+                    <input
+                        id="created"
+                        name="created"
+                        type="date"
+                        bind:value={created}
+                        style="width:13ch;max-width:90%;margin:0;border-radius:0 .3em .3em 0"
+                    />
+                </div>
+                <textarea
+                    name="plainText"
+                    placeholder="Paste in your packet here. Ctrl + A, Ctrl+C, Ctrl+V should work."
+                    id="question-input"
+                    bind:value={plainText}
+                    on:change|stopPropagation={() =>
+                        (plainText = plainText.replaceAll(
+                            new RegExp(`(.)${parameters.keywords.tossUp}`, "gi"),
+                            (k) => k[0] + `\n${parameters.keywords.tossUp}`
+                        ))}
+                    style:min-height="10em"
+                />
+                <button type="button" class="settings-button" on:click={() => (settingsVisible = !settingsVisible)}>
+                    {settingsVisible ? "Hide" : "Show"} parsing settings
+                </button>
+                <div id="advancedSettings" class:visible={settingsVisible}>
+                    <div id="categoryContainer" on:input={() => (regexPattern = calcRegexPattern(parameters))}>
+                        <p>Keywords:</p>
+                        <p />
+                        <p />
+                        <p />
+                        <p>Biology:</p>
+                        <p>Chemistry:</p>
+                        <p>Earth and Space:</p>
+                        <p>Physics:</p>
+                        <p>Math:</p>
+                        <p>Energy:</p>
+                        <p style:align-self="start">Other:</p>
+
+                        <input type="text" bind:value={parameters.keywords.tossUp} />
+                        <input type="text" bind:value={parameters.keywords.bonus} />
+                        <input type="text" bind:value={parameters.keywords.shortAnswer} />
+                        <input type="text" bind:value={parameters.keywords.multipleChoice} />
+                        <input type="text" bind:value={parameters.categories[0]} />
+                        <input type="text" bind:value={parameters.categories[1]} />
+                        <input type="text" bind:value={parameters.categories[2]} />
+                        <input type="text" bind:value={parameters.categories[3]} />
+                        <input type="text" bind:value={parameters.categories[4]} />
+                        <input type="text" bind:value={parameters.categories[5]} />
+                        <div>
+                            {#each Array(parameters.categories.length - 6) as _, i}
+                                <div class="removableCat">
+                                    <input
+                                        type="text"
+                                        bind:value={parameters.categories[i + 6]}
+                                        style="width:12ch;border-radius:.3em 0 0 .3em "
+                                    />
+                                    <button
+                                        type="button"
+                                        class="minus"
+                                        on:click={() => {
+                                            parameters.categories = [
+                                                ...parameters.categories.slice(0, 6 + i),
+                                                ...parameters.categories.slice(6 + i + 1),
+                                            ]
+                                            parameters.categories = parameters.categories
+                                            regexPattern = calcRegexPattern(parameters)
+                                        }}
+                                    >
+                                        -
+                                    </button>
+                                </div>
+                            {/each}
+                            <button
+                                class="plus"
+                                type="button"
+                                on:click={() => {
+                                    parameters.categories.push("")
+                                    parameters.categories = parameters.categories
+                                    regexPattern = calcRegexPattern(parameters)
+                                }}
+                            >
+                                +
+                            </button>
+                        </div>
+
+                        <input type="hidden" name="questions" value={JSON.stringify(questions)} />
+                    </div>
+                    <input
+                        type="checkbox"
+                        name="ignoreCase"
+                        bind:checked={parameters.ignoreCase}
+                        on:change={() => (regexPattern = calcRegexPattern(parameters))}
+                    />
+                    Ignore Case
+                    <p>
+                        Raw Regex:<HelpBox
+                            >Edit this if your questions arent detected by the current regex filter. Questions are
+                            categoriezed into categories using the names above, so make sure you edit the boxes above first
+                            before editing the regex. Changes to the boxes above will edit the regex below and overwrite any
+                            changes you make to it.</HelpBox
+                        >
+                    </p>
+                    <textarea bind:value={editableRegex} on:input|stopPropagation={manualRegex} />
+                </div>
+                <button type="submit" class="submit-button" disabled={!submitEnabled}>Submit Questions</button>
+            </form>
         </div>
+        <div id="questions-preview">
+            <h1>Question Previews</h1>
+            <p>
+                We've detected {questions.length} questions. If you are missing any, try changing the regex filter.
+            </p>
+            <div id="questions">
+                {#each questions as question}
+                    <PacketQuestionPreview bind:question />
+                {/each}
+            </div>
+        </div>
+    {:else}
+    <div class="not-allowed">
+        <p>
+            You do not have permission to submit packets.
+            {#if $session.lucia?.user}
+                <a href="/login">Log in</a> to gain access.
+            {/if}
+        </p>
+        <p>To submit your own questions, go to <a href="/write">the Write page</a></p>
     </div>
+    {/if}
 </main>
 
 <style lang="scss">
@@ -374,6 +387,12 @@
         box-sizing: border-box;
         padding: 2em;
         gap: 2em;
+    }
+
+    .not-allowed {
+        grid-column: 1 / 3;
+        text-align: center;
+        font-size: 22px;
     }
 
     .data-entry {

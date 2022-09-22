@@ -23,7 +23,6 @@
 
         const questionRes = await fetch(`/api/question/${params.id}?includeAuthor=true`)
         const question = await questionRes.json()
-        console.dir(question)
         const packetRes = await fetch("/api/packet")
         const sets = await packetRes.json()
         return {

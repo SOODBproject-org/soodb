@@ -9,7 +9,7 @@ declare namespace App {
     interface Platform {}
 
     interface Session {
-        lucia: import("lucia-sveltekit/types").SvelteKitSession<import("$lib/mongo").UserData>
+        lucia: import("lucia-sveltekit/types").SvelteKitSession<import("$lib/types").UserData>
     }
 
     interface Stuff {}

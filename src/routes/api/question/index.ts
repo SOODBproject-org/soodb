@@ -1,6 +1,7 @@
 import { error, type MaybeError } from "$lib/functions/response"
 import { auth } from "$lib/lucia"
 import { addQuestion, getQuestions, getUserByID, type NewQuestionData } from "$lib/mongo"
+import { questionSchema } from "$lib/schemas/question"
 import type { Category, Question } from "$lib/types"
 import { removeUndefined } from "$lib/utils"
 import fetch from "node-fetch"
@@ -118,8 +119,6 @@ export const POST: RequestHandler = async function ({ request }) {
         }
     }
 
-    // TODO: better validation
-
     let question: NewQuestionData
     if (type === "MCQ") {
         question = {
@@ -144,7 +143,13 @@ export const POST: RequestHandler = async function ({ request }) {
         return error(400, "Invalid question data")
     }
 
-    const { id } = await addQuestion(question)
+    const parseResult = questionSchema.safeParse(question)
+
+    if (!parseResult.success) {
+        return error(400, "Invalid question data")
+    }
+
+    const { id } = await addQuestion(parseResult.data)
 
     return {
         status: 201,

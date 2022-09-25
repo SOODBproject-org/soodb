@@ -100,6 +100,8 @@ export async function addPacket(questions: NewQuestionData[], { name, setId, set
     collections.questions.insertMany({
         documents: questionsData,
     })
+
+    return { id: packetId }
 }
 
 export async function getPackets() {

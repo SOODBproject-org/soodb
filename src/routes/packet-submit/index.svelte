@@ -30,11 +30,11 @@
     let plainText: string
     let settingsVisible = false
     let editableRegex: string
-    let chooseSet: string
+    let chooseSet: string | undefined
     let setName: string
     let setId: string | undefined
     let packetName: string
-    let created: Date
+    let created: Date | undefined
 
     $: submitEnabled = created && plainText && packetName && chooseSet
 
@@ -184,25 +184,58 @@
     $: keywords = setKeywords(parameters.keywords)
     $: questions = generatePreviews(plainText, regexPattern, setName, packetName)
     let regexPattern = calcRegexPattern(parameters)
+
+    async function handleSubmit(e: Omit<SubmitEvent, 'submitter'>) {
+        e.preventDefault()
+
+        const formData = new FormData()
+        formData.append("created", created?.toString() || "")
+        formData.append("packet-name", packetName)
+        formData.append("choose-set", chooseSet || "")
+        formData.append("questions", JSON.stringify(questions)),
+        formData.append("new-set-name", setName)
+        formData.append("set-id", setId || "")
+
+        plainText = ""
+        settingsVisible = false
+        editableRegex = ""
+        chooseSet = undefined
+        setName = ""
+        setId = ""
+        packetName = ""
+        created = undefined
+
+        const res = await fetch("/api/packet", {
+            method: "POST",
+            body: formData,
+            headers: {
+                Authorization: $session.lucia?.access_token ? `Bearer ${$session.lucia?.access_token}` : "",
+            },
+        })
+
+        submitted = res.ok ? "success" : "error"
+        notificationShown = true
+        setTimeout(() => (notificationShown = false), 5000)
+    }
 </script>
 
 <svelte:head>
-    <title>Write a Question</title>
+    <title>Submit a Packet</title>
 </svelte:head>
 
 <main>
     {#if $session.lucia?.user.packetSubmitter}
         {#if submitted === "success"}
-            <Notification title="Success" text="Your question has been successfully submitted" shown={notificationShown} />
+            <Notification title="Success" text="Your packet has been successfully submitted" shown={notificationShown} />
         {:else if submitted === "error"}
             <Notification
                 title="Error"
-                text="An error occurred and your question was not submitted"
+                text="An error occurred and your packet was not submitted"
                 shown={notificationShown}
             />
         {/if}
         <div class="data-entry">
-            <form id="form" action="/packet-submit" method="POST" autocomplete="off">
+            <form id="form" action="/packet-submit" method="POST" autocomplete="off" on:submit={handleSubmit}>
                 <h1>Packet Submission</h1>
                 <input type="text" name="packet-name" placeholder="Packet Name" bind:value={packetName} />
                 <br />

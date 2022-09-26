@@ -19,11 +19,10 @@
     import { session } from "$app/stores";
     import { onMount } from "svelte"
     import PacketQuestionPreview from "$lib/components/PacketQuestionPreview.svelte"
-    import type { NewQuestionData } from "$lib/mongo"
     import Notification from "$lib/components/Notification.svelte"
     import HelpBox from "$lib/components/HelpBox.svelte"
-    import type { Category } from "$lib/types"
     import SetSearch from "$lib/components/SetSearch.svelte"
+    import { generatePreviews, setCatNames, setKeywords } from "$lib/functions/packetSubmitUtils"
 
     export let submitted: string
 
@@ -75,25 +74,6 @@
             }, 5000)
         })
     }
-    function setKeywords(input: Record<string, string>) {
-        const tempObj: Record<string, string> = {}
-        Object.values(input).forEach((k, n) => {
-            k.split("|").forEach((term) => {
-                tempObj[term.toLowerCase()] = Object.keys(input)[n]
-            })
-        })
-        return tempObj
-    }
-    function setCatNames(categories: string[]) {
-        const DBcat: Category[] = ["bio", "chem", "earth", "physics", "math", "energy"]
-        const tempObj: Record<string, Category> = {}
-        for (let i = 0; i < 6; i++) {
-            categories[i].split("|").forEach((term) => {
-                tempObj[term.toLowerCase()] = DBcat[i]
-            })
-        }
-        return tempObj
-    }
 
     function manualRegex() {
         const res = editableRegex.match(/\/((\n|.)+?)\/(.{0,6})/)
@@ -122,57 +102,6 @@
         //(Tossup|TOSS UP|TOSS-UP|BONUS).+?\n?.+?(BIOLOGY|CHEMISTRY|EARTH AND SPACE|MATH|PHYSICS|GENERAL SCIENCE|ASTRONOMY|EARTH SCIENCE|COMPUTER SCIENCE)\n?.+?(Short Answer|Multiple Choice):?((.|\n)+?)ANSWER:?(.+)
     }
 
-    function generatePreviews(text: string, pattern: RegExp, set: string, round: string) {
-        const result: NewQuestionData[] = []
-        if (text) {
-            try {
-                const results = [...text.matchAll(pattern)]
-                console.dir(results)
-                let i = 0
-                results.forEach((question) => {
-                    i++
-                    const category = categoryNames[question[2].toLowerCase()]
-                        ? categoryNames[question[2].toLowerCase()]
-                        : (question[2] as Category)
-                    const bonus = keywords[question[1].toLowerCase()] === "bonus"
-                    if (keywords[question[3].toLowerCase()] === "multipleChoice") {
-                        const splitQuestion = [...(question[4].match(/(.+?)W\)(.+?)X\)(.+?)Y\)(.+?)Z\)(.+)/is) ?? [])]
-                        const answerChoice = [...(question[6].match(/(W|X|Y|Z).??/i) ?? [])]
-                        console.dir(answerChoice)
-                        const thisQ: NewQuestionData = {
-                            type: "MCQ",
-                            category,
-                            bonus,
-                            questionText: splitQuestion[1],
-                            choices: {
-                                W: splitQuestion[2],
-                                X: splitQuestion[3],
-                                Y: splitQuestion[4],
-                                Z: splitQuestion[5],
-                            },
-                            correctAnswer: answerChoice[1].toUpperCase() as "W" | "X" | "Y" | "Z",
-                        }
-                        result.push(thisQ)
-                    } else {
-                        const thisQ: NewQuestionData = {
-                            type: "SA",
-                            category,
-                            bonus,
-                            questionText: question[4],
-                            correctAnswer: question[6],
-                        }
-                        result.push(thisQ)
-                    }
-                })
-                console.log(i)
-            } catch (e) {
-                console.log(e)
-            }
-        }
-
-        return result
-    }
-
     function handleSetSelect(e: CustomEvent) {
         setName = e.detail.name
         setId = e.detail.id
@@ -182,7 +111,7 @@
 
     $: categoryNames = setCatNames(parameters.categories)
     $: keywords = setKeywords(parameters.keywords)
-    $: questions = generatePreviews(plainText, regexPattern, setName, packetName)
+    $: questions = generatePreviews(plainText, regexPattern, keywords, categoryNames)
     let regexPattern = calcRegexPattern(parameters)
 
     async function handleSubmit(e: Omit<SubmitEvent, 'submitter'>) {

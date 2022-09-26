@@ -44,6 +44,7 @@
     "lucia": "^0.6.5",
     "lucia-sveltekit": "^0.5.9",
     "node-fetch": "^3.2.10",
+    "short-unique-id": "^4.4.4",
     "svelte-kit": "^1.0.0",
     "svelte-select": "^4.4.7",
     "zod": "^3.19.1"

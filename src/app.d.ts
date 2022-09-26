@@ -21,6 +21,7 @@ declare namespace App {
         LUCIA_SECRET: string
         GITHUB_SECRET: string
         GOOGLE_SECRET: string
+        ATLAS_ENDPOINT_KEY: string
     }
 
     interface PublicEnv extends Record<string, string> {

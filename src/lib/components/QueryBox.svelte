@@ -39,7 +39,7 @@
         { id: "energy", value: "Energy" },
     ]
 
-    export let numQuestions: number
+    export let questionCount: string
     const dispatch = createEventDispatcher()
 
     export function setQuery(query: Partial<Inputs>) {
@@ -183,9 +183,8 @@
     <br />
     <button type="submit" class="submit">Submit Query</button>
     <button type="button" class="clear" on:click={clearQuery}>Clear Query</button>
-    <!-- <button type="button">Clear Query</button> -->
-    {#if numQuestions}
-        <h3>{numQuestions} questions matched your query</h3>
+    {#if questionCount}
+        <h3>{questionCount} questions matched your query</h3>
     {/if}
 </form>
 

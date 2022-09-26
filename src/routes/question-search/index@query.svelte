@@ -61,6 +61,7 @@
     export let questionPages: Record<number, Question[]> = {}
 
     // TODO: split into components (use stores in context?)
+    // TODO: load queryBox with query already set
 
     let queryBoxComponent: QueryBox
     onMount(() => {
@@ -186,7 +187,11 @@
 <div id="desktop-menu-wrapper">
     <div id="desktop-menu">
         <QueryBox
-            bind:numQuestions
+            questionCount={
+                questionPages[numPages]?.length === 24
+                ? numQuestions.toString() + "+"
+                : numQuestions.toString()
+            }
             bind:this={queryBoxComponent}
             on:sendQuery={async (event) => {
                 await sendQuery(event.detail.inputs)
@@ -201,7 +206,11 @@
 <div id="mobile-menu-wrapper" class:opened={menuOpen}>
     <div id="mobile-menu">
         <QueryBox
-            bind:numQuestions
+            questionCount={
+                questionPages[numPages]?.length === 24
+                ? numQuestions.toString()
+                : numQuestions.toString() + "+"
+            }
             on:sendQuery={(event) => {
                 sendQuery(event.detail.inputs)
             }}

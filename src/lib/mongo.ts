@@ -168,7 +168,6 @@ type QuestionQuery = {
     limit?: number
 }
 type MongoQuestionQuery = {
-    authorName?: string
     authorId?: string
     $text?: { $search: string }
     set?: string
@@ -182,9 +181,7 @@ type MongoQuestionQuery = {
 }
 
 export async function getQuestions({
-    authorName,
     authorId,
-    keywords,
     setName,
     round,
     categories,
@@ -194,9 +191,7 @@ export async function getQuestions({
     limit = 96
 }: QuestionQuery) {
     const mongoQuery: MongoQuestionQuery = {}
-    if (authorName) mongoQuery.authorName = authorName
     if (authorId) mongoQuery.authorId = authorId
-    if (keywords) mongoQuery.$text = { $search: keywords }
     if (setName) mongoQuery.set = setName
     if (round) mongoQuery.round = round
     if (categories?.length) mongoQuery.category = { $in: categories }
@@ -209,7 +204,7 @@ export async function getQuestions({
 
     const { documents } = await collections.questions.find({
         filter: mongoQuery,
-        skip: page * 24,
+        skip: (page - 1) * 24,
         limit,
     })
     return documents

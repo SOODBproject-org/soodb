@@ -4,7 +4,7 @@
 
     export const load: Load = async function ({ fetch, url, params }) {
         const paramQueryEntries = [...url.searchParams.entries()]
-            .filter(([key, _]) =>
+            .filter(([key]) =>
                 ["authorId", "keywords", "set", "round", "start", "end", "types", "categories"].includes(key)
             )
             .map(([key, value]) => {
@@ -44,20 +44,19 @@
     import Icon from "svelte-icon/Icon.svelte"
     import arrow from "$lib/icons/arrow.svg?raw"
     import { browser } from "$app/env"
-    import type { Category, Question, PacketSet } from "$lib/types"
+    import type { Question } from "$lib/types"
     import { removeUndefined } from "$lib/utils"
     import { tick } from "svelte"
     import Speech from "$lib/components/Speech.svelte"
+
     export let question: Question
+
     let menuOpen = false
     let answerVisible = false
     const loaded = true
-    const noMatch = false
     const questionsSeen: string[] = [question.id]
 
-    let queryBoxComponent: QueryBox
     export let query: Record<string, string>
-    let querySent = false
     async function sendQuery(queryBox: Record<string, any>) {
         query.authorId = queryBox.authorId || undefined
         query.keywords = queryBox.keywords || undefined
@@ -84,7 +83,6 @@
         await tick()
         history.replaceState({}, "", `${question.id}`)
         menuOpen = false
-        querySent = true
         hideAnswer()
     }
 
@@ -105,8 +103,6 @@
 <div id="desktop-menu-wrapper">
     <div id="desktop-menu">
         <QueryBox
-            numQuestions={0}
-            bind:this={queryBoxComponent}
             on:sendQuery={async (event) => {
                 await sendQuery(event.detail.inputs)
                 await tick()
@@ -118,8 +114,6 @@
     <div id="mobile-menu-wrapper" class:opened={menuOpen}>
         <div id="mobile-menu">
             <QueryBox
-                numQuestions={0}
-                bind:this={queryBoxComponent}
                 on:sendQuery={async (event) => {
                     await sendQuery(event.detail.inputs)
                     await tick()

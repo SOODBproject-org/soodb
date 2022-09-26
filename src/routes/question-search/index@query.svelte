@@ -4,7 +4,7 @@
 
     export const load: Load = async function ({ fetch, url }) {
         const paramQueryEntries = [...url.searchParams.entries()]
-            .filter(([key, _]) =>
+            .filter(([key]) =>
                 ["authorId", "keywords", "set", "packet", "start", "end", "types", "categories"].includes(key)
             )
             .map(([key, value]) => {
@@ -55,7 +55,6 @@
     import arrow from "$lib/icons/arrow.svg?raw"
     import type { Question } from "$lib/types"
     import { splitIntoPages } from "$lib/functions/queryUtils"
-    import { page } from "$app/stores"
 
     export let query: Record<string, string>
     export let questionPages: Record<number, Question[]> = {}
@@ -71,10 +70,10 @@
 
     const resultsPerPage = 24
     let pageNumber =
-        parseInt(Cookie.get("pageNumber") ?? "1") <= Math.max(...Object.keys(questionPages).map(x => Number(x))) ?? 1
+        parseInt(Cookie.get("pageNumber") ?? "1") <= Math.max(...Object.keys(questionPages).map((x) => Number(x)))
             ? parseInt(Cookie.get("pageNumber") ?? "1")
             : 1
-    $: numPages = Math.max(...Object.keys(questionPages).map(x => Number(x)))
+    $: numPages = Math.max(...Object.keys(questionPages).map((x) => Number(x)))
     $: numQuestions = (numPages - 1) * resultsPerPage + questionPages[numPages]?.length
 
     let menuOpen = false
@@ -98,7 +97,7 @@
             credentials: "include",
         })
         if (res.ok) {
-            const questionJson = await res.json() as Question[]
+            const questionJson = (await res.json()) as Question[]
             questionPages = splitIntoPages(questionJson)
         } else {
             questionPages = {}
@@ -111,7 +110,7 @@
         querySent = true
     }
 
-    async function handlePageChange({ detail }: CustomEvent<{ new: number, old: number }>) {
+    async function handlePageChange({ detail }: CustomEvent<{ new: number; old: number }>) {
         if (questionPages[detail.new]) {
             pageNumber = detail.new
             window.scroll(0, 0)
@@ -120,7 +119,7 @@
             const params = new URLSearchParams({
                 ...query,
                 page: detail.new.toString(),
-                limit: resultsPerPage.toString()
+                limit: resultsPerPage.toString(),
             })
             const res = await fetch("/api/question?" + params.toString(), {
                 credentials: "include",
@@ -144,7 +143,7 @@
             const params = new URLSearchParams({
                 ...query,
                 page: (detail.new + 2).toString(),
-                limit: resultsPerPage.toString()
+                limit: resultsPerPage.toString(),
             })
             const res = await fetch("/api/question?" + params.toString(), {
                 credentials: "include",
@@ -161,7 +160,7 @@
             const params = new URLSearchParams({
                 ...query,
                 page: (detail.new - 1).toString(),
-                limit: resultsPerPage.toString()
+                limit: resultsPerPage.toString(),
             })
             const res = await fetch("/api/question?" + params.toString(), {
                 credentials: "include",
@@ -187,11 +186,9 @@
 <div id="desktop-menu-wrapper">
     <div id="desktop-menu">
         <QueryBox
-            questionCount={
-                questionPages[numPages]?.length === 24
+            questionCount={questionPages[numPages]?.length === 24
                 ? numQuestions.toString() + "+"
-                : numQuestions.toString()
-            }
+                : numQuestions.toString()}
             bind:this={queryBoxComponent}
             on:sendQuery={async (event) => {
                 await sendQuery(event.detail.inputs)
@@ -206,11 +203,9 @@
 <div id="mobile-menu-wrapper" class:opened={menuOpen}>
     <div id="mobile-menu">
         <QueryBox
-            questionCount={
-                questionPages[numPages]?.length === 24
+            questionCount={questionPages[numPages]?.length === 24
                 ? numQuestions.toString()
-                : numQuestions.toString() + "+"
-            }
+                : numQuestions.toString() + "+"}
             on:sendQuery={(event) => {
                 sendQuery(event.detail.inputs)
             }}
@@ -227,11 +222,7 @@
                 <QuestionPreview question={q} />
             {/each}
         </div>
-        <PageSwitcher
-            {numPages}
-            {pageNumber}
-            on:pageChange={handlePageChange}
-        />
+        <PageSwitcher {numPages} {pageNumber} on:pageChange={handlePageChange} />
     {:else}
         <div id="no-results">
             {#if querySent}

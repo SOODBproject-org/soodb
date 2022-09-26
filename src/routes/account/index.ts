@@ -12,7 +12,7 @@ export const POST: RequestHandler = async function ({ request }) {
         const user = await auth.validateRequest(request)
 
         const parseResult = userSettingsSchema.safeParse({
-            username
+            username,
         })
 
         if (!parseResult.success) return redirect("/account")

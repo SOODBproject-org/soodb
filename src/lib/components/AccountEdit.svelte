@@ -1,6 +1,5 @@
 <script lang="ts">
     import type { DatabaseUserSafe } from "$lib/mongo"
-    import { session } from "$app/stores"
     import { form as svelteForm, field } from "svelte-forms"
     import { pattern } from "svelte-forms/validators"
     import EditableField from "./EditableField.svelte"
@@ -50,7 +49,7 @@
 
     const settingsForm = svelteForm(usernameField)
 
-    async function handleSubmit(e: SubmitEvent) {
+    async function handleSubmit() {
         dispatch("save", {
             username: $usernameField.value,
         })

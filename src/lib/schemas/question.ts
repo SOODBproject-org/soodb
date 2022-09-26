@@ -1,4 +1,4 @@
-import z from 'zod'
+import z from "zod"
 
 const questionBase = z.object({
     authorId: z.string().optional(),
@@ -6,13 +6,13 @@ const questionBase = z.object({
     questionText: z.string(),
     category: z.enum(["earth", "bio", "chem", "physics", "math", "energy", "custom"]),
     customCategory: z.string().optional(),
-    visual: z.string().optional()
+    visual: z.string().optional(),
 })
 
 export const questionSchema = z.discriminatedUnion("type", [
     questionBase.extend({
         type: z.literal("SA"),
-        correctAnswer: z.string()
+        correctAnswer: z.string(),
     }),
     questionBase.extend({
         type: z.literal("MCQ"),
@@ -21,7 +21,7 @@ export const questionSchema = z.discriminatedUnion("type", [
             W: z.string(),
             X: z.string(),
             Y: z.string(),
-            Z: z.string()
-        })
-    })
+            Z: z.string(),
+        }),
+    }),
 ])

@@ -13,7 +13,7 @@ export const GET: RequestHandler<MaybeError<PacketSet[]>> = async function () {
     }
 }
 
-export const POST: RequestHandler = async function({ request }) {
+export const POST: RequestHandler = async function ({ request }) {
     try {
         const user = await auth.validateRequest(request)
         if (!user) return error(401, "Invalid token")
@@ -28,8 +28,8 @@ export const POST: RequestHandler = async function({ request }) {
         const name = formData.get("packet-name") as string
         const chooseSet = formData.get("choose-set") as string
         const questions: NewQuestionData[] = JSON.parse(formData.get("questions") as string)
-        const newSetName = formData.get("new-set-name") as string 
-        const setId = formData.get("set-id") as string 
+        const newSetName = formData.get("new-set-name") as string
+        const setId = formData.get("set-id") as string
 
         const parseResult = packetDataSchema.safeParse({
             created,
@@ -37,21 +37,18 @@ export const POST: RequestHandler = async function({ request }) {
             questions,
             chooseSet,
             newSetName,
-            setId
+            setId,
         })
 
         if (parseResult.success) {
-            const {
-                questions: parsedQuestions,
-                ...parsedData
-            } = parseResult.data
+            const { questions: parsedQuestions, ...parsedData } = parseResult.data
 
             const { id } = await addPacket(parsedQuestions, parsedData)
             return {
                 status: 201,
                 headers: {
-                    Location: `/api/packet/${id}`
-                }
+                    Location: `/api/packet/${id}`,
+                },
             }
         } else {
             console.log(parseResult.error)

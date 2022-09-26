@@ -26,7 +26,12 @@ export function setCatNames(categories: string[]) {
     return tempObj
 }
 
-export function generatePreviews(text: string, pattern: RegExp, keywords: Record<string, string>, categoryNames: Record<string, string>) {
+export function generatePreviews(
+    text: string,
+    pattern: RegExp,
+    keywords: Record<string, string>,
+    categoryNames: Record<string, string>
+) {
     const result: NewPacketQuestionData[] = []
     let previousData: NewPacketQuestionData | null = null
     let questionNumber = 0
@@ -40,17 +45,10 @@ export function generatePreviews(text: string, pattern: RegExp, keywords: Record
                 const bonus = keywords[question[1].toLowerCase()] === "bonus"
 
                 const baseData = {
-                    category: defaultCategories.includes(category as Category)
-                        ? category as Category
-                        : "custom",
-                    customCategory: defaultCategories.includes(category as Category)
-                        ? undefined
-                        : category,
+                    category: defaultCategories.includes(category as Category) ? (category as Category) : "custom",
+                    customCategory: defaultCategories.includes(category as Category) ? undefined : category,
                     bonus,
-                    number: (!previousData || previousData.bonus || !bonus
-                        ? ++questionNumber
-                        : questionNumber
-                    ),
+                    number: !previousData || previousData.bonus || !bonus ? ++questionNumber : questionNumber,
                 }
 
                 if (keywords[question[3].toLowerCase()] === "multipleChoice") {
@@ -68,7 +66,7 @@ export function generatePreviews(text: string, pattern: RegExp, keywords: Record
                         },
                         correctAnswer: answerChoice[1].toUpperCase() as "W" | "X" | "Y" | "Z",
                     }) as NewQuestionData
-                    
+
                     previousData = thisQ
                     result.push(thisQ)
                 } else {
@@ -78,7 +76,7 @@ export function generatePreviews(text: string, pattern: RegExp, keywords: Record
                         questionText: question[4],
                         correctAnswer: question[6],
                     }) as NewQuestionData
-                    
+
                     result.push(thisQ)
                 }
             }

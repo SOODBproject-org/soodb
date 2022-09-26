@@ -11,7 +11,7 @@ import type { DatabaseUser } from "lucia-sveltekit/types"
 import { escapeRegex } from "./functions/databaseUtils"
 import type { Category, Question, UserData, PacketSet, Packet } from "./types"
 import { removePrivateFields, type DistributiveOmit } from "./utils"
-import ShortUniqueId from 'short-unique-id'
+import ShortUniqueId from "short-unique-id"
 
 const uid = new ShortUniqueId({ dictionary: "alphanum", length: 10 })
 
@@ -62,7 +62,7 @@ export async function addPacket(questions: NewQuestionData[], { name, setId, set
         created: date,
         modified: date,
         packetId,
-        packetName: name
+        packetName: name,
     }))
 
     collections.sets.updateOne({
@@ -155,8 +155,8 @@ type QuestionQuery = {
     timeRange?: {
         startDate?: Date
         endDate?: Date
-    },
-    page?: number,
+    }
+    page?: number
     limit?: number
 }
 type MongoQuestionQuery = {
@@ -180,7 +180,7 @@ export async function getQuestions({
     types,
     timeRange,
     page = 0,
-    limit = 96
+    limit = 96,
 }: QuestionQuery) {
     const mongoQuery: MongoQuestionQuery = {}
     if (authorId) mongoQuery.authorId = authorId

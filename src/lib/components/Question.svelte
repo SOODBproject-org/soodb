@@ -63,8 +63,7 @@
             <p id="correct-answer" transition:slide={{ duration: 200 }}>
                 {question.type === "MCQ"
                     ? `${question.correctAnswer}) ${question.choices[question.correctAnswer]}`
-                    : question.correctAnswer
-                }
+                    : question.correctAnswer}
             </p>
         {/if}
     </div>
@@ -72,8 +71,8 @@
     <div class="bottom">
         <span class="metadata">
             {#if question.packetId}
-                <a
-                    href="/question-search?packet={encodeURIComponent(question.packetId)}">{question.packetName || "Packet"}</a
+                <a href="/question-search?packet={encodeURIComponent(question.packetId)}"
+                    >{question.packetName || "Packet"}</a
                 >
             {:else}
                 <a href="/account/{question.authorId}" sveltekit:prefetch>{question.authorName}</a>

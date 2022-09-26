@@ -14,11 +14,11 @@ export const POST: RequestHandler = async function ({ request }) {
     const parseResult = newUserSchema.safeParse({
         username,
         password,
-        confirmPassword
+        confirmPassword,
     })
-    
+
     if (!parseResult.success || password !== confirmPassword) return redirect("/signup")
-    
+
     try {
         const createdUser = await auth.createUser("username", username, {
             password,

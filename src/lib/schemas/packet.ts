@@ -1,5 +1,5 @@
-import z from 'zod'
-import { questionSchema } from './question'
+import z from "zod"
+import { questionSchema } from "./question"
 
 // TODO: name regexes
 
@@ -23,5 +23,5 @@ export const packetDataSchema = z.discriminatedUnion("chooseSet", [
         created: z.date(),
         name: z.string(),
         questions: z.array(questionSchema),
-    })
+    }),
 ])

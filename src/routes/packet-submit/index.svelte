@@ -16,7 +16,7 @@
 
 <script lang="ts">
     import { browser } from "$app/env"
-    import { session } from "$app/stores";
+    import { session } from "$app/stores"
     import { onMount } from "svelte"
     import PacketQuestionPreview from "$lib/components/PacketQuestionPreview.svelte"
     import Notification from "$lib/components/Notification.svelte"
@@ -107,22 +107,24 @@
         setId = e.detail.id
     }
 
-    function handleSetClear() {}
+    function handleSetClear() {
+        setName = ""
+        setId = undefined
+    }
 
     $: categoryNames = setCatNames(parameters.categories)
     $: keywords = setKeywords(parameters.keywords)
     $: questions = generatePreviews(plainText, regexPattern, keywords, categoryNames)
     let regexPattern = calcRegexPattern(parameters)
 
-    async function handleSubmit(e: Omit<SubmitEvent, 'submitter'>) {
+    async function handleSubmit(e: Omit<SubmitEvent, "submitter">) {
         e.preventDefault()
 
         const formData = new FormData()
         formData.append("created", created?.toString() || "")
         formData.append("packet-name", packetName)
         formData.append("choose-set", chooseSet || "")
-        formData.append("questions", JSON.stringify(questions)),
-        formData.append("new-set-name", setName)
+        formData.append("questions", JSON.stringify(questions)), formData.append("new-set-name", setName)
         formData.append("set-id", setId || "")
 
         plainText = ""
@@ -155,7 +157,11 @@
 <main>
     {#if $session.lucia?.user.packetSubmitter}
         {#if submitted === "success"}
-            <Notification title="Success" text="Your packet has been successfully submitted" shown={notificationShown} />
+            <Notification
+                title="Success"
+                text="Your packet has been successfully submitted"
+                shown={notificationShown}
+            />
         {:else if submitted === "error"}
             <Notification
                 title="Error"
@@ -186,7 +192,13 @@
                     {/if}
                     <br />
                     <label for="existing-set" class="radio-label">
-                        <input id="existing-set" type="radio" name="choose-set" value="existing" bind:group={chooseSet} />
+                        <input
+                            id="existing-set"
+                            type="radio"
+                            name="choose-set"
+                            value="existing"
+                            bind:group={chooseSet}
+                        />
                         <span />
                         Existing Set
                     </label>
@@ -305,9 +317,9 @@
                     <p>
                         Raw Regex:<HelpBox
                             >Edit this if your questions arent detected by the current regex filter. Questions are
-                            categoriezed into categories using the names above, so make sure you edit the boxes above first
-                            before editing the regex. Changes to the boxes above will edit the regex below and overwrite any
-                            changes you make to it.</HelpBox
+                            categoriezed into categories using the names above, so make sure you edit the boxes above
+                            first before editing the regex. Changes to the boxes above will edit the regex below and
+                            overwrite any changes you make to it.</HelpBox
                         >
                     </p>
                     <textarea bind:value={editableRegex} on:input|stopPropagation={manualRegex} />
@@ -327,15 +339,15 @@
             </div>
         </div>
     {:else}
-    <div class="not-allowed">
-        <p>
-            You do not have permission to submit packets.
-            {#if $session.lucia?.user}
-                <a href="/login">Log in</a> to gain access.
-            {/if}
-        </p>
-        <p>To submit your own questions, go to <a href="/write">the Write page</a></p>
-    </div>
+        <div class="not-allowed">
+            <p>
+                You do not have permission to submit packets.
+                {#if $session.lucia?.user}
+                    <a href="/login">Log in</a> to gain access.
+                {/if}
+            </p>
+            <p>To submit your own questions, go to <a href="/write">the Write page</a></p>
+        </div>
     {/if}
 </main>
 

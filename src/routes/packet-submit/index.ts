@@ -12,8 +12,8 @@ export const POST: RequestHandler = async function ({ request }) {
         const name = formData.get("packet-name") as string
         const chooseSet = formData.get("choose-set") as string
         const questions: NewQuestionData[] = JSON.parse(formData.get("questions") as string)
-        const newSetName = formData.get("new-set-name") as string 
-        const setId = formData.get("set-id") as string 
+        const newSetName = formData.get("new-set-name") as string
+        const setId = formData.get("set-id") as string
 
         const parseResult = packetDataSchema.safeParse({
             created,
@@ -21,14 +21,11 @@ export const POST: RequestHandler = async function ({ request }) {
             questions,
             chooseSet,
             newSetName,
-            setId
+            setId,
         })
 
         if (parseResult.success) {
-            const {
-                questions: parsedQuestions,
-                ...parsedData
-            } = parseResult.data
+            const { questions: parsedQuestions, ...parsedData } = parseResult.data
 
             await addPacket(parsedQuestions, parsedData)
             return redirect("/packet-submit?submitted=success")

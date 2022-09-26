@@ -1,7 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte"
     import Select from "svelte-select"
-    import { page } from "$app/stores"
     import type { DatabaseUserSafe } from "$lib/mongo"
     import UserSearch from "./UserSearch.svelte"
     import type { Category } from "$lib/types"
@@ -39,7 +38,7 @@
         { id: "energy", value: "Energy" },
     ]
 
-    export let questionCount: string
+    export let questionCount = ""
     const dispatch = createEventDispatcher()
 
     export function setQuery(query: Partial<Inputs>) {

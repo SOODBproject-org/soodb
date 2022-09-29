@@ -27,7 +27,6 @@ export const GET: RequestHandler<MaybeError<Question>> = async function ({ reque
         // eslint-disable-next-line no-empty
     } catch (e) {}
 
-    const authorName = url.searchParams.get("authorName") ?? undefined
     const authorId = url.searchParams.get("authorId") ?? undefined
     const keywords = url.searchParams.get("keywords") ?? undefined
     const setName = url.searchParams.get("setName") ?? undefined
@@ -54,7 +53,6 @@ export const GET: RequestHandler<MaybeError<Question>> = async function ({ reque
             ...removeUndefined(cookieQuery),
             ...removeUndefined({
                 authorId,
-                authorName,
                 setName,
                 round,
                 categories,

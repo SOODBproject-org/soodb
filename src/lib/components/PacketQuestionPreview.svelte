@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { NewQuestionData } from "../mongo"
-    export let question: NewQuestionData
+    export let question: NewQuestionData & { number?: number }
 
     const categoryNames = {
         bio: "Biology",
@@ -14,6 +14,9 @@
 
 <div id="question" class={categoryNames[question.category] ? question.category : "other"}>
     <h2>
+        {#if question.number}
+            {question.number})
+        {/if}
         {categoryNames[question.category] ? categoryNames[question.category] : question.category}
     </h2>
     <h3 class="question-text">{question.questionText}</h3>

@@ -65,7 +65,7 @@
             if (selectedVoice) answerUtternance.voice = selectedVoice
             answerUtternance.rate = speechRate
             synth.speak(answerUtternance)
-            dispatch('answerRead')
+            dispatch("answerRead")
             answerRead = true
         } else {
             dispatch("sendQuery", {})
@@ -100,7 +100,7 @@
     let selectedVoice: SpeechSynthesisVoice | undefined
     function handleVoiceSelect(e: CustomEvent<{ index: number; label: string; value: string }>) {
         console.dir(e.detail)
-        selectedVoice = voices.find((v) => v.name == e.detail.label)
+        selectedVoice = voices.find((v) => v.name === e.detail.label)
     }
 
     $: questionUpdate(question)

@@ -11,16 +11,9 @@ import type { DatabaseUser } from "lucia-sveltekit/types"
 import { escapeRegex } from "./functions/databaseUtils"
 import type { Category, Question, UserData, PacketSet, Packet } from "./types"
 import { removePrivateFields, type DistributiveOmit } from "./utils"
+import ShortUniqueId from "short-unique-id"
 
-function createID() {
-    const time = Date.now()
-    const time1 = time.toString(16).slice(0, 4)
-    const time2 = time.toString(16).slice(4, 8)
-    const random1 = Math.floor(Math.random() * 16).toString(16)
-    const random2 = Math.floor(Math.random() * 16).toString(16)
-    const id = time2 + random1 + time1 + random2
-    return id
-}
+const uid = new ShortUniqueId({ dictionary: "alphanum", length: 10 })
 
 const api = new MongoDataAPI({
     key: env.DATABASE_KEY,
@@ -38,7 +31,7 @@ export const collections = {
 export type NewQuestionData = DistributiveOmit<Question, InternalQuestionKey>
 export async function addQuestion(question: NewQuestionData) {
     const date = new Date()
-    const newID = createID()
+    const newID = uid()
     return {
         response: collections.questions.insertOne({
             document: {
@@ -59,18 +52,17 @@ type PacketInfo = {
     setName?: string
 }
 
-// TODO: make more robust?
 export async function addPacket(questions: NewQuestionData[], { name, setId, setName, created }: PacketInfo) {
     const date = new Date()
-    const packetId = createID()
-    const newSetId = createID()
+    const packetId = uid()
+    const newSetId = uid()
     const questionsData = questions.map((q) => ({
         ...q,
-        id: createID(),
+        id: uid(),
         created: date,
         modified: date,
         packetId,
-        packetName: name
+        packetName: name,
     }))
 
     collections.sets.updateOne({
@@ -100,6 +92,8 @@ export async function addPacket(questions: NewQuestionData[], { name, setId, set
     collections.questions.insertMany({
         documents: questionsData,
     })
+
+    return { id: packetId }
 }
 
 export async function getPackets() {
@@ -161,12 +155,11 @@ type QuestionQuery = {
     timeRange?: {
         startDate?: Date
         endDate?: Date
-    },
-    page?: number,
+    }
+    page?: number
     limit?: number
 }
 type MongoQuestionQuery = {
-    authorName?: string
     authorId?: string
     $text?: { $search: string }
     set?: string
@@ -180,21 +173,17 @@ type MongoQuestionQuery = {
 }
 
 export async function getQuestions({
-    authorName,
     authorId,
-    keywords,
     setName,
     round,
     categories,
     types,
     timeRange,
     page = 0,
-    limit = 96
+    limit = 96,
 }: QuestionQuery) {
     const mongoQuery: MongoQuestionQuery = {}
-    if (authorName) mongoQuery.authorName = authorName
     if (authorId) mongoQuery.authorId = authorId
-    if (keywords) mongoQuery.$text = { $search: keywords }
     if (setName) mongoQuery.set = setName
     if (round) mongoQuery.round = round
     if (categories?.length) mongoQuery.category = { $in: categories }
@@ -207,7 +196,7 @@ export async function getQuestions({
 
     const { documents } = await collections.questions.find({
         filter: mongoQuery,
-        skip: page * 24,
+        skip: (page - 1) * 24,
         limit,
     })
     return documents

@@ -16,25 +16,24 @@
 
 <script lang="ts">
     import { browser } from "$app/env"
-    import { session } from "$app/stores";
+    import { session } from "$app/stores"
     import { onMount } from "svelte"
     import PacketQuestionPreview from "$lib/components/PacketQuestionPreview.svelte"
-    import type { NewQuestionData } from "$lib/mongo"
     import Notification from "$lib/components/Notification.svelte"
     import HelpBox from "$lib/components/HelpBox.svelte"
-    import type { Category } from "$lib/types"
     import SetSearch from "$lib/components/SetSearch.svelte"
+    import { generatePreviews, setCatNames, setKeywords } from "$lib/functions/packetSubmitUtils"
 
     export let submitted: string
 
     let plainText: string
     let settingsVisible = false
     let editableRegex: string
-    let chooseSet: string
+    let chooseSet: string | undefined
     let setName: string
     let setId: string | undefined
     let packetName: string
-    let created: Date
+    let created: Date | undefined
 
     $: submitEnabled = created && plainText && packetName && chooseSet
 
@@ -75,25 +74,6 @@
             }, 5000)
         })
     }
-    function setKeywords(input: Record<string, string>) {
-        const tempObj: Record<string, string> = {}
-        Object.values(input).forEach((k, n) => {
-            k.split("|").forEach((term) => {
-                tempObj[term.toLowerCase()] = Object.keys(input)[n]
-            })
-        })
-        return tempObj
-    }
-    function setCatNames(categories: string[]) {
-        const DBcat: Category[] = ["bio", "chem", "earth", "physics", "math", "energy"]
-        const tempObj: Record<string, Category> = {}
-        for (let i = 0; i < 6; i++) {
-            categories[i].split("|").forEach((term) => {
-                tempObj[term.toLowerCase()] = DBcat[i]
-            })
-        }
-        return tempObj
-    }
 
     function manualRegex() {
         const res = editableRegex.match(/\/((\n|.)+?)\/(.{0,6})/)
@@ -122,87 +102,75 @@
         //(Tossup|TOSS UP|TOSS-UP|BONUS).+?\n?.+?(BIOLOGY|CHEMISTRY|EARTH AND SPACE|MATH|PHYSICS|GENERAL SCIENCE|ASTRONOMY|EARTH SCIENCE|COMPUTER SCIENCE)\n?.+?(Short Answer|Multiple Choice):?((.|\n)+?)ANSWER:?(.+)
     }
 
-    function generatePreviews(text: string, pattern: RegExp, set: string, round: string) {
-        const result: NewQuestionData[] = []
-        if (text) {
-            try {
-                const results = [...text.matchAll(pattern)]
-                console.dir(results)
-                let i = 0
-                results.forEach((question) => {
-                    i++
-                    const category = categoryNames[question[2].toLowerCase()]
-                        ? categoryNames[question[2].toLowerCase()]
-                        : (question[2] as Category)
-                    const bonus = keywords[question[1].toLowerCase()] === "bonus"
-                    if (keywords[question[3].toLowerCase()] === "multipleChoice") {
-                        const splitQuestion = [...(question[4].match(/(.+?)W\)(.+?)X\)(.+?)Y\)(.+?)Z\)(.+)/is) ?? [])]
-                        const answerChoice = [...(question[6].match(/(W|X|Y|Z).??/i) ?? [])]
-                        console.dir(answerChoice)
-                        const thisQ: NewQuestionData = {
-                            type: "MCQ",
-                            category,
-                            bonus,
-                            questionText: splitQuestion[1],
-                            choices: {
-                                W: splitQuestion[2],
-                                X: splitQuestion[3],
-                                Y: splitQuestion[4],
-                                Z: splitQuestion[5],
-                            },
-                            correctAnswer: answerChoice[1].toUpperCase() as "W" | "X" | "Y" | "Z",
-                        }
-                        result.push(thisQ)
-                    } else {
-                        const thisQ: NewQuestionData = {
-                            type: "SA",
-                            category,
-                            bonus,
-                            questionText: question[4],
-                            correctAnswer: question[6],
-                        }
-                        result.push(thisQ)
-                    }
-                })
-                console.log(i)
-            } catch (e) {
-                console.log(e)
-            }
-        }
-
-        return result
-    }
-
     function handleSetSelect(e: CustomEvent) {
         setName = e.detail.name
         setId = e.detail.id
     }
 
-    function handleSetClear() {}
+    function handleSetClear() {
+        setName = ""
+        setId = undefined
+    }
 
     $: categoryNames = setCatNames(parameters.categories)
     $: keywords = setKeywords(parameters.keywords)
-    $: questions = generatePreviews(plainText, regexPattern, setName, packetName)
+    $: questions = generatePreviews(plainText, regexPattern, keywords, categoryNames)
     let regexPattern = calcRegexPattern(parameters)
+
+    async function handleSubmit(e: Omit<SubmitEvent, "submitter">) {
+        e.preventDefault()
+
+        const formData = new FormData()
+        formData.append("created", created?.toString() || "")
+        formData.append("packet-name", packetName)
+        formData.append("choose-set", chooseSet || "")
+        formData.append("questions", JSON.stringify(questions)), formData.append("new-set-name", setName)
+        formData.append("set-id", setId || "")
+
+        plainText = ""
+        settingsVisible = false
+        editableRegex = ""
+        chooseSet = undefined
+        setName = ""
+        setId = ""
+        packetName = ""
+        created = undefined
+
+        const res = await fetch("/api/packet", {
+            method: "POST",
+            body: formData,
+            headers: {
+                Authorization: $session.lucia?.access_token ? `Bearer ${$session.lucia?.access_token}` : "",
+            },
+        })
+
+        submitted = res.ok ? "success" : "error"
+        notificationShown = true
+        setTimeout(() => (notificationShown = false), 5000)
+    }
 </script>
 
 <svelte:head>
-    <title>Write a Question</title>
+    <title>Submit a Packet</title>
 </svelte:head>
 
 <main>
     {#if $session.lucia?.user.packetSubmitter}
         {#if submitted === "success"}
-            <Notification title="Success" text="Your question has been successfully submitted" shown={notificationShown} />
+            <Notification
+                title="Success"
+                text="Your packet has been successfully submitted"
+                shown={notificationShown}
+            />
         {:else if submitted === "error"}
             <Notification
                 title="Error"
-                text="An error occurred and your question was not submitted"
+                text="An error occurred and your packet was not submitted"
                 shown={notificationShown}
             />
         {/if}
         <div class="data-entry">
-            <form id="form" action="/packet-submit" method="POST" autocomplete="off">
+            <form id="form" action="/packet-submit" method="POST" autocomplete="off" on:submit={handleSubmit}>
                 <h1>Packet Submission</h1>
                 <input type="text" name="packet-name" placeholder="Packet Name" bind:value={packetName} />
                 <br />
@@ -224,7 +192,13 @@
                     {/if}
                     <br />
                     <label for="existing-set" class="radio-label">
-                        <input id="existing-set" type="radio" name="choose-set" value="existing" bind:group={chooseSet} />
+                        <input
+                            id="existing-set"
+                            type="radio"
+                            name="choose-set"
+                            value="existing"
+                            bind:group={chooseSet}
+                        />
                         <span />
                         Existing Set
                     </label>
@@ -343,9 +317,9 @@
                     <p>
                         Raw Regex:<HelpBox
                             >Edit this if your questions arent detected by the current regex filter. Questions are
-                            categoriezed into categories using the names above, so make sure you edit the boxes above first
-                            before editing the regex. Changes to the boxes above will edit the regex below and overwrite any
-                            changes you make to it.</HelpBox
+                            categoriezed into categories using the names above, so make sure you edit the boxes above
+                            first before editing the regex. Changes to the boxes above will edit the regex below and
+                            overwrite any changes you make to it.</HelpBox
                         >
                     </p>
                     <textarea bind:value={editableRegex} on:input|stopPropagation={manualRegex} />
@@ -365,15 +339,15 @@
             </div>
         </div>
     {:else}
-    <div class="not-allowed">
-        <p>
-            You do not have permission to submit packets.
-            {#if $session.lucia?.user}
-                <a href="/login">Log in</a> to gain access.
-            {/if}
-        </p>
-        <p>To submit your own questions, go to <a href="/write">the Write page</a></p>
-    </div>
+        <div class="not-allowed">
+            <p>
+                You do not have permission to submit packets.
+                {#if $session.lucia?.user}
+                    <a href="/login">Log in</a> to gain access.
+                {/if}
+            </p>
+            <p>To submit your own questions, go to <a href="/write">the Write page</a></p>
+        </div>
     {/if}
 </main>
 

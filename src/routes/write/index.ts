@@ -1,6 +1,7 @@
 import { redirect } from "$lib/functions/response"
 import { auth } from "$lib/lucia"
 import { addQuestion, type NewQuestionData } from "$lib/mongo"
+import { questionSchema } from "$lib/schemas/question"
 import type { Category } from "$lib/types"
 import type { RequestHandler } from "@sveltejs/kit"
 
@@ -32,8 +33,6 @@ export const POST: RequestHandler = async function ({ request }) {
         }
     }
 
-    // TODO: better validation
-
     let question: NewQuestionData
     if (type === "MCQ") {
         question = {
@@ -58,7 +57,13 @@ export const POST: RequestHandler = async function ({ request }) {
         return redirect("/write?submitted=error")
     }
 
-    await addQuestion(question)
+    const parseResult = questionSchema.safeParse(question)
+
+    if (!parseResult.success) {
+        return redirect("/write?submitted=error")
+    }
+
+    await addQuestion(parseResult.data)
 
     return redirect("/write?submitted=success")
 }

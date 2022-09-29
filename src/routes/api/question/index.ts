@@ -1,6 +1,8 @@
+import { env } from "$env/dynamic/private"
 import { error, type MaybeError } from "$lib/functions/response"
 import { auth } from "$lib/lucia"
 import { addQuestion, getQuestions, getUserByID, type NewQuestionData } from "$lib/mongo"
+import { questionSchema } from "$lib/schemas/question"
 import type { Category, Question } from "$lib/types"
 import { removeUndefined } from "$lib/utils"
 import fetch from "node-fetch"
@@ -29,7 +31,6 @@ export const GET: RequestHandler<MaybeError<Question[]>> = async function ({ req
         // eslint-disable-next-line no-empty
     } catch (e) {}
 
-    const authorName = url.searchParams.get("authorName") ?? undefined
     const authorId = url.searchParams.get("authorId") ?? undefined
     const keywords = url.searchParams.get("keywords") ?? undefined
     const setName = url.searchParams.get("setName") ?? undefined
@@ -40,19 +41,19 @@ export const GET: RequestHandler<MaybeError<Question[]>> = async function ({ req
     const endDate = url.searchParams.get("end") ? new Date(url.searchParams.get("end") as string) : undefined
 
     const includeAuthor = url.searchParams.get("includeAuthor") === "true"
-    const page = Number(url.searchParams.get('page')) || 0
-    const limit = Number(url.searchParams.get('limit')) || 96
+    const page = Number(url.searchParams.get("page")) || 1
+    const limit = Number(url.searchParams.get("limit")) || 96
 
     let result
-    if (keywords) {
+    if (keywords || cookieQuery.keywords) {
         // TODO: fix this
+        const params = new URLSearchParams({
+            ...removeUndefined(cookieQuery),
+            ...Object.fromEntries(url.searchParams.entries()),
+            secret: env.ATLAS_ENDPOINT_KEY,
+        })
         const res = await fetch(
-            "https://data.mongodb-api.com/app/data-rcsaw/endpoint/findQuestion?" + url.searchParams.toString(),
-            {
-                headers: {
-                    Authorization: "jtQcg6CqX8pQcAvAWfewpEXpWS7XzZ",
-                },
-            }
+            "https://data.mongodb-api.com/app/data-rcsaw/endpoint/findQuestion?" + params.toString()
         )
         result = res.ok ? ((await res.json()) as Question[]) : []
     } else {
@@ -60,14 +61,13 @@ export const GET: RequestHandler<MaybeError<Question[]>> = async function ({ req
             ...removeUndefined(cookieQuery),
             ...removeUndefined({
                 authorId,
-                authorName,
                 setName,
                 round,
                 categories,
                 types,
                 timeRange: { startDate, endDate },
                 page,
-                limit
+                limit,
             }),
         })
     }
@@ -118,8 +118,6 @@ export const POST: RequestHandler = async function ({ request }) {
         }
     }
 
-    // TODO: better validation
-
     let question: NewQuestionData
     if (type === "MCQ") {
         question = {
@@ -144,7 +142,13 @@ export const POST: RequestHandler = async function ({ request }) {
         return error(400, "Invalid question data")
     }
 
-    const { id } = await addQuestion(question)
+    const parseResult = questionSchema.safeParse(question)
+
+    if (!parseResult.success) {
+        return error(400, "Invalid question data")
+    }
+
+    const { id } = await addQuestion(parseResult.data)
 
     return {
         status: 201,

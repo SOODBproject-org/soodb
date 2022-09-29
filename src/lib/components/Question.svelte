@@ -60,15 +60,19 @@
         {/if}
         <button id="showanswer" on:click={toggleAnswer}>{answerVisible ? "Hide" : "Show"} Answer</button>
         {#if answerVisible}
-            <p id="correct-answer" transition:slide={{ duration: 200 }}>{question.correctAnswer}</p>
+            <p id="correct-answer" transition:slide={{ duration: 200 }}>
+                {question.type === "MCQ"
+                    ? `${question.correctAnswer}) ${question.choices[question.correctAnswer]}`
+                    : question.correctAnswer}
+            </p>
         {/if}
     </div>
     <div class="line" />
     <div class="bottom">
         <span class="metadata">
             {#if question.packetId}
-                <a
-                    href="/question-search?packet={encodeURIComponent(question.packetId)}">{question.packetName || "Packet"}</a
+                <a href="/question-search?packet={encodeURIComponent(question.packetId)}"
+                    >{question.packetName || "Packet"}</a
                 >
             {:else}
                 <a href="/account/{question.authorId}" sveltekit:prefetch>{question.authorName}</a>

@@ -1,7 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte"
     import Select from "svelte-select"
-    import { page } from "$app/stores"
     import type { DatabaseUserSafe } from "$lib/mongo"
     import UserSearch from "./UserSearch.svelte"
     import type { Category } from "$lib/types"
@@ -39,7 +38,7 @@
         { id: "energy", value: "Energy" },
     ]
 
-    export let numQuestions: number
+    export let questionCount = ""
     const dispatch = createEventDispatcher()
 
     export function setQuery(query: Partial<Inputs>) {
@@ -183,9 +182,8 @@
     <br />
     <button type="submit" class="submit">Submit Query</button>
     <button type="button" class="clear" on:click={clearQuery}>Clear Query</button>
-    <!-- <button type="button">Clear Query</button> -->
-    {#if numQuestions}
-        <h3>{numQuestions} questions matched your query</h3>
+    {#if questionCount}
+        <h3>{questionCount} questions matched your query</h3>
     {/if}
 </form>
 

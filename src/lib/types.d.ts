@@ -37,7 +37,7 @@ export interface UserData {
     username: string
     email?: string
     discordId?: string
-    googleId?: string,
+    googleId?: string
     packetSubmitter?: boolean
 }
 

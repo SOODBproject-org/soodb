@@ -202,6 +202,39 @@ export async function getQuestions({
     return documents
 }
 
+export async function getRandom({
+    authorId,
+    setName,
+    round,
+    categories,
+    types,
+    timeRange,
+}: QuestionQuery) {
+
+    const mongoQuery: MongoQuestionQuery = {}
+    if (authorId) mongoQuery.authorId = authorId
+    if (setName) mongoQuery.set = setName
+    if (round) mongoQuery.round = round
+    if (categories?.length) mongoQuery.category = { $in: categories }
+    if (types?.length) mongoQuery.type = { $in: types }
+    if (timeRange && (timeRange.startDate || timeRange.endDate)) {
+        mongoQuery.created = {}
+        if (timeRange.startDate) mongoQuery.created.$gte = timeRange.startDate
+        if (timeRange.endDate) mongoQuery.created.$lt = timeRange.endDate
+    }
+
+    const { documents } = await collections.questions.aggregate({
+        pipeline:[ 
+            { $match: mongoQuery },
+            { $sample: { size: 1 } } 
+        ]
+    })
+    return documents[0]
+}
+
+
+
+
 export async function editQuestion(id: string, newQuestion: Partial<NewQuestionData>) {
     return collections.questions.updateOne({
         filter: { id },

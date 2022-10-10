@@ -1,5 +1,5 @@
 import { error, type MaybeError } from "$lib/functions/response"
-import { getQuestions } from "$lib/mongo"
+import { getRandom } from "$lib/mongo"
 import type { Question } from "$lib/types"
 import type { RequestHandler } from "./__types/random.d"
 import { removeUndefined } from "$lib/utils"
@@ -49,7 +49,7 @@ export const GET: RequestHandler<MaybeError<Question>> = async function ({ reque
         )
         result = res.ok ? ((await res.json()) as Question[]) : []
     } else {
-        result = await getQuestions({
+        result = await getRandom({
             ...removeUndefined(cookieQuery),
             ...removeUndefined({
                 authorId,
@@ -62,12 +62,12 @@ export const GET: RequestHandler<MaybeError<Question>> = async function ({ reque
         })
     }
 
-    if (result.length === 0) {
+    if (!result) {
         return error(404, "No questions found")
     } else {
         return {
             status: 200,
-            body: result[Math.floor(Math.random() * result.length)],
+            body: result,
         }
     }
 }

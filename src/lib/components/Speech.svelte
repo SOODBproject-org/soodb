@@ -6,6 +6,7 @@
     import { createEventDispatcher } from "svelte"
     import Select from "svelte-select"
     import { browser } from "$app/env"
+    import {onMount} from "svelte"
 
     export let question: Question
     let synth: SpeechSynthesis
@@ -22,8 +23,7 @@
     let questionWords =
         (question.bonus ? "Bonus " : "Tossup ") +
         categoryNames[question.category] +
-        (question.type === "MCQ" ? "Multiple Choice " : "Short Answer ") +
-        " " +
+        (question.type === "MCQ" ? " Multiple Choice " : " Short Answer ") +
         question.questionText +
         (question.type === "MCQ"
             ? " W " +
@@ -41,14 +41,18 @@
 
     let voices: SpeechSynthesisVoice[] = []
     let listedVoices: string[]
-    if (browser) {
+    onMount(()=>{
         synth = window.speechSynthesis
         voices = synth.getVoices()
         synth.cancel()
         listedVoices = voices.map((v) => v.name)
         questionUtterance = new SpeechSynthesisUtterance(questionWords)
         answerUtternance = new SpeechSynthesisUtterance(answerWords)
-    }
+        setTimeout(()=>{
+            voices = synth.getVoices()
+            listedVoices = voices.map((v) => v.name)
+        },300)
+    })
 
     let questionRead = false
     let answerRead = false

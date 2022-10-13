@@ -7,10 +7,14 @@
     import Select from "svelte-select"
     import { browser } from "$app/env"
     import {onMount} from "svelte"
+    import QuestionPreview from "./QuestionPreview.svelte"
 
     export let question: Question
     let synth: SpeechSynthesis
     const dispatch = createEventDispatcher()
+    let correct: Question[] = []
+    let incorrect: Question[] = []
+
     const categoryNames: Record<string, string> = {
         bio: "Biology",
         earth: "Earth and Space",
@@ -48,6 +52,8 @@
         listedVoices = voices.map((v) => v.name)
         questionUtterance = new SpeechSynthesisUtterance(questionWords)
         answerUtternance = new SpeechSynthesisUtterance(answerWords)
+        questionUtterance.addEventListener('end',(event)=>{console.log(event.elapsedTime)})
+        answerUtternance.addEventListener('end',(event)=>{console.log(event.elapsedTime)})
         setTimeout(()=>{
             voices = synth.getVoices()
             listedVoices = voices.map((v) => v.name)
@@ -58,25 +64,36 @@
     let answerRead = false
     let speechRate = 1
     function toggleSpeech() {
-        if (synth.speaking) {
-            synth.cancel()
-        } else if (!questionRead) {
-            if (selectedVoice) questionUtterance.voice = selectedVoice
-            questionUtterance.rate = speechRate
-            synth.speak(questionUtterance)
-            questionRead = true
-        } else if (!answerRead) {
-            if (selectedVoice) answerUtternance.voice = selectedVoice
-            answerUtternance.rate = speechRate
-            synth.speak(answerUtternance)
-            dispatch("answerRead")
-            answerRead = true
-        } else {
+        if (synth.speaking) synth.cancel()
+        else if (!questionRead) readQuestion()
+        else if (!answerRead) readAnswer()
+        else {
             dispatch("sendQuery", {})
             answerRead = false
             questionRead = false
             isSpeaking = false
         }
+    }
+    function readQuestion(){
+        synth.cancel()
+        if (selectedVoice) questionUtterance.voice = selectedVoice
+        questionUtterance.rate = speechRate
+        synth.speak(questionUtterance)
+        addEventListener('end', () => {
+            console.log("FINISHED SPEAKING\n\n\n")
+        })
+        questionRead = true
+    }
+    function readAnswer(){
+        synth.cancel()
+        if (selectedVoice) answerUtternance.voice = selectedVoice
+        answerUtternance.rate = speechRate
+        synth.speak(answerUtternance)
+        addEventListener('end', () => {
+            console.log("FINISHED SPEAKING\n\n\n")
+        })
+        dispatch("answerRead")
+        answerRead = true
     }
 
     function questionUpdate(q: Question) {
@@ -109,8 +126,17 @@
 
     $: questionUpdate(question)
 
+    function markIncorrect() {
+        if (!incorrect.includes(question)) incorrect.push(question);incorrect=incorrect
+    }
+    function markCorrect() {
+        if (!correct.includes(question)) correct.push(question);correct=correct
+    }
+
     function handleKeydown(e: KeyboardEvent) {
         if (e.key === "k") toggleSpeech()
+        if (e.key === "l") markIncorrect()
+        if (e.key === "j") markCorrect()
     }
 </script>
 
@@ -127,6 +153,18 @@
             <Icon data={playButton} class="icon" />
         {/if}
     </button>
+    <button id="readQuestion" on:click={readQuestion}>
+        Read Question
+    </button>
+    <button id="readAnswer" on:click={readAnswer}>
+        Read Answer
+    </button>
+    <button id="Correct" on:click={()=>{markCorrect}}>
+        Mark Correct (J)
+    </button>
+    <button id="Incorrect" on:click={()=>{markIncorrect}}>
+        Mark Incorrect (L)
+    </button>
     <div class="select">
         <Select items={listedVoices} isSearchable={true} on:select={handleVoiceSelect} />
     </div>
@@ -134,6 +172,14 @@
         <label for="rate">Rate:</label>
         <input type="range" min="0.5" max="2.5" bind:value={speechRate} step="0.1" id="rate" />
     </div>
+    <div id="score">
+        <p>Correct: {correct.length}</p>
+        <p>Incorrect: {incorrect.length}</p>
+        {#each incorrect as q}
+            <QuestionPreview question={q}></QuestionPreview>
+        {/each}
+    </div>
+
 </main>
 
 <style lang="scss">
@@ -143,7 +189,7 @@
         padding: 0.5em 1em 0.5em 2em;
         margin: 20px;
         border-radius: 1em;
-        overflow: hidden;
+        overflow-y: scroll;
         max-width: min(100ch, 60vw);
         height: 30em;
         &::before {
@@ -196,5 +242,11 @@
 
             overscroll-behavior: contain;
         }
+    }
+    button {
+        @extend %button-secondary;
+
+        font-size: 24px;
+        margin-top: 1em;
     }
 </style>

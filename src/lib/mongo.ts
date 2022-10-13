@@ -229,7 +229,7 @@ export async function getRandom({
             { $sample: { size: 1 } } 
         ]
     })
-    return documents[0]
+    return documents[0] as Question
 }
 
 

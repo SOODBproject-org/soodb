@@ -28,7 +28,7 @@ export const GET: RequestHandler<MaybeError<Question>> = async function ({ reque
     } catch (e) {}
 
     const authorId = url.searchParams.get("authorId") ?? undefined
-    const keywords = url.searchParams.get("keywords") ?? undefined
+    //const keywords = url.searchParams.get("keywords") ?? undefined
     const setName = url.searchParams.get("setName") ?? undefined
     const round = url.searchParams.get("round") ?? undefined
     const categories = url.searchParams.get("categories")?.split(",") as string[]
@@ -36,31 +36,18 @@ export const GET: RequestHandler<MaybeError<Question>> = async function ({ reque
     const startDate = url.searchParams.get("start") ? new Date(url.searchParams.get("start") as string) : undefined
     const endDate = url.searchParams.get("end") ? new Date(url.searchParams.get("end") as string) : undefined
 
-    let result
-    if (keywords) {
-        // TODO: fix this
-        const res = await fetch(
-            "https://data.mongodb-api.com/app/data-rcsaw/endpoint/findQuestion?" + url.searchParams.toString(),
-            {
-                headers: {
-                    Authorization: "jtQcg6CqX8pQcAvAWfewpEXpWS7XzZ",
-                },
-            }
-        )
-        result = res.ok ? ((await res.json()) as Question[]) : []
-    } else {
-        result = await getRandom({
-            ...removeUndefined(cookieQuery),
-            ...removeUndefined({
-                authorId,
-                setName,
-                round,
-                categories,
-                types,
-                timeRange: { startDate, endDate },
-            }),
-        })
-    }
+    const result : Question = await getRandom({
+        ...removeUndefined(cookieQuery),
+        ...removeUndefined({
+            authorId,
+            setName,
+            round,
+            categories,
+            types,
+            timeRange: { startDate, endDate },
+        }),
+    })
+    console.dir(result)
 
     if (!result) {
         return error(404, "No questions found")

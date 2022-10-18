@@ -1,36 +1,52 @@
 import type { NewQuestionData } from "$lib/mongo"
-import type { Category } from "$lib/types"
 import { removeUndefined } from "$lib/utils"
 
-type NewPacketQuestionData = NewQuestionData & { number?: number }
-
-const defaultCategories: Category[] = ["earth", "bio", "chem", "physics", "math", "energy"]
+export type NewPacketQuestionData = NewQuestionData & { number?: number }
 
 export function setKeywords(input: Record<string, string>) {
     const tempObj: Record<string, string> = {}
-    Object.values(input).forEach((k, n) => {
-        k.split("|").forEach((term) => {
-            tempObj[term.toLowerCase()] = Object.keys(input)[n]
-        })
-    })
+    for (const [k, v] of Object.entries(input)) {
+        for (const term of v.split("|")) {
+            tempObj[term.toLowerCase()] = k
+        }
+    }
     return tempObj
 }
 
-export function setCatNames(categories: string[]) {
-    const tempObj: Record<string, Category> = {}
-    for (let i = 0; i < 6; i++) {
-        categories[i].split("|").forEach((term) => {
-            tempObj[term.toLowerCase()] = defaultCategories[i]
-        })
+export type PacketCategories = {
+    bio: string,
+    chem: string,
+    earth: string,
+    physics: string,
+    math: string,
+    energy: string,
+    custom: string[]
+}
+
+export function setCatNames(categories: PacketCategories) {
+    // Record<lowercase format, [DB category, original format]>
+    const result: Record<string, [string, string]> = {}
+    for (const [k, v] of Object.entries(categories)) {
+        if (Array.isArray(v)) {
+            for (const cat of v) {
+                for (const term of cat.split('|')) {
+                    result[term.toLowerCase()] = [k, term]
+                }
+            }
+        } else {
+            for (const term of v.split("|")) {
+                result[term.toLowerCase()] = [k, term]
+            }
+        }
     }
-    return tempObj
+    return result
 }
 
 export function generatePreviews(
     text: string,
     pattern: RegExp,
     keywords: Record<string, string>,
-    categoryNames: Record<string, string>
+    categoryNames: Record<string, [string, string]>
 ) {
     const result: NewPacketQuestionData[] = []
     let previousData: NewPacketQuestionData | null = null
@@ -39,21 +55,23 @@ export function generatePreviews(
         try {
             const results = [...text.matchAll(pattern)]
             for (const question of results) {
-                const category = categoryNames[question[2].toLowerCase()]
-                    ? categoryNames[question[2].toLowerCase()]
-                    : (question[2] as Category)
+                const category = categoryNames[question[2].toLowerCase()]?.[0]
+                    ?? "Custom Category"
                 const bonus = keywords[question[1].toLowerCase()] === "bonus"
 
                 const baseData = {
-                    category: defaultCategories.includes(category as Category) ? (category as Category) : "custom",
-                    customCategory: defaultCategories.includes(category as Category) ? undefined : category,
+                    category,
+                    customCategory: category === "custom"
+                        ? categoryNames[question[2].toLowerCase()][1]
+                            ?? "Custom Category"
+                        : undefined,
                     bonus,
                     number: !previousData || previousData.bonus || !bonus ? ++questionNumber : questionNumber,
                 }
 
                 if (keywords[question[3].toLowerCase()] === "multipleChoice") {
                     const splitQuestion = [...(question[4].match(/(.+?)W\)(.+?)X\)(.+?)Y\)(.+?)Z\)(.+)/is) ?? [])]
-                    const answerChoice = [...(question[6].match(/(W|X|Y|Z).??/i) ?? [])]
+                    const answerChoice = [...(question[5].match(/(W|X|Y|Z).??/i) ?? [])]
                     const thisQ = removeUndefined({
                         ...baseData,
                         type: "MCQ",
@@ -74,9 +92,10 @@ export function generatePreviews(
                         ...baseData,
                         type: "SA",
                         questionText: question[4],
-                        correctAnswer: question[6],
+                        correctAnswer: question[5],
                     }) as NewQuestionData
 
+                    previousData = thisQ
                     result.push(thisQ)
                 }
             }

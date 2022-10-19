@@ -2,16 +2,19 @@
     import { createEventDispatcher } from "svelte"
     import Select from "svelte-select"
     import type { DatabaseUserSafe } from "$lib/mongo"
+    import PacketSearch from './PacketSearch.svelte'
+    import SetSearch from "./SetSearch.svelte"
     import UserSearch from "./UserSearch.svelte"
-    import type { Category } from "$lib/types"
+    import type { Category, Packet, PacketSet } from "$lib/types"
 
     // TODO: allow custom category search
 
     type Inputs = {
         authorId: string
         keywords: string
-        sets: string[]
-        packets: string[]
+        setIds: string[]
+        packetIds: string[]
+        packetName: string
         start: string
         end: string
         types: ("MCQ" | "SA")[]
@@ -20,8 +23,9 @@
     const defaultInputs: Inputs = {
         authorId: "",
         keywords: "",
-        sets: [],
-        packets: [],
+        setIds: [],
+        packetIds: [],
+        packetName: "",
         start: "",
         end: "",
         types: [],
@@ -47,13 +51,14 @@
             setUser(query.authorId)
         }
         if (query.keywords) inputs.keywords = query.keywords
-        // if (query.set) {
-        //     inputs.set = query.set
-        //     rawSetValue = query.set
-        //         ?.map((s) => sets.find((x) => x.setName === s))
-        //         .filter((x) => x !== undefined) as PacketSet[]
-        // }
-        if (query.packets) inputs.packets = query.packets
+        if (query.setIds) {
+            inputs.setIds = query.setIds
+            setPacketSet(query.setIds)
+        }
+        if (query.packetIds) {
+            inputs.packetIds = query.packetIds
+            setPacket(query.packetIds)
+        }
         if (query.start) inputs.start = query.start
         if (query.end) inputs.end = query.end
         if (query.types) inputs.types = query.types
@@ -67,7 +72,7 @@
 
     async function emitQuery(pageNumber = 1) {
         dispatch("sendQuery", {
-            inputs: inputs,
+            inputs,
             pageNumber,
         })
     }
@@ -75,9 +80,10 @@
     function clearQuery() {
         inputs = { ...defaultInputs }
         rawCategoryValue = []
-        // rawSetValue = []
-        // rawRoundValue = []
         clearUser()
+        clearPacketSet()
+        selectedSets = null
+        clearPacket()
         emitQuery()
     }
 
@@ -87,17 +93,29 @@
         else inputs.categories = []
     }
 
-    // let rawSetValue: PacketSet[] = []
-    // function handleSetSelect(e: CustomEvent<PacketSet[]>) {
-    //     if (e.detail) inputs.set = e.detail.map((i) => i.setName as string)
-    //     else inputs.set = []
-    // }
+    let setPacketSet: (setId: string | string[]) => Promise<void>
+    let clearPacketSet: () => void
+    let selectedSets: PacketSet[] | null = null
+    function handleSetSelect(e: CustomEvent<PacketSet[]>) {
+        console.log('sets selected')
+        selectedSets = e.detail
+        inputs.setIds = e.detail.map(x => x.id)
+    }
 
-    // let rawRoundValue: { index: number; value: string; label: string }[]
-    // function handleRoundSelect(e: CustomEvent<{ index: number; value: string; label: string }[]>) {
-    //     if (e.detail) inputs.round = e.detail.map((i) => i.value as string)
-    //     else inputs.set = []
-    // }
+    function handleSetClear() {
+        inputs.setIds = []
+        selectedSets = null
+    }
+
+    let setPacket: (packetId: string | string[]) => Promise<void>
+    let clearPacket: () => void
+    function handlePacketSelect(e: CustomEvent<Packet[]>) {
+        inputs.packetIds = e.detail.map(x => x.id)
+    }
+
+    function handlePacketClear() {
+        inputs.packetIds = []
+    }
 
     let setUser: (userId: string) => Promise<void>
     let clearUser: () => void
@@ -122,28 +140,11 @@
         <br />
         <input type="text" name="keywords" placeholder="Keywords" id="keyword-input" bind:value={inputs.keywords} />
         <br />
-        <!-- <div class="select">
-            <Select
-                items={sets}
-                labelIdentifier="setName"
-                isMulti={true}
-                on:select={handleSetSelect}
-                placeholder="Set"
-                bind:value={rawSetValue}
-            />
-        </div> -->
+        <SetSearch multi bind:setPacketSet bind:clearPacketSet
+            on:select={handleSetSelect} on:clear={handleSetClear} />
         <br />
-        <!-- <div class="select">
-            {#if rawSetValue.length == 1}
-                <Select
-                    items={Object.keys(rawSetValue[0].packets)}
-                    isMulti={true}
-                    placeholder="Set"
-                    on:select={handleRoundSelect}
-                    bind:value={rawRoundValue}
-                />
-            {/if}
-        </div> -->
+        <PacketSearch multi sets={selectedSets} bind:setPacket bind:clearPacket
+            on:select={handlePacketSelect} on:clear={handlePacketClear} />
         <br />
         <h3>Date Range:</h3>
         <input type="date" name="start-date" bind:value={inputs.start} class:empty={!inputs.start} />-

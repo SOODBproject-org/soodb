@@ -147,9 +147,9 @@ export async function searchSetsByName(name: string) {
 type QuestionQuery = {
     authorName?: string
     authorId?: string
-    setName?: string
+    packetIds?: string[]
+    packetName?: string
     keywords?: string
-    round?: string
     categories?: Category[]
     types?: ("SA" | "MCQ")[]
     timeRange?: {
@@ -162,8 +162,8 @@ type QuestionQuery = {
 type MongoQuestionQuery = {
     authorId?: string
     $text?: { $search: string }
-    set?: string
-    round?: string
+    packetId?: { $in: string[] }
+    packetName?: { $regex: string, $options: string }
     category?: { $in: Category[] }
     type?: { $in: ("SA" | "MCQ")[] }
     created?: {
@@ -174,8 +174,8 @@ type MongoQuestionQuery = {
 
 export async function getQuestions({
     authorId,
-    setName,
-    round,
+    packetIds,
+    packetName,
     categories,
     types,
     timeRange,
@@ -184,8 +184,8 @@ export async function getQuestions({
 }: QuestionQuery) {
     const mongoQuery: MongoQuestionQuery = {}
     if (authorId) mongoQuery.authorId = authorId
-    if (setName) mongoQuery.set = setName
-    if (round) mongoQuery.round = round
+    if (packetIds) mongoQuery.packetId = { $in: packetIds }
+    if (packetName) mongoQuery.packetName = { $regex: escapeRegex(packetName), $options: "i" }
     if (categories?.length) mongoQuery.category = { $in: categories }
     if (types?.length) mongoQuery.type = { $in: types }
     if (timeRange && (timeRange.startDate || timeRange.endDate)) {
@@ -194,18 +194,21 @@ export async function getQuestions({
         if (timeRange.endDate) mongoQuery.created.$lt = timeRange.endDate
     }
 
+    console.dir(mongoQuery)
+
     const { documents } = await collections.questions.find({
         filter: mongoQuery,
         skip: (page - 1) * 24,
         limit,
     })
+    console.log("documents", documents?.length)
     return documents
 }
 
 export async function getRandom({
     authorId,
-    setName,
-    round,
+    packetIds,
+    packetName,
     categories,
     types,
     timeRange,
@@ -213,8 +216,8 @@ export async function getRandom({
 
     const mongoQuery: MongoQuestionQuery = {}
     if (authorId) mongoQuery.authorId = authorId
-    if (setName) mongoQuery.set = setName
-    if (round) mongoQuery.round = round
+    if (packetIds) mongoQuery.packetId = { $in: packetIds }
+    if (packetName) mongoQuery.packetName = { $regex: escapeRegex(packetName), $options: "i" }
     if (categories?.length) mongoQuery.category = { $in: categories }
     if (types?.length) mongoQuery.type = { $in: types }
     if (timeRange && (timeRange.startDate || timeRange.endDate)) {

@@ -1,41 +1,41 @@
 <script lang="ts">
-    import type { PacketSet } from "$lib/types"
+    import type { Packet, PacketSet } from "$lib/types"
     import Icon from "svelte-icon/Icon.svelte"
     import search from "$lib/icons/search.svg?raw"
     import Select from "svelte-select"
     import { createEventDispatcher } from "svelte"
     
     export let multi = false
+    export let sets: PacketSet[] | null = null
 
     const dispatch = createEventDispatcher()
 
-    let setName: string
-    let sets: PacketSet[] | null = null
-    let rawSetValue: PacketSet | null | PacketSet[] = multi ? [] : null
+    let packetName: string
+    let packets: Packet[] | null = null
+    let rawPacketValue: Packet | null | Packet[] = multi ? [] : null
+    let filter = (packet: Packet) => !sets || sets.some(s => s.packetIds.includes(packet.id))
 
-    export const setPacketSet = async function(value: string | string[]) {
-        console.log('setting packet-set')
+    export const setPacket = async function(value: string | string[]) {
         if (multi && Array.isArray(value)) {
             const responses = await Promise.all(
-                value.map(x => fetch(`/api/set/${encodeURIComponent(x)}`))
+                value.map(x => fetch(`/api/packet/${encodeURIComponent(x)}`))
             )
             if (!responses.every(x => x.ok)) return
 
             const results = await Promise.all(
                 responses.map(x => x.json())
             )
-            sets = results
-            rawSetValue = results
-            console.log('dispatching packet-set update')
-            dispatch('select', results)
+            packets = results.filter(filter)
+            console.log("packets", packets)
+            rawPacketValue = results.filter(filter)
         } else if (!Array.isArray(value)) {
-            const res = await fetch(`/api/set/${encodeURIComponent(value)}`)
+            const res = await fetch(`/api/packet/${encodeURIComponent(value)}`)
             if (!res.ok) return
 
             const result = await res.json()
-            if (result) {
-                sets = [result]
-                rawSetValue = result
+            if (result && filter(result)) {
+                packets = [result]
+                rawPacketValue = result
                 dispatch('select', result)
             }
         } else {
@@ -43,48 +43,52 @@
         }
     }
 
-    export const clearPacketSet = () => {
-        sets = null
-        rawSetValue = null
+    export const clearPacket = () => {
+        packets = null
+        rawPacketValue = null
         dispatch('clear')
     }
 
-    async function getSets() {
-        const res = await fetch(`/api/set/search?setName=${encodeURIComponent(setName)}`)
+    async function getPackets() {
+        const res = await fetch(`/api/packet/search?packetName=${encodeURIComponent(packetName)}`)
         if (!res.ok) return
 
         const result = await res.json()
+        console.log("results", result)
+        console.log("sets", sets)
         if (result) {
-            sets = result
+            packets = result.filter(filter)
         }
     }
 
     function handleClear() {
-        setName = ""
-        sets = null
+        packetName = ""
+        packets = null
         dispatch("clear")
     }
 
     function clearSelect() {
-        sets = null
-        rawSetValue = null
+        packets = null
+        rawPacketValue = null
     }
+
+    $: console.log("changed sets", sets)
 </script>
 
 <div class="user-search">
     <div class="wrapper">
-        <input type="text" bind:value={setName} on:input={clearSelect} placeholder="Set search" />
-        <button type="button" class="search-button" on:click={getSets}><Icon data={search} /></button>
+        <input type="text" bind:value={packetName} on:input={clearSelect} placeholder="Packet search" />
+        <button type="button" class="search-button" on:click={getPackets}><Icon data={search} /></button>
     </div>
-    {#if sets}
+    {#if packets}
         <div class="select">
             <Select
                 isMulti={multi}
-                items={sets}
+                items={packets}
                 optionIdentifier="id"
                 labelIdentifier="name"
                 isSearchable={false}
-                bind:value={rawSetValue}
+                bind:value={rawPacketValue}
                 on:select
                 on:clear={handleClear}
             />

@@ -81,8 +81,8 @@
     async function sendQuery(queryBox: Record<string, any>) {
         query.authorId = queryBox.authorId || undefined
         query.keywords = queryBox.keywords || undefined
-        query.sets = queryBox.sets?.length ? queryBox.sets : undefined
-        query.packets = queryBox.packets?.length ? queryBox.packets : undefined
+        query.setIds = queryBox.setIds?.length ? queryBox.setIds : undefined
+        query.packetIds = queryBox.packetIds?.length ? queryBox.packetIds : undefined
         query.types = queryBox.types.length ? queryBox.types : undefined
         query.categories = queryBox.categories.length ? queryBox.categories : undefined
         query.start = queryBox.start || undefined
@@ -90,7 +90,12 @@
 
         query = removeUndefined(query)
 
-        Cookie.set("previousQuery", JSON.stringify(query))
+        Cookie.set("previousQuery", JSON.stringify(query), {
+            expires: 1/12
+        })
+        Cookie.set("pageNumber", "1", {
+            expires: 1/12
+        })
         const params = new URLSearchParams(query)
 
         const res = await fetch("/api/question?" + params.toString(), {
@@ -114,7 +119,9 @@
         if (questionPages[detail.new]) {
             pageNumber = detail.new
             window.scroll(0, 0)
-            Cookie.set("pageNumber", detail.new.toString())
+            Cookie.set("pageNumber", detail.new.toString(), {
+                expires: 1/12
+            })
         } else {
             const params = new URLSearchParams({
                 ...query,
@@ -130,7 +137,9 @@
                     questionPages[detail.new] = newQuestions
                     pageNumber = detail.new
                     window.scroll(0, 0)
-                    Cookie.set("pageNumber", detail.new.toString())
+                    Cookie.set("pageNumber", detail.new.toString(), {
+                        expires: 1/12
+                    })
                 } else {
                     pageNumber = numPages
                 }

@@ -1,9 +1,9 @@
 import { env } from "$env/dynamic/private"
 import { error, type MaybeError } from "$lib/functions/response"
 import { auth } from "$lib/lucia"
-import { addQuestion, getQuestions, getUserByID, type NewQuestionData } from "$lib/mongo"
+import { addQuestion, getQuestions, getSetByID, getUserByID, type NewQuestionData } from "$lib/mongo"
 import { questionSchema } from "$lib/schemas/question"
-import type { Category, Question } from "$lib/types"
+import type { Category, PacketSet, Question } from "$lib/types"
 import { removeUndefined } from "$lib/utils"
 import fetch from "node-fetch"
 import type { RequestHandler } from "./__types/index.d"
@@ -33,8 +33,7 @@ export const GET: RequestHandler<MaybeError<Question[]>> = async function ({ req
 
     const authorId = url.searchParams.get("authorId") ?? undefined
     const keywords = url.searchParams.get("keywords") ?? undefined
-    const setName = url.searchParams.get("setName") ?? undefined
-    const round = url.searchParams.get("round") ?? undefined
+    const packetIds = url.searchParams.get("packetIds")?.split(",") ?? undefined
     const categories = url.searchParams.get("categories")?.split(",") as string[]
     const types = url.searchParams.get("types")?.split(",") as ("MCQ" | "SA")[]
     const startDate = url.searchParams.get("start") ? new Date(url.searchParams.get("start") as string) : undefined
@@ -44,12 +43,27 @@ export const GET: RequestHandler<MaybeError<Question[]>> = async function ({ req
     const page = Number(url.searchParams.get("page")) || 1
     const limit = Number(url.searchParams.get("limit")) || 96
 
+    const setIds = url.searchParams.get("setIds")?.split(",")
+    const sets = setIds && await Promise.all(
+        setIds.map(x => getSetByID(x))
+    )
+    const packetsFromSets = sets
+        ? sets.filter((x): x is PacketSet  => x !== null).flatMap(s => s.packetIds)
+        : undefined
+    let totalPackets
+    if (packetsFromSets && packetIds) {
+        totalPackets = packetIds.filter(x => packetsFromSets.includes(x))
+    } else {
+        totalPackets = packetIds || packetsFromSets
+    }
+
     let result
     if (keywords || cookieQuery.keywords) {
         // TODO: fix this
         const params = new URLSearchParams({
             ...removeUndefined(cookieQuery),
             ...Object.fromEntries(url.searchParams.entries()),
+            ...(totalPackets ? { packetIds: totalPackets.join(",") } : {}),
             secret: env.ATLAS_ENDPOINT_KEY,
         })
         const res = await fetch(
@@ -61,8 +75,7 @@ export const GET: RequestHandler<MaybeError<Question[]>> = async function ({ req
             ...removeUndefined(cookieQuery),
             ...removeUndefined({
                 authorId,
-                setName,
-                round,
+                packetIds: totalPackets,
                 categories,
                 types,
                 timeRange: { startDate, endDate },

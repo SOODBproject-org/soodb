@@ -11,18 +11,22 @@
     let users: DatabaseUserSafe[] | null = null
     let rawUserValue: DatabaseUserSafe | null
 
-    export async function setUser(userId: string) {
+    export const setUser = async function (userId: string) {
         const res = await fetch(`/api/user/${encodeURIComponent(userId)}`)
+        if (!res.ok) return
+
         const result = await res.json()
         if (result) {
             users = [result]
             rawUserValue = result
+            dispatch('select', result)
         }
     }
 
     export const clearUser = () => {
         users = null
         rawUserValue = null
+        dispatch('clear')
     }
 
     async function getUsers() {
@@ -52,7 +56,6 @@
             bind:value={username}
             on:input={clearSelect}
             placeholder="User search"
-            class:grayed={!!users}
         />
         <button type="button" class="search-button" on:click={getUsers}><Icon data={search} /></button>
     </div>
@@ -93,7 +96,7 @@
 
         font-size: 20px;
         border: none;
-        margin: 0.5em 0;
+        margin: 0.5em 0 0.5em 1em;
         box-sizing: border-box;
         position: relative;
         text-align: left;
@@ -128,10 +131,6 @@
         box-sizing: border-box;
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
-    }
-
-    .grayed {
-        color: #757575;
     }
 
     button {

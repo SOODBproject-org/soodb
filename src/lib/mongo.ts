@@ -229,11 +229,11 @@ export async function getNumQuestions({
     let k = 30000
     let highk = k
     let lowk = 0
-    const reducingArr = []
+    const iterations = []
     for (let i=0;i<Math.log2(k)+1;i++){
-        reducingArr.push(0)
+        iterations.push(0)
     }
-    for await (const i of reducingArr){
+    for await (const i of iterations){
         if(!((await collections.questions.find({
             filter: mongoQuery,
             skip: k,

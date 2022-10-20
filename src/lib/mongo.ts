@@ -204,6 +204,52 @@ export async function getQuestions({
     return documents
 }
 
+
+export async function getNumQuestions({
+    authorId,
+    packetIds,
+    packetName,
+    categories,
+    types,
+    timeRange,
+    page = 0,
+    limit = 96,
+}: QuestionQuery){
+    const mongoQuery: MongoQuestionQuery = {}
+    if (authorId) mongoQuery.authorId = authorId
+    if (packetIds) mongoQuery.packetId = { $in: packetIds }
+    if (packetName) mongoQuery.packetName = { $regex: escapeRegex(packetName), $options: "i" }
+    if (categories?.length) mongoQuery.category = { $in: categories }
+    if (types?.length) mongoQuery.type = { $in: types }
+    if (timeRange && (timeRange.startDate || timeRange.endDate)) {
+        mongoQuery.created = {}
+        if (timeRange.startDate) mongoQuery.created.$gte = timeRange.startDate
+        if (timeRange.endDate) mongoQuery.created.$lt = timeRange.endDate
+    }
+    let k = 30000
+    let highk = k
+    let lowk = 0
+    const reducingArr = []
+    for (let i=0;i<Math.log2(k)+1;i++){
+        reducingArr.push(0)
+    }
+    for await (const i of reducingArr){
+        if(!((await collections.questions.find({
+            filter: mongoQuery,
+            skip: k,
+            limit: 1,
+        })).documents.length)) {
+            highk = k
+            k=(k+lowk)/2  
+        }
+        else {
+            lowk = k
+            k = (k+highk)/2 
+        }   
+    }
+    return k 
+}
+
 export async function getRandom({
     authorId,
     packetIds,

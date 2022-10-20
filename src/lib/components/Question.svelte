@@ -101,10 +101,10 @@
         position: relative;
         background-color: $background-2;
         padding: 0.5em 1em 0.5em 2em;
-        margin: 20px;
         border-radius: 1em;
         overflow: hidden;
-        max-width: min(100ch, 60vw);
+        max-width: 100ch;
+        box-sizing: border-box;
 
         &::before {
             content: "";

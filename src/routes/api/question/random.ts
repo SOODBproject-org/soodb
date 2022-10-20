@@ -47,7 +47,6 @@ export const GET: RequestHandler<MaybeError<Question>> = async function ({ reque
             timeRange: { startDate, endDate },
         }),
     })
-    console.dir(result)
 
     if (!result) {
         return error(404, "No questions found")

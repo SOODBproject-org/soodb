@@ -13,6 +13,8 @@ import type { Category, Question, UserData, PacketSet, Packet } from "./types"
 import { removePrivateFields, type DistributiveOmit } from "./utils"
 import ShortUniqueId from "short-unique-id"
 
+// TODO: _id migration
+
 const uid = new ShortUniqueId({ dictionary: "alphanum", length: 10 })
 
 const api = new MongoDataAPI({
@@ -194,14 +196,11 @@ export async function getQuestions({
         if (timeRange.endDate) mongoQuery.created.$lt = timeRange.endDate
     }
 
-    console.dir(mongoQuery)
-
     const { documents } = await collections.questions.find({
         filter: mongoQuery,
         skip: (page - 1) * 24,
         limit,
     })
-    console.log("documents", documents?.length)
     return documents
 }
 

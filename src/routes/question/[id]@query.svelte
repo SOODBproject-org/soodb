@@ -145,6 +145,10 @@
 </main>
 
 <style lang="scss">
+    main {
+        min-width: 0;
+    }
+
     h1 {
         display: inline-block;
         margin: 0 1ch;

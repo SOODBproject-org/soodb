@@ -15,7 +15,7 @@
         grid-template-columns: min(40vw, 50ch) 1fr;
         gap: 2em;
         position: relative;
-        width: 100%;
+        width: calc(100% - 10px);
         padding: 2em;
         box-sizing: border-box;
     }

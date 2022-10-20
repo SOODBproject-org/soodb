@@ -41,7 +41,7 @@
             : "")
     let answerWords = "The Correct Answer Is " + question.correctAnswer
     let questionUtterance: SpeechSynthesisUtterance
-    let answerUtternance: SpeechSynthesisUtterance
+    let answerUtterance: SpeechSynthesisUtterance
 
     let voices: SpeechSynthesisVoice[] = []
     let listedVoices: string[]
@@ -51,9 +51,9 @@
         synth.cancel()
         listedVoices = voices.map((v) => v.name)
         questionUtterance = new SpeechSynthesisUtterance(questionWords)
-        answerUtternance = new SpeechSynthesisUtterance(answerWords)
+        answerUtterance = new SpeechSynthesisUtterance(answerWords)
         questionUtterance.addEventListener('end',(event)=>{console.log(event.elapsedTime)})
-        answerUtternance.addEventListener('end',(event)=>{console.log(event.elapsedTime)})
+        answerUtterance.addEventListener('end',(event)=>{console.log(event.elapsedTime)})
         setTimeout(()=>{
             voices = synth.getVoices()
             listedVoices = voices.map((v) => v.name)
@@ -63,7 +63,11 @@
     let questionRead = false
     let answerRead = false
     let speechRate = 1
+    let timeAfterRead = 0
+    let timerInterval: NodeJS.Timer
+
     function toggleSpeech() {
+        clearInterval(timerInterval)
         if (synth.speaking) synth.cancel()
         else if (!questionRead) readQuestion()
         else if (!answerRead) readAnswer()
@@ -79,37 +83,42 @@
         if (selectedVoice) questionUtterance.voice = selectedVoice
         questionUtterance.rate = speechRate
         synth.speak(questionUtterance)
-        addEventListener('end', () => {
-            console.log("FINISHED SPEAKING\n\n\n")
+        // TODO: pausing starts timer
+        questionUtterance.addEventListener('end', () => {
+            timeAfterRead = 0
+            timerInterval = setInterval(() => {
+                timeAfterRead += 100
+            }, 100)
         })
         questionRead = true
     }
     function readAnswer(){
+        clearInterval(timerInterval)
         synth.cancel()
-        if (selectedVoice) answerUtternance.voice = selectedVoice
-        answerUtternance.rate = speechRate
-        synth.speak(answerUtternance)
-        addEventListener('end', () => {
-            console.log("FINISHED SPEAKING\n\n\n")
-        })
+        if (selectedVoice) answerUtterance.voice = selectedVoice
+        answerUtterance.rate = speechRate
+        synth.speak(answerUtterance)
         dispatch("answerRead")
         answerRead = true
     }
 
     function questionUpdate(q: Question) {
-        questionWords =
-            (q.bonus ? "Bonus " : "Tossup ") +
-            categoryNames[q.category] +
-            (q.type === "MCQ" ? "Multiple Choice " : "Short Answer ") +
-            " " +
-            q.questionText +
-            (q.type === "MCQ"
-                ? " W " + q.choices.W + " X " + q.choices.X + " Y " + q.choices.Y + " Z " + q.choices.Z
-                : "")
+        questionWords = [
+            (q.bonus ? "Bonus " : "Tossup ")
+            + (q.category === "custom"
+                ? q.customCategory
+                : categoryNames[q.category])
+            + (q.type === "MCQ" ? " Multiple Choice" : " Short Answer"),
+            q.questionText,
+            q.type === "MCQ"
+                ? `W: ${q.choices.W}. X: ${q.choices.X}. Y: ${q.choices.Y}. Z: ${q.choices.Z}`
+                : ""
+        ].join(". ")
+        console.log("questionWords", questionWords)
         answerWords = "The Correct Answer Is " + q.correctAnswer
         if (browser) {
             questionUtterance = new SpeechSynthesisUtterance(questionWords)
-            answerUtternance = new SpeechSynthesisUtterance(answerWords)
+            answerUtterance = new SpeechSynthesisUtterance(answerWords)
         }
     }
 
@@ -142,56 +151,74 @@
 
 <svelte:body on:keydown={handleKeydown} />
 
-<main>
-    <h1>Speech Settings</h1>
-    <button id="speak" on:click={() => toggleSpeech()}>
-        {#if isSpeaking}
-            <Icon data={pauseButton} class="icon" />
-        {:else if answerRead}
-            Next
-        {:else}
-            <Icon data={playButton} class="icon" />
-        {/if}
-    </button>
-    <button id="readQuestion" on:click={readQuestion}>
-        Read Question
-    </button>
-    <button id="readAnswer" on:click={readAnswer}>
-        Read Answer
-    </button>
-    <button id="Correct" on:click={()=>{markCorrect}}>
-        Mark Correct (J)
-    </button>
-    <button id="Incorrect" on:click={()=>{markIncorrect}}>
-        Mark Incorrect (L)
-    </button>
+<div class="speech">
+    <h2>Speech Settings</h2>
+    <div class="buttons">
+        <button id="speak" on:click={() => toggleSpeech()}>
+            {#if isSpeaking}
+                <Icon data={pauseButton} class="icon" />
+            {:else if answerRead}
+                Next
+            {:else}
+                <Icon data={playButton} class="icon" />
+            {/if}
+        </button>
+        <div class="question-buttons">
+            <button id="readQuestion" on:click={readQuestion}>
+                Read Question
+            </button>
+            <button id="readAnswer" on:click={readAnswer}>
+                Read Answer
+            </button>
+        </div>
+        <div class="score-buttons">
+            <button id="Correct" on:click={()=>{markCorrect}}>
+                Mark Correct (J)
+            </button>
+            <button id="Incorrect" on:click={()=>{markIncorrect}}>
+                Mark Incorrect (L)
+            </button>
+        </div>
+    </div>
     <div class="select">
-        <Select items={listedVoices} isSearchable={true} on:select={handleVoiceSelect} />
+        <Select items={listedVoices} isSearchable={true} placeholder="Custom Voice"
+            on:select={handleVoiceSelect} />
     </div>
     <div id="rate-control">
         <label for="rate">Rate:</label>
         <input type="range" min="0.5" max="2.5" bind:value={speechRate} step="0.1" id="rate" />
     </div>
-    <div id="score">
-        <p>Correct: {correct.length}</p>
-        <p>Incorrect: {incorrect.length}</p>
-        {#each incorrect as q}
-            <QuestionPreview question={q}></QuestionPreview>
-        {/each}
+    <div class="stats">
+        <div>
+            <p>Correct: {correct.length}</p>
+            <p>Incorrect: {incorrect.length}</p>
+        </div>
+        <div>
+            {#if timeAfterRead > 0}
+                <p class="timer">{Math.round(timeAfterRead / 100) / 10}</p>
+            {/if}
+        </div>
+    </div>
+    <div class="questions-wrapper">
+        <div class="incorrect-questions">
+            {#each incorrect as q}
+                <QuestionPreview question={q}></QuestionPreview>
+            {/each}
+        </div>
     </div>
 
-</main>
+</div>
 
 <style lang="scss">
-    main {
+    .speech {
         position: relative;
         background-color: $background-2;
         padding: 0.5em 1em 0.5em 2em;
-        margin: 20px;
+        margin-top: 2em;
         border-radius: 1em;
-        overflow-y: scroll;
-        max-width: min(100ch, 60vw);
-        height: 30em;
+        max-width: 100ch;
+        box-sizing: border-box;
+
         &::before {
             content: "";
             position: absolute;
@@ -205,6 +232,28 @@
             max-width: min(100ch, 90vw);
         }
     }
+
+    .buttons, .question-buttons, .score-buttons {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 1.5em;
+
+        > * {
+            flex-grow: 1;
+        }
+    }
+
+    button {
+        @extend %button-secondary;
+
+        font-size: 24px;
+        margin: 0;
+        text-align: center;
+        white-space: nowrap;
+        box-sizing: border-box;
+    }
+
     .select {
         --inputFontSize: 20px;
         --placeholderColor: #757575;
@@ -243,10 +292,25 @@
             overscroll-behavior: contain;
         }
     }
-    button {
-        @extend %button-secondary;
 
-        font-size: 24px;
-        margin-top: 1em;
+    .stats {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+
+        > * {
+            flex-basis: max-content;
+        }
+    }
+
+    .questions-wrapper {
+        max-height: max(30em, 40vh);
+        overflow-y: auto;
+    }
+
+    .incorrect-questions {
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
     }
 </style>

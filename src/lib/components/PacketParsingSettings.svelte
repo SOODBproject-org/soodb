@@ -2,6 +2,8 @@
     import type { PacketCategories } from "$lib/functions/packetSubmitUtils"
     import HelpBox from "./HelpBox.svelte"
 
+    // TODO: use <details>
+
     type Parameters = {
         keywords: {
             tossUp: string

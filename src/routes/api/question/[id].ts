@@ -7,9 +7,7 @@ export const GET: RequestHandler<MaybeError<Question>> = async function ({ param
     const { id } = params
     const includeAuthor = url.searchParams.get("includeAuthor") === "true"
 
-    const time = Date.now()
     const result = await getQuestionByID(id)
-    console.log(Date.now() - time)
     if (result) {
         if (includeAuthor) {
             const user = result.authorId ? await getUserByID(result.authorId) : null

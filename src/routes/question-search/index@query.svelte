@@ -50,7 +50,7 @@
     import { onMount, tick } from "svelte"
     import { browser } from "$app/env"
     import { removeUndefined } from "$lib/utils"
-    import Icon from "svelte-icon/Icon.svelte"
+    import Icon from "$lib/components/Icon.svelte"
     import bensive from "$lib/icons/bensive.svg?raw"
     import arrow from "$lib/icons/arrow.svg?raw"
     import type { Question } from "$lib/types"

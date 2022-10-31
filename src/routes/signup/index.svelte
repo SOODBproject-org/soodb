@@ -1,7 +1,7 @@
 <script lang="ts">
     import { goto } from "$app/navigation"
     import { env } from "$env/dynamic/public"
-    import Icon from "svelte-icon/Icon.svelte"
+    import Icon from "$lib/components/Icon.svelte"
     import githubIcon from "$lib/icons/github.svg?raw"
     import discordIcon from "$lib/icons/discord.svg?raw"
     import googleIcon from "$lib/icons/google.svg?raw"

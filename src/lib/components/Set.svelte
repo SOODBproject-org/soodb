@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Icon from "svelte-icon/Icon.svelte"
+    import Icon from "$lib/components/Icon.svelte"
     import type { PacketSet } from "$lib/types"
     import arrow from "$lib/icons/arrow.svg?raw"
     export let set: PacketSet

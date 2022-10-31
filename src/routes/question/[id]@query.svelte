@@ -41,7 +41,7 @@
 <script lang="ts">
     import QuestionComp from "$lib/components/Question.svelte"
     import QueryBox from "$lib/components/QueryBox.svelte"
-    import Icon from "svelte-icon/Icon.svelte"
+    import Icon from "$lib/components/Icon.svelte"
     import arrow from "$lib/icons/arrow.svg?raw"
     import { browser } from "$app/env"
     import type { Question } from "$lib/types"

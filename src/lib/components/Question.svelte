@@ -2,7 +2,7 @@
     import type { Question } from "../types"
     import { session } from "$app/stores"
     import { slide } from "svelte/transition"
-    import Icon from "svelte-icon/Icon.svelte"
+    import Icon from "$lib/components/Icon.svelte"
     import pencil from "$lib/icons/pencil.svg?raw"
     export let question: Question & { authorName?: string }
     export let answerVisible = false

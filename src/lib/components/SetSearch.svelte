@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { PacketSet } from "$lib/types"
-    import Icon from "svelte-icon/Icon.svelte"
+    import Icon from "$lib/components/Icon.svelte"
     import search from "$lib/icons/search.svg?raw"
     import Select from "svelte-select"
     import { createEventDispatcher } from "svelte"

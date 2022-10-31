@@ -2,7 +2,7 @@
     import { beforeNavigate } from "$app/navigation"
     import { session } from "$app/stores"
     import { slide } from "svelte/transition"
-    import Icon from "svelte-icon/Icon.svelte"
+    import Icon from "$lib/components/Icon.svelte"
     import hamburger from "$lib/icons/hamburger.svg?raw"
     import { signOut } from "lucia-sveltekit/client"
 

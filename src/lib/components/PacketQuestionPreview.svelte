@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Icon from "svelte-icon/Icon.svelte"
+    import Icon from "$lib/components/Icon.svelte"
     import arrow from "$lib/icons/arrow.svg?raw"
     import image from "$lib/icons/image.svg?raw"
     import trash from "$lib/icons/trash.svg?raw"

@@ -1,7 +1,7 @@
 <script lang="ts">
     import playButton from "$lib/icons/play-button.svg?raw"
     import pauseButton from "$lib/icons/pause-button.svg?raw"
-    import Icon from "svelte-icon/Icon.svelte"
+    import Icon from "$lib/components/Icon.svelte"
     import type { Question } from "$lib/types"
     import { createEventDispatcher } from "svelte"
     import Select from "svelte-select"

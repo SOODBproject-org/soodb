@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Icon from "svelte-icon/Icon.svelte"
+    import Icon from "$lib/components/Icon.svelte"
     import { fly, fade } from "svelte/transition"
     import close from '$lib/icons/close.svg?raw'
 

@@ -97,7 +97,6 @@
     let clearPacketSet: () => void
     let selectedSets: PacketSet[] | null = null
     function handleSetSelect(e: CustomEvent<PacketSet[]>) {
-        console.log('sets selected')
         selectedSets = e.detail
         inputs.setIds = e.detail.map(x => x.id)
     }

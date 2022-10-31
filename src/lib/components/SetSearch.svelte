@@ -14,7 +14,6 @@
     let rawSetValue: PacketSet | null | PacketSet[] = multi ? [] : null
 
     export const setPacketSet = async function(value: string | string[]) {
-        console.log('setting packet-set')
         if (multi && Array.isArray(value)) {
             const responses = await Promise.all(
                 value.map(x => fetch(`/api/set/${encodeURIComponent(x)}`))
@@ -26,7 +25,6 @@
             )
             sets = results
             rawSetValue = results
-            console.log('dispatching packet-set update')
             dispatch('select', results)
         } else if (!Array.isArray(value)) {
             const res = await fetch(`/api/set/${encodeURIComponent(value)}`)

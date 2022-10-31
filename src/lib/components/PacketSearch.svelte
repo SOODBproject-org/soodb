@@ -26,7 +26,6 @@
                 responses.map(x => x.json())
             )
             packets = results.filter(filter)
-            console.log("packets", packets)
             rawPacketValue = results.filter(filter)
         } else if (!Array.isArray(value)) {
             const res = await fetch(`/api/packet/${encodeURIComponent(value)}`)
@@ -54,8 +53,6 @@
         if (!res.ok) return
 
         const result = await res.json()
-        console.log("results", result)
-        console.log("sets", sets)
         if (result) {
             packets = result.filter(filter)
         }
@@ -71,8 +68,6 @@
         packets = null
         rawPacketValue = null
     }
-
-    $: console.log("changed sets", sets)
 </script>
 
 <div class="user-search">

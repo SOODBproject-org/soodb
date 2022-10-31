@@ -59,7 +59,6 @@ export const GET: RequestHandler<MaybeError<Question[]>> = async function ({ req
 
     let result
     if (keywords || cookieQuery.keywords) {
-        // TODO: fix this
         const params = new URLSearchParams({
             ...removeUndefined(cookieQuery),
             ...Object.fromEntries(url.searchParams.entries()),

@@ -36,14 +36,14 @@
         "username",
         userData.username,
         [
-            pattern(/[\S]{6,30}/),
+            pattern(/a-zA-Z0-9-_/),
             (value) => ({ valid: value !== initialUserData.username, name: "usernameChanged" }),
             async (value) => ({ valid: await checkUsernameTaken(value), name: "usernameTaken" }),
         ],
         { checkOnInit: true }
     )
     const usernameErrors: Record<string, string> = {
-        pattern: "Username may not contain spaces and must be between 6 and 30 characters",
+        pattern: "Username may only contain alphanumeric characters or dashes and must be 6-30 characters",
         usernameTaken: "That username is already taken",
     }
 

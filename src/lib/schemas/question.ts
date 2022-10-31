@@ -3,9 +3,9 @@ import z from "zod"
 const questionBase = z.object({
     authorId: z.string().optional(),
     bonus: z.boolean(),
-    questionText: z.string(),
+    questionText: z.string().min(24).max(480),
     category: z.enum(["earth", "bio", "chem", "physics", "math", "energy", "custom"]),
-    customCategory: z.string().optional(),
+    customCategory: z.string().regex(/[a-zA-Z ]+/).optional(),
     visual: z.string().optional(),
 })
 

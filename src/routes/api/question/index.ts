@@ -1,4 +1,4 @@
-import { env } from "$env/dynamic/private"
+import { env } from "$env/static/private"
 import { error, type MaybeError } from "$lib/functions/response"
 import { auth } from "$lib/lucia"
 import { addQuestion, getQuestions, getSetByID, getUserByID, type NewQuestionData } from "$lib/mongo"

@@ -1,6 +1,6 @@
 <script lang="ts">
     import { goto } from "$app/navigation"
-    import { env } from "$env/dynamic/public"
+    import { env } from "$env/static/public"
     import Icon from "$lib/components/Icon.svelte"
     import githubIcon from "$lib/icons/github.svg?raw"
     import discordIcon from "$lib/icons/discord.svg?raw"

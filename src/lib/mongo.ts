@@ -5,7 +5,7 @@ export type RefreshToken = {
     user_id: string
 }
 
-import { env } from "$env/static/private"
+import { env } from "$env/dynamic/private"
 import MongoDataAPI from "atlas-data-api"
 import type { DatabaseUser } from "lucia-sveltekit/types"
 import { escapeRegex } from "./functions/databaseUtils"

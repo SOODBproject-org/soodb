@@ -1,6 +1,6 @@
 import type { RequestHandler } from "./__types/github.d"
-import { env as publicEnv } from "$env/static/public"
-import { env as privateEnv } from "$env/static/private"
+import { env as publicEnv } from "$env/dynamic/public"
+import { env as privateEnv } from "$env/dynamic/private"
 import { auth } from "$lib/lucia"
 import { error } from "$lib/functions/response"
 

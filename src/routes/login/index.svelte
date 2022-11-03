@@ -10,6 +10,10 @@
     let password: string
 </script>
 
+<svelte:head>
+    <title>Login</title>
+</svelte:head>
+
 <main>
     <h1>Login</h1>
     <form action="/api/login" method="POST">

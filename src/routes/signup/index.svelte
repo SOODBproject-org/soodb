@@ -11,6 +11,10 @@
     let confirmPassword: string
 </script>
 
+<svelte:head>
+    <title>Sign up</title>
+</svelte:head>
+
 <main>
     <h1>Sign up</h1>
     <form action="/api/signup" method="POST">

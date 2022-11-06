@@ -1,4 +1,4 @@
-import type { NewQuestionData } from "$lib/mongo"
+import type { NewQuestionData } from "$lib/server/mongo"
 import { removeUndefined } from "$lib/utils"
 
 export type NewPacketQuestionData = NewQuestionData & { number?: number }

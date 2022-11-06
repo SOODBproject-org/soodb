@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { NewQuestionData } from "$lib/mongo"
+    import type { NewQuestionData } from "$lib/server/mongo"
     import { createEventDispatcher } from "svelte"
     import PacketQuestionPreview from "./PacketQuestionPreview.svelte"
 

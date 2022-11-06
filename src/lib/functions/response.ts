@@ -1,19 +1,16 @@
 export function redirect(location: string) {
-    return {
+    return new Response(null, {
         headers: {
             Location: location,
         },
         status: 302,
-    }
+    })
 }
 
 export function error(status: number, message: string) {
-    return {
+    return new Response(JSON.stringify({
+        message,
+    }), {
         status,
-        body: {
-            message,
-        },
-    }
+    })
 }
-
-export type MaybeError<T> = T | { message: string }

@@ -5,7 +5,7 @@
     import trash from "$lib/icons/trash.svg?raw"
 
     import type { NewQuestionData } from "../mongo"
-    import { browser } from "$app/env"
+    import { browser } from "$app/environment"
     export let question: NewQuestionData & { number?: number }
     export let showImage = false
 

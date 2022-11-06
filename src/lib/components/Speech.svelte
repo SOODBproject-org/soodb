@@ -5,7 +5,7 @@
     import type { Question } from "$lib/types"
     import { createEventDispatcher } from "svelte"
     import Select from "svelte-select"
-    import { browser } from "$app/env"
+    import { browser } from "$app/environment"
     import {onMount} from "svelte"
     import QuestionPreview from "./QuestionPreview.svelte"
 

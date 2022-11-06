@@ -1,11 +1,13 @@
 <script lang="ts">
     import type { Question } from "../types"
-    import { session } from "$app/stores"
+    import { getUser } from "@lucia-auth/sveltekit/client"
     import { slide } from "svelte/transition"
     import Icon from "$lib/components/Icon.svelte"
     import pencil from "$lib/icons/pencil.svg?raw"
     export let question: Question & { authorName?: string }
     export let answerVisible = false
+
+    const user = getUser()
 
     const modifiedDate = new Date(question.modified ?? "")
     const modifiedDateString = Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale).format(modifiedDate)
@@ -75,7 +77,7 @@
                     >{question.packetName || "Packet"}</a
                 >
             {:else}
-                <a href="/account/{question.authorId}" sveltekit:prefetch>{question.authorName}</a>
+                <a href="/account/{question.authorId}" data-sveltekit-prefetch>{question.authorName}</a>
             {/if}
         </span>
         {#if createdDate}
@@ -87,7 +89,7 @@
         {#if question.pairId}
             <a href="/question/{question.pairId}">Paired {question.bonus ? "Tossup" : "Bonus"}</a>
         {/if}
-        {#if $session.lucia && $session.lucia.user.user_id === question.authorId}
+        {#if $user?.userId === question.authorId}
             <span style="margin-left: auto;" />
             <a href="/edit/{question.id}">
                 <Icon data={pencil} class="icon" />

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { DatabaseUserSafe } from "$lib/mongo"
+    import type { DatabaseUserSafe } from "$lib/server/mongo"
     import { form as svelteForm, field } from "svelte-forms"
     import { pattern } from "svelte-forms/validators"
     import EditableField from "./EditableField.svelte"

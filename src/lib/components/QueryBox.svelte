@@ -1,7 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte"
     import Select from "svelte-select"
-    import type { DatabaseUserSafe } from "$lib/mongo"
+    import type { DatabaseUserSafe } from "$lib/server/mongo"
     import PacketSearch from './PacketSearch.svelte'
     import SetSearch from "./SetSearch.svelte"
     import UserSearch from "./UserSearch.svelte"

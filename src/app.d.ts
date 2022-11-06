@@ -4,7 +4,12 @@
 // See https://kit.svelte.dev/docs/typescript
 // for information about these interfaces
 declare namespace App {
-    interface Locals {}
+    interface Locals {
+        getSession: import("@lucia-auth/sveltekit").GetSession;
+		getSessionUser: import("@lucia-auth/sveltekit").GetSessionUser;
+		setSession: import("@lucia-auth/sveltekit").SetSession;
+		clearSession: import("@lucia-auth/sveltekit").ClearSession;
+    }
 
     interface Platform {}
 
@@ -30,4 +35,10 @@ declare namespace App {
         PUBLIC_DISCORD_CLIENT_ID: string
         PUBLIC_GOOGLE_CLIENT_ID: string
     }
+}
+
+/// <reference types="lucia-auth" />
+declare namespace Lucia {
+    type Auth = import("$lib/server/lucia").Auth
+	type UserAttributes = import("$lib/types").UserData
 }

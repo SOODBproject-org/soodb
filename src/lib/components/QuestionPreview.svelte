@@ -24,12 +24,12 @@
 <div class="preview {question.category}" bind:clientWidth={previewWidth}>
     <div class="wrapper">
         <h2>{categoryNames[question.category] ? categoryNames[question.category] : question.category}</h2>
-        <a href="/question/{question.id}" sveltekit:prefetch>View</a>
+        <a href="/question/{question.id}" data-sveltekit-prefetch>View</a>
     </div>
     <h3>{truncatedQuestion}</h3>
     <p>
         {#if question.authorName}
-            <a href="/account/{question.authorId}" sveltekit:prefetch>{question.authorName}</a>
+            <a href="/account/{question.authorId}" data-sveltekit-prefetch>{question.authorName}</a>
         {/if}
         <i>{createdDateString}</i>
     </p>

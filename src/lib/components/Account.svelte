@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { DatabaseUserSafe } from "$lib/mongo"
+    import type { DatabaseUserSafe } from "$lib/server/mongo"
     import type { Question } from "$lib/types"
     export let userData: DatabaseUserSafe
     export let questions: Question[]

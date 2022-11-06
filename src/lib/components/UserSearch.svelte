@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { DatabaseUserSafe } from "$lib/mongo"
+    import type { DatabaseUserSafe } from "$lib/server/mongo"
     import Icon from "$lib/components/Icon.svelte"
     import search from "$lib/icons/search.svg?raw"
     import Select from "svelte-select"

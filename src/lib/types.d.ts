@@ -1,3 +1,5 @@
+import type { SessionSchema, UserSchema } from "lucia-auth"
+
 export type Category = "earth" | "bio" | "chem" | "physics" | "math" | "energy"
 
 interface QuestionBase {
@@ -40,6 +42,7 @@ export interface UserData {
     googleId?: string
     packetSubmitter?: boolean
 }
+export type UserSafe = Omit<UserSchema, 'hashed_password' | 'provider_id'>
 
 export interface Packet {
     id: string
@@ -55,3 +58,12 @@ export interface PacketSet {
     packetIds: string[]
     packets?: Packet[]
 }
+
+export type InternalQuestionKey = "id" | "created" | "modified"
+
+export type DatabaseSession = Rename<SessionSchema, "id", "_id">
+
+export type DatabaseUser = Rename<UserSchema, "id", "_id">
+export type DatabaseQuestion = Rename<Question, "id", "_id">
+export type DatabasePacket = Rename<Packet, "id", "_id">
+export type DatabasePacketSet = Rename<PacketSet, "id", "_id">

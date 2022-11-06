@@ -1,11 +1,11 @@
 <script lang="ts">
     import { beforeNavigate } from "$app/navigation"
-    import { session } from "$app/stores"
     import { slide } from "svelte/transition"
     import Icon from "$lib/components/Icon.svelte"
     import hamburger from "$lib/icons/hamburger.svg?raw"
-    import { signOut } from "lucia-sveltekit/client"
+    import { getUser, signOut } from "@lucia-auth/sveltekit/client"
 
+    const user = getUser()
     let menuOpen = false
 
     beforeNavigate(() => {
@@ -23,16 +23,16 @@
         <h1 id="title">SOODB</h1>
         <nav>
             <ul>
-                <li><a href="/question-search" sveltekit:prefetch>Search</a></li>
+                <li><a href="/question-search" data-sveltekit-prefetch>Search</a></li>
                 <!-- Do not prefetch write or URL will get changed -->
                 <li><a href="/write">Write</a></li>
                 <!-- Do not prefetch packet-submit or URL will get changed -->
                 <li><a href="/packet-submit">Packet Submit</a></li>
-                {#if $session.lucia}
-                    <li><a href="/account" sveltekit:prefetch>Account</a></li>
+                {#if $user}
+                    <li><a href="/account" data-sveltekit-prefetch>Account</a></li>
                     <li><button class="logout" on:click={logout}>Logout</button></li>
                 {:else}
-                    <li><a href="/login" sveltekit:prefetch>Login</a></li>
+                    <li><a href="/login" data-sveltekit-prefetch>Login</a></li>
                 {/if}
             </ul>
         </nav>
@@ -46,16 +46,16 @@
     {#if menuOpen}
         <nav class="mobile-menu" transition:slide>
             <ul>
-                {#if $session.lucia}
-                    <li><a href="/account" sveltekit:prefetch>Account</a></li>
+                {#if $user}
+                    <li><a href="/account" data-sveltekit-prefetch>Account</a></li>
                     <li><button class="logout" on:click={logout}>Logout</button></li>
                 {:else}
                     <li><a href="/login">Login</a></li>
                 {/if}
-                <li><a href="/question-search" sveltekit:prefetch>Search</a></li>
+                <li><a href="/question-search" data-sveltekit-prefetch>Search</a></li>
                 <!-- Do not prefetch write or URL will get changed -->
                 <li><a href="/write">Write</a></li>
-                <li><a href="/packet-submit" sveltekit:prefetch>Packet Submit</a></li>
+                <li><a href="/packet-submit" data-sveltekit-prefetch>Packet Submit</a></li>
             </ul>
         </nav>
     {/if}

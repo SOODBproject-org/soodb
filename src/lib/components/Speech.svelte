@@ -8,12 +8,13 @@
     import { browser } from "$app/env"
     import {onMount} from "svelte"
     import Question from "./Question.svelte"
+    import QuestionPreview from "./QuestionPreview.svelte"
+    import HelpBox from "./HelpBox.svelte"
 
     export let question: Question
     let synth: SpeechSynthesis
     const dispatch = createEventDispatcher()
-    let correct: Question[] = []
-    let incorrect: Question[] = []
+    let questionHistory: Question[] = []
     const elements = [
         "H",
         "He",
@@ -153,20 +154,18 @@
 
     let voices: SpeechSynthesisVoice[] = []
     let listedVoices: string[]
+
     onMount(()=>{
         synth = window.speechSynthesis
+		console.log("mounted")
         voices = synth.getVoices()
         synth.cancel()
         listedVoices = voices.map((v) => v.name)
         console.log("hahafunny",questionWords)
-        questionUtterance = new SpeechSynthesisUtterance(questionWords)
-        answerUtterance = new SpeechSynthesisUtterance(answerWords)
-        questionUtterance.addEventListener('end',(event)=>{console.log(event.elapsedTime)})
-        answerUtterance.addEventListener('end',(event)=>{console.log(event.elapsedTime)})
-        setTimeout(()=>{
+		setTimeout(()=>{
             voices = synth.getVoices()
             listedVoices = voices.map((v) => v.name)
-        },300)
+        }, 300)
     })
 
     let questionRead = false
@@ -174,7 +173,8 @@
     let speechRate = 1
     let timeAfterRead = 0
     let timerInterval: NodeJS.Timer
-
+	let interupt :boolean = false
+	let timeWarningRead = false
 
     function genQuestionWords(question:Question){    
         
@@ -187,25 +187,50 @@
                 : "")
         spokenText = spokenText.replaceAll(/(-|–|−)([^a-zA-Z0-9]| )/g,(s)=>" minus ")
         spokenText = spokenText.replaceAll(/\[.+?(-|–|−).+?\]/g,"")
-        if (question.category="chem") {
+        if (question.category=="chem") {
             spokenText = spokenText.replaceAll(new RegExp(` (${elements.join('|')})(${elements.join('|')}|\\d)+(\n|[^a-z])`,'gs'),(s)=>s.replaceAll(/./g,(c)=>c.toUpperCase()+' '))
         }
         
         return spokenText
     }
 
-    function toggleSpeech() {
-        clearInterval(timerInterval)
-        if (synth.speaking) synth.cancel()
-        else if (!questionRead) readQuestion()
-        else if (!answerRead) readAnswer()
-        else {
-            dispatch("sendQuery", {})
-            answerRead = false
-            questionRead = false
-            isSpeaking = false
-        }
-    }
+    function buzz() {
+		clearInterval(timerInterval)
+		interupt = true
+		if (synth.speaking) synth.cancel()
+
+	}
+
+	function sendQuery(){
+		dispatch("sendQuery", {})
+		clearInterval(timerInterval)
+		answerRead = false
+		questionRead = false
+		isSpeaking = false
+		timeWarningRead = false
+	}
+
+	$: readCues(timeAfterRead)
+
+	function readCues(timeAfterRead:number){
+		console.log(timeAfterRead)
+		if (question.bonus){
+			if (timeAfterRead>=15000 && !timeWarningRead) {
+				timeWarningRead = true
+				synth.speak(new SpeechSynthesisUtterance("5 seconds"))
+			}
+			if (timeAfterRead>=20000) {
+				synth.speak(new SpeechSynthesisUtterance("Time"))
+				clearInterval(timerInterval)
+			} 
+		} else {
+			if (timeAfterRead>=5000) {
+				synth.speak(new SpeechSynthesisUtterance("Time"))
+				clearInterval(timerInterval)
+			}
+		}
+	}
+
     function readQuestion(){
         synth.cancel()
         if (selectedVoice) questionUtterance.voice = selectedVoice
@@ -220,6 +245,7 @@
         })
         questionRead = true
     }
+
     function readAnswer(){
         clearInterval(timerInterval)
         synth.cancel()
@@ -231,14 +257,20 @@
     }
 
     function questionUpdate(q: Question) {
-        if (correct.includes(question)) dispatch("sendQuery", {})
-        else {
+        if (questionHistory.includes(question)) {
+		//	sendQuery()
+		//	console.log("querysent")
+		} else {
             questionWords = genQuestionWords(q)
+			questionHistory.unshift(question)
+			questionHistory = questionHistory
             console.log("questionWords", questionWords)
             answerWords = "The Correct Answer Is " + q.correctAnswer
             if (browser) {
                 questionUtterance = new SpeechSynthesisUtterance(questionWords)
                 answerUtterance = new SpeechSynthesisUtterance(answerWords)
+				questionUtterance.addEventListener('end',(event)=>{console.log(event.elapsedTime)})
+        		answerUtterance.addEventListener('end',(event)=>{console.log(event.elapsedTime)})
             }
         }
     }
@@ -256,51 +288,37 @@
 
     $: questionUpdate(question)
 
-    function markIncorrect() {
-        if (!incorrect.includes(question)) incorrect.push(question);incorrect=incorrect
-    }
-    function markCorrect() {
-        if (!correct.includes(question)) correct.push(question);correct=correct
-    }
-
     function handleKeydown(e: KeyboardEvent) {
-        if (e.key === "k") toggleSpeech()
-        if (e.key === "l") markIncorrect()
-        if (e.key === "j") markCorrect()
-		if (e.key === ";") readQuestion()
+        if (e.code === "Space") buzz()
+		if (e.key === "j") readQuestion()
+		if (e.key === "k") readAnswer()
+		if (e.key === "Enter") sendQuery()
     }
 </script>
 
 <svelte:body on:keydown={handleKeydown} />
 
 <div class="speech">
-    <h2>Speech Settings</h2>
+    <h2>Speech Settings
+		<HelpBox>
+			This module reads questions and answers for the user. <br>
+			Keyboard Shortcuts: <br>
+			-  Space - Pause (Buzz) <br>
+			-  J - Read Question <br>
+			-  K - Read Answer <br>
+			-  Enter - Send Query
+		</HelpBox>
+	</h2>
     <div class="buttons">
-        <button id="speak" on:click={() => toggleSpeech()}>
-            {#if isSpeaking}
-                <Icon data={pauseButton} class="icon" />
-            {:else if answerRead}
-                Next
-            {:else}
-                <Icon data={playButton} class="icon" />
-            {/if}
+        <button id="speak" on:click={() => buzz()}>
+            Pause (Buzz)
         </button>
-        <div class="question-buttons">
-            <button id="readQuestion" on:click={readQuestion}>
-                Read Question
-            </button>
-            <button id="readAnswer" on:click={readAnswer}>
-                Read Answer
-            </button>
-        </div>
-        <div class="score-buttons">
-            <button id="Correct" on:click={()=>{markCorrect}}>
-                Mark Correct (J)
-            </button>
-            <button id="Incorrect" on:click={()=>{markIncorrect}}>
-                Mark Incorrect (L)
-            </button>
-        </div>
+		<button id="readQuestion" on:click={readQuestion}>
+			Read Question
+		</button>
+		<button id="readAnswer" on:click={readAnswer}>
+			Read Answer
+		</button>
     </div>
     <div class="select">
         <Select items={listedVoices} isSearchable={true} placeholder="Custom Voice"
@@ -312,19 +330,16 @@
     </div>
     <div class="stats">
         <div>
-            <p>Correct: {correct.length}</p>
-            <p>Incorrect: {incorrect.length}</p>
-        </div>
-        <div>
             {#if timeAfterRead > 0}
                 <p class="timer">{Math.round(timeAfterRead / 100) / 10}</p>
             {/if}
         </div>
     </div>
     <div class="questions-wrapper">
-        <div class="incorrect-questions">
-            {#each incorrect as q}
-                <Question question={q}></Question>
+		<h2>Question History</h2>
+        <div id="questionHistory">
+            {#each questionHistory as q}
+                <QuestionPreview question={q}></QuestionPreview>
             {/each}
         </div>
     </div>
@@ -353,6 +368,13 @@
         @media (max-width: 800px) {
             max-width: min(100ch, 90vw);
         }
+    }
+
+	#questionHistory {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        row-gap: 20px;
+        column-gap: 20px;
     }
 
     .buttons, .question-buttons, .score-buttons {
@@ -428,11 +450,9 @@
     .questions-wrapper {
         max-height: max(30em, 40vh);
         overflow-y: auto;
+		background-color: #{$background-1};
+		padding: 1em;
+		border-radius: 1em;
     }
 
-    .incorrect-questions {
-        display: flex;
-        flex-direction: column;
-        gap: 1em;
-    }
 </style>

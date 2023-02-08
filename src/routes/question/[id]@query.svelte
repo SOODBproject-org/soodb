@@ -147,6 +147,7 @@
 <style lang="scss">
     main {
         min-width: 0;
+		max-height: min-content;
     }
 
     h1 {
@@ -216,7 +217,6 @@
         overflow: auto;
         height: min-content;
         max-height: calc(100vh - 100px);
-        position: sticky;
         top: 6em;
         width: min(40vw, 50ch);
         flex-grow: 2;

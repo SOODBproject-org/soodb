@@ -26,7 +26,7 @@
         <h2>{categoryNames[question.category] ? categoryNames[question.category] : question.category}</h2>
         <a href="/question/{question.id}" sveltekit:prefetch>View</a>
     </div>
-    <h3>{question}</h3>
+    <h3>{truncatedQuestion}</h3>
     <p>
         {#if question.authorName}
             <a href="/account/{question.authorId}" sveltekit:prefetch>{question.authorName}</a>

@@ -37,7 +37,7 @@
         background-color: $accent-1;
         padding: 0.5em;
         border-radius: 1em;
-        width: 16em;
+        width: 12em;
         display: none;
 
         &.visible {

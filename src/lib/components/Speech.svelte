@@ -194,10 +194,12 @@
 		clearInterval(timerInterval)
 		interupt = true
 		if (synth.speaking) synth.cancel()
+		synth.speak(new SpeechSynthesisUtterance("Buzz"))
 
 	}
 
 	function sendQuery(){
+		dispatch("answerClosed", {})
 		dispatch("sendQuery", {})
 		clearInterval(timerInterval)
 		answerRead = false
@@ -235,6 +237,7 @@
         // TODO: pausing starts timer
         questionUtterance.addEventListener('end', () => {
             timeAfterRead = 0
+			clearInterval(timerInterval)
             timerInterval = setInterval(() => {
                 timeAfterRead += 100
             }, 100)
@@ -286,9 +289,9 @@
 
     function handleKeydown(e: KeyboardEvent) {
         if (e.code === "Space") buzz()
-		if (e.key === "j") readQuestion()
-		if (e.key === "k") readAnswer()
-		if (e.key === "Enter") sendQuery()
+		if (e.key === ",") readQuestion()
+		if (e.key === ".") readAnswer()
+		if (e.key === "/") sendQuery()
     }
 </script>
 
@@ -296,13 +299,15 @@
 
 <div class="speech">
     <h2>Speech Settings
-		<HelpBox>
-			<p style="text-decoration: underline;margin: 0 ">Keyboard Shortcuts</p>
-			-  Space - Pause (Buzz) <br>
-			-  J - Read Question <br>
-			-  K - Read Answer <br>
-			-  Enter - Send Query
-		</HelpBox>
+		<div style="color:black;display:inline;">
+			<HelpBox >
+				<p style="text-decoration: underline;margin: 0 ">Keyboard Shortcuts</p>
+				-  Space - Pause (Buzz) <br>
+				-  <p style="background-color:#92ea8a;display:inline;font-family:'Courier New', Courier, monospace">,</p> - Read Question <br>
+				-  <p style="background-color:#92ea8a;display:inline;font-family:'Courier New', Courier, monospace">.</p> - Read Answer <br>
+				-  <p style="background-color:#92ea8a;display:inline;font-family:'Courier New', Courier, monospace">/</p> - Send Query
+			</HelpBox>
+		</div>
 	</h2>
     <div class="buttons">
         <button id="speak" on:click={() => buzz()}>
@@ -343,14 +348,18 @@
 
 <style lang="scss">
     .speech {
+		@include vertical-scrollable(7px);
+
         position: relative;
         background-color: $background-2;
         padding: 0.5em 1em 0.5em 2em;
         margin-top: 2em;
         border-radius: 1em;
         max-width: 100ch;
+		max-height: calc(100vh - 410px);
         box-sizing: border-box;
-
+		overflow-y: scroll;
+		
         &::before {
             content: "";
             position: absolute;

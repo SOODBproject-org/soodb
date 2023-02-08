@@ -66,7 +66,7 @@
         {/if}
         <button id="showanswer" on:click={toggleAnswer}>{answerVisible ? "Hide" : "Show"} Answer</button>
         {#if answerVisible}
-            <p id="correct-answer" transition:slide={{ duration: 200 }}>
+            <p id="correct-answer">
                 {question.type === "MCQ"
                     ? `${question.correctAnswer}) ${question.choices[question.correctAnswer]}`
                     : question.correctAnswer}

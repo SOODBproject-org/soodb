@@ -47,18 +47,22 @@
 <div id="question" class={question.category}>
     <div class="top">
         <h1>{categoryNames[question.category] ? categoryNames[question.category] : question.category}</h1>
-        <p class="question-text">{question.questionText}</p>
+        <button id="showquestion" on:click={toggleQuestion}>{questionVisible ? "Hide" : "Show"} Question</button>
+        {#if questionVisible}
+            <p class="question-text">{question.questionText}</p>
 
-        {#if question.type === "MCQ"}
-            <ul>
-                <li class="question-text">W) {question.choices.W}</li>
-                <li class="question-text">X) {question.choices.X}</li>
-                <li class="question-text">Y) {question.choices.Y}</li>
-                <li class="question-text">Z) {question.choices.Z}</li>
-            </ul>
-        {/if}
-        {#if question.visual}
-            <img src={question.visual} alt="visual bonus could not load" />
+            {#if question.type === "MCQ"}
+                <ul>
+                    <li class="question-text">W) {question.choices.W}</li>
+                    <li class="question-text">X) {question.choices.X}</li>
+                    <li class="question-text">Y) {question.choices.Y}</li>
+                    <li class="question-text">Z) {question.choices.Z}</li>
+                </ul>
+            {/if}
+
+            {#if question.visual}
+                <img src={question.visual} alt="visual bonus could not load" />
+            {/if}
         {/if}
         <button id="showanswer" on:click={toggleAnswer}>{answerVisible ? "Hide" : "Show"} Answer</button>
         {#if answerVisible}
@@ -191,7 +195,7 @@
         line-height: 1em;
         white-space: nowrap;
     }
-    #showanswer {
+    button {
         @extend %button-secondary;
 
         font-size: 20px;

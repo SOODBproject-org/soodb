@@ -3,7 +3,8 @@ import { searchPacketsByName } from "$lib/server/mongo"
 import type { RequestHandler } from "./$types"
 
 export const GET: RequestHandler = async function ({ url }) {
-    const packetName = url.searchParams.get("packetName") as string
-    const results = packetName ? await searchPacketsByName(packetName) : []
+    const packetNameParam = url.searchParams.get("packetName") 
+    const packetName = packetNameParam ? "" : packetNameParam as string
+    const results = await searchPacketsByName(packetName)
     return json(results)
 }

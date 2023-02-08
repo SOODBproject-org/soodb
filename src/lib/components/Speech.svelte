@@ -24,21 +24,7 @@
         energy: "Energy",
     }
 
-    let questionWords =
-        (question.bonus ? "Bonus " : "Tossup ") +
-        categoryNames[question.category] +
-        (question.type === "MCQ" ? " Multiple Choice " : " Short Answer ") +
-        question.questionText +
-        (question.type === "MCQ"
-            ? " W " +
-              question.choices.W +
-              " X " +
-              question.choices.X +
-              " Y " +
-              question.choices.Y +
-              " Z " +
-              question.choices.Z
-            : "")
+    let questionWords = genQuestionWords(question)
     let answerWords = "The Correct Answer Is " + question.correctAnswer
     let questionUtterance: SpeechSynthesisUtterance
     let answerUtterance: SpeechSynthesisUtterance
@@ -62,22 +48,43 @@
 
     let questionRead = false
     let answerRead = false
+    let updating = false
     let speechRate = 1
     let timeAfterRead = 0
     let timerInterval: NodeJS.Timer
 
-    function toggleSpeech() {
+    function genQuestionWords(question:Question){    
+        
+        let spokenText = (question.bonus ? "Bonus " : "Tossup ") + 
+            categoryNames[question.category] + 
+            (question.type === "MCQ" ? " Multiple Choice " : " Short Answer ") + '.' +
+            question.questionText + 
+            (question.type === "MCQ"
+                ? `. W: ${question.choices.W}. X: ${question.choices.X}. Y: ${question.choices.Y}. Z: ${question.choices.Z}`
+                : "")
+        if (question.category="chem") {
+            spokenText = spokenText.replaceAll(/(([A-Z][a-z]|[A-Z])(\d|))+? /g,(s)=>s.replaceAll(/./g,(c)=>c.toUpperCase()+'-'))
+        }
+        spokenText = spokenText.replaceAll(/(-|–)([^a-z]| )/g,(s)=>"-minus" + s)
+        return spokenText
+    }
+
+    function toggleSpeech() {  
         clearInterval(timerInterval)
-        if (synth.speaking) synth.cancel()
-        else if (!questionRead) readQuestion()
-        else if (!answerRead) readAnswer()
-        else {
-            dispatch("sendQuery", {})
-            answerRead = false
-            questionRead = false
-            isSpeaking = false
+        if (!updating) {
+            if (synth.speaking) synth.cancel()
+            else if (!questionRead) readQuestion()
+            else if (!answerRead) readAnswer()
+            else {
+                dispatch("sendQuery", {})
+                answerRead = false
+                questionRead = false
+                isSpeaking = false
+                updating = true
+            }
         }
     }
+
     function readQuestion(){
         synth.cancel()
         if (selectedVoice) questionUtterance.voice = selectedVoice
@@ -92,6 +99,7 @@
         })
         questionRead = true
     }
+
     function readAnswer(){
         clearInterval(timerInterval)
         synth.cancel()
@@ -103,23 +111,14 @@
     }
 
     function questionUpdate(q: Question) {
-        questionWords = [
-            (q.bonus ? "Bonus " : "Tossup ")
-            + (q.category === "custom"
-                ? q.customCategory
-                : categoryNames[q.category])
-            + (q.type === "MCQ" ? " Multiple Choice" : " Short Answer"),
-            q.questionText,
-            q.type === "MCQ"
-                ? `W: ${q.choices.W}. X: ${q.choices.X}. Y: ${q.choices.Y}. Z: ${q.choices.Z}`
-                : ""
-        ].join(". ")
+        questionWords = genQuestionWords(q)
         console.log("questionWords", questionWords)
         answerWords = "The Correct Answer Is " + q.correctAnswer
         if (browser) {
             questionUtterance = new SpeechSynthesisUtterance(questionWords)
             answerUtterance = new SpeechSynthesisUtterance(answerWords)
         }
+        updating = false
     }
 
     let isSpeaking = false

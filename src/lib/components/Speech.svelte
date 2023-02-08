@@ -301,8 +301,7 @@
 <div class="speech">
     <h2>Speech Settings
 		<HelpBox>
-			This module reads questions and answers for the user. <br>
-			Keyboard Shortcuts: <br>
+			<p style="text-decoration: underline;margin: 0 ">Keyboard Shortcuts</p>
 			-  Space - Pause (Buzz) <br>
 			-  J - Read Question <br>
 			-  K - Read Answer <br>

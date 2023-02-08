@@ -330,7 +330,7 @@
     <div class="stats">
         <div>
             {#if timeAfterRead > 0}
-                <p class="timer">{Math.round(timeAfterRead / 100) / 10}</p>
+                <p class="timer">Timer: {Math.round(timeAfterRead / 100) / 10}</p>
             {/if}
         </div>
     </div>

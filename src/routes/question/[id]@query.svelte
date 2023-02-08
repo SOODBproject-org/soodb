@@ -141,6 +141,7 @@
             await tick()
         }}
         on:answerRead={showAnswer}
+		on:answerClosed={hideAnswer}
     />
 </main>
 

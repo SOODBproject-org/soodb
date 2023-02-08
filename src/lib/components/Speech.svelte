@@ -375,6 +375,7 @@
     }
 
 	#questionHistory {
+		@include vertical-scrollable(7px);
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         row-gap: 20px;

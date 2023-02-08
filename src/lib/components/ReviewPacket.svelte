@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { enhance } from "$app/forms"
     import type { NewQuestionData } from "$lib/server/mongo"
     import { createEventDispatcher } from "svelte"
     import PacketQuestionPreview from "./PacketQuestionPreview.svelte"
@@ -6,6 +7,7 @@
     export let questions: (NewQuestionData & { number?: number })[]
     export let chooseSet: "new" | "existing" | "none" = "none"
     export let setName: string
+    export let setId: string = ''
     export let packetName: string
     export let created: Date = new Date()
 
@@ -25,26 +27,40 @@
 
 <div class="review-packet">
     <h1>Review Packet</h1>
-    <h2 class="packet-name">{packetName}</h2>
-    <span class="packet-metadata">
-        {#if setName && chooseSet !== "none"}
-            {#if chooseSet === "new"}
-                <span class="new-indicator">(New)</span>
+    <form method="POST" use:enhance={() => {
+        return ({ result, update }) => {
+            dispatch('submit', result)
+            update({ reset: result.type === "success" })
+        }
+    }}>
+        <input type="hidden" name="created" value={created.toString()} />
+        <input type="hidden" name="packet-name" value={packetName} />
+        <input type="hidden" name="choose-set" value={chooseSet} />
+        <input type="hidden" name="set-id" value={setId} />
+        <input type="hidden" name="new-set-name" value={setName} />
+        <input type="hidden" name="questions" value={JSON.stringify(questions)} />
+
+        <h2 class="packet-name">{packetName}</h2>
+        <span class="packet-metadata">
+            {#if setName && chooseSet !== "none"}
+                {#if chooseSet === "new"}
+                    <span class="new-indicator">(New)</span>
+                {/if}
+                {setName} -
             {/if}
-            {setName} -
-        {/if}
-        {createdDateString}
-    </span>
-    <div style:text-align="right">
+            {createdDateString}
+        </span>
+        <div style:text-align="right">
+            <button on:click={back} class="back">Back to Edit</button>
+        </div>
+        <div class="questions">
+            {#each questions as q}
+                <PacketQuestionPreview bind:question={q} showImage />
+            {/each}
+        </div>
         <button on:click={back} class="back">Back to Edit</button>
-    </div>
-    <div class="questions">
-        {#each questions as q}
-            <PacketQuestionPreview bind:question={q} showImage />
-        {/each}
-    </div>
-    <button on:click={back} class="back">Back to Edit</button>
-    <button on:click={handleSubmit} class="submit">Submit Packet</button>
+        <button type="submit" class="submit">Submit Packet</button>
+    </form>
 </div>
 
 <style lang="scss">

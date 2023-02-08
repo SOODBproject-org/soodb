@@ -26,11 +26,11 @@ export const load: PageLoad = async function ({ fetch, url, params }) {
     const packetRes = await fetch("/api/packet")
     const sets = await packetRes.json()
     return {
-    query: {
-        ...previousQuery,
-        ...paramQuery,
-    },
-    question,
-    sets,
-}
+        query: {
+            ...previousQuery,
+            ...paramQuery,
+        },
+        question,
+        sets,
+    }
 }

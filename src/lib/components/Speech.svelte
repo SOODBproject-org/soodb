@@ -166,68 +166,44 @@
 
     let questionRead = false
     let answerRead = false
+    let updating = false
     let speechRate = 1
     let timeAfterRead = 0
     let timerInterval: NodeJS.Timer
-	let interupt :boolean = false
-	let timeWarningRead = false
 
     function genQuestionWords(question:Question){    
         
         let spokenText = (question.bonus ? "Bonus " : "Tossup ") + 
             categoryNames[question.category] + 
-            (question.type === "MCQ" ? " Multiple Choice " : " Short Answer ") +
+            (question.type === "MCQ" ? " Multiple Choice " : " Short Answer ") + '.' +
             question.questionText + 
             (question.type === "MCQ"
                 ? `. W: ${question.choices.W}. X: ${question.choices.X}. Y: ${question.choices.Y}. Z: ${question.choices.Z}`
                 : "")
-        spokenText = spokenText.replaceAll(/(-|–|−)([^a-zA-Z0-9]| )/g,(s)=>" minus ")
-        spokenText = spokenText.replaceAll(/\[.+?(-|–|−).+?\]/g,"")
-        if (question.category=="chem") {
-            spokenText = spokenText.replaceAll(new RegExp(` (${elements.join('|')})(${elements.join('|')}|\\d)+(\n|[^a-z])`,'gs'),(s)=>s.replaceAll(/./g,(c)=>c.toUpperCase()+' '))
+        if (question.category="chem") {
+            spokenText = spokenText.replaceAll(/(([A-Z][a-z]|[A-Z])(\d|))+? /g,(s)=>s.replaceAll(/./g,(c)=>c.toUpperCase()+'-'))
+        }
+        spokenText = spokenText.replaceAll(/(-|–)([^a-z]| )/g,(s)=>"-minus" + s)
+        return spokenText
+    }
+
+    function toggleSpeech() {  
+        clearInterval(timerInterval)
+        if (!updating) {
+            if (synth.speaking) synth.cancel()
+            else if (!questionRead) readQuestion()
+            else if (!answerRead) readAnswer()
+            else {
+                dispatch("sendQuery", {})
+                answerRead = false
+                questionRead = false
+                isSpeaking = false
+                updating = true
+            }
         }
         
         return spokenText
     }
-
-    function buzz() {
-		clearInterval(timerInterval)
-		interupt = true
-		if (synth.speaking) synth.cancel()
-		synth.speak(new SpeechSynthesisUtterance("Buzz"))
-
-	}
-
-	function sendQuery(){
-		dispatch("answerClosed", {})
-		dispatch("sendQuery", {})
-		clearInterval(timerInterval)
-		answerRead = false
-		questionRead = false
-		isSpeaking = false
-		timeWarningRead = false
-	}
-
-	$: readCues(timeAfterRead)
-
-	function readCues(timeAfterRead:number){
-		console.log(timeAfterRead)
-		if (question.bonus){
-			if (timeAfterRead>=15000 && !timeWarningRead) {
-				timeWarningRead = true
-				synth.speak(new SpeechSynthesisUtterance("5 seconds"))
-			}
-			if (timeAfterRead>=20000) {
-				synth.speak(new SpeechSynthesisUtterance("Time"))
-				clearInterval(timerInterval)
-			} 
-		} else {
-			if (timeAfterRead>=5000) {
-				synth.speak(new SpeechSynthesisUtterance("Time"))
-				clearInterval(timerInterval)
-			}
-		}
-	}
 
     function readQuestion(){
         synth.cancel()
@@ -256,22 +232,14 @@
     }
 
     function questionUpdate(q: Question) {
-        if (questionHistory.includes(question)) {
-		//	sendQuery()
-		//	console.log("querysent")
-		} else {
-            questionWords = genQuestionWords(q)
-			questionHistory.unshift(question)
-			questionHistory = questionHistory
-            console.log("questionWords", questionWords)
-            answerWords = "The Correct Answer Is " + q.correctAnswer
-            if (browser) {
-                questionUtterance = new SpeechSynthesisUtterance(questionWords)
-                answerUtterance = new SpeechSynthesisUtterance(answerWords)
-				questionUtterance.addEventListener('end',(event)=>{console.log(event.elapsedTime)})
-        		answerUtterance.addEventListener('end',(event)=>{console.log(event.elapsedTime)})
-            }
+        questionWords = genQuestionWords(q)
+        console.log("questionWords", questionWords)
+        answerWords = "The Correct Answer Is " + q.correctAnswer
+        if (browser) {
+            questionUtterance = new SpeechSynthesisUtterance(questionWords)
+            answerUtterance = new SpeechSynthesisUtterance(answerWords)
         }
+        updating = false
     }
 
     let isSpeaking = false

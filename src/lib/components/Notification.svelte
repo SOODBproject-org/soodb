@@ -29,7 +29,9 @@
         bottom: clamp(1em, 2vw, 4em);
         background: $background-2;
         padding: 1em;
+        border: solid 1px $text-light;
         border-radius: 1em;
+        z-index: 5;
 
         :global(.close-icon) {
             position: absolute;

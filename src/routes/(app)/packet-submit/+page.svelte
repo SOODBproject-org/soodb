@@ -6,19 +6,19 @@
     import { generatePreviews, setCatNames, setKeywords, type NewPacketQuestionData, type PacketCategories } from "$lib/functions/packetSubmitUtils"
     import ReviewPacket from "$lib/components/ReviewPacket.svelte"
     import PacketParsingSettings from "$lib/components/PacketParsingSettings.svelte"
-    import type { PageData } from "./$types"
+    import type { ActionData } from "./$types"
     import { getUser } from "@lucia-auth/sveltekit/client"
 
-    export let data: PageData
-    $: ({ submitted } = data)
+    export let form: ActionData
 
     const user = getUser()
 
     let notificationShown = true
 
-    if (submitted) {
+    if (form?.message || form?.success) {
         onMount(() => {
             setTimeout(() => {
+                console.log('set')
                 notificationShown = false
             }, 5000)
         })
@@ -101,37 +101,14 @@
         reviewing = false
     }
 
-    async function handleSubmit() {
-        const formData = new FormData()
-        formData.append("created", created?.toString() || "")
-        formData.append("packet-name", packetName)
-        formData.append("choose-set", chooseSet || "")
-        formData.append("questions", JSON.stringify(reviewQuestions)), formData.append("new-set-name", setName)
-        formData.append("set-id", setId || "")
-
-        plainText = ""
-        settingsVisible = false
-        editableRegex = ""
+    function handleSubmit() {
+        reviewing = false
+        packetName = ''
         chooseSet = undefined
-        setName = ""
-        setId = ""
-        packetName = ""
-        createdString = undefined
-
-        const res = await fetch("/api/packet", {
-            method: "POST",
-            body: formData,
-            credentials: "include"
-        })
-
-        if (res.ok) {
-            submitted = "success"
-            reviewing = false
-        } else {
-            submitted = "error"
-        }
-        notificationShown = true
-        setTimeout(() => (notificationShown = false), 5000)
+        setId = undefined
+        setName = ''
+        settingsVisible = false
+        plainText = ''
     }
 </script>
 
@@ -151,16 +128,17 @@
             <p>To submit your own questions, go to <a href="/write">the Write page</a></p>
         </div>
     {:else if reviewing}
-        <ReviewPacket bind:questions={reviewQuestions} {chooseSet} {setName} {packetName} {created}
+        <ReviewPacket bind:questions={reviewQuestions}
+            {chooseSet} {setName} {packetName} {created} {setId}
             on:submit={handleSubmit} on:back={handleBack} />
     {:else}
-        {#if submitted === "success"}
+        {#if form?.success}
             <Notification
                 title="Success"
                 text="Your packet has been successfully submitted"
                 shown={notificationShown}
             />
-        {:else if submitted === "error"}
+        {:else if form?.message}
             <Notification
                 title="Error"
                 text="An error occurred and your packet was not submitted"

@@ -42,10 +42,10 @@ type PacketInfo = {
     created: Date
     name: string
     setId?: string
-    setName?: string
+    newSetName?: string
 }
 
-export async function addPacket(questions: NewQuestionData[], { name, setId, setName, created }: PacketInfo) {
+export async function addPacket(questions: NewQuestionData[], { name, setId, newSetName, created }: PacketInfo) {
     const date = new Date()
     const packetId = uid()
     const newSetId = uid()
@@ -68,7 +68,7 @@ export async function addPacket(questions: NewQuestionData[], { name, setId, set
     }
     collections.sets.updateOne({
         filter: {
-            _id: setId,
+            _id: setId || newSetId,
         },
         update: {
             $push: {
@@ -76,7 +76,7 @@ export async function addPacket(questions: NewQuestionData[], { name, setId, set
             },
             $setOnInsert: {
                 _id: newSetId,
-                name: setName,
+                name: newSetName,
             },
         },
         upsert: true,

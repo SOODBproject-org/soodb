@@ -2,16 +2,17 @@
     import Notification from "$lib/components/Notification.svelte"
     import { onMount } from "svelte"
     import type { Category } from "$lib/types"
-    import type { PageData } from "./$types"
+    import type { ActionData } from "./$types"
     import { getUser } from "@lucia-auth/sveltekit/client"
+    import { enhance } from "$app/forms"
 
-    export let data: PageData
-    $: ({ submitted } = data)
+    export let form: ActionData
+
     let notificationShown = true
 
     const user = getUser()
 
-    if (submitted) {
+    if (form?.message === "Malformed request" || form?.success) {
         onMount(() => {
             setTimeout(() => {
                 notificationShown = false
@@ -30,31 +31,6 @@
         questionText &&
         (answer || correctAnswer) &&
         (type !== "MCQ" || (optionW && optionX && optionY && optionZ))
-
-    let formElement: HTMLFormElement
-    async function handleSubmit(e: Omit<SubmitEvent, "submitter">) {
-        e.preventDefault()
-
-        type = undefined
-        category = undefined
-        optionW = ""
-        optionX = ""
-        optionY = ""
-        optionZ = ""
-        questionText = ""
-        correctAnswer = undefined
-
-        const formData = new FormData(formElement)
-        const res = await fetch("/api/question", {
-            method: "POST",
-            body: formData,
-            credentials: "include",
-        })
-
-        submitted = res.ok ? "success" : "error"
-        notificationShown = true
-        setTimeout(() => (notificationShown = false), 5000)
-    }
 </script>
 
 <svelte:head>
@@ -62,9 +38,13 @@
 </svelte:head>
 
 <main>
-    {#if submitted === "success"}
-        <Notification title="Success" text="Your question has been successfully submitted" shown={notificationShown} />
-    {:else if submitted === "error"}
+    {#if form?.success}
+        <Notification
+            title="Success"
+            text="Your question has been successfully submitted"
+            shown={notificationShown}
+        />
+    {:else if form?.message}
         <Notification
             title="Error"
             text="An error occurred and your question was not submitted"
@@ -73,7 +53,7 @@
     {/if}
 
     <h1>Submit Question</h1>
-    <form id="form" action="/write" method="POST" autocomplete="off" on:submit={handleSubmit} bind:this={formElement}>
+    <form method="POST" autocomplete="off" use:enhance>
         {#if !$user}
             <p style:font-style="italic" style:margin-top="0">
                 This question will be submitted anonymously.<br />

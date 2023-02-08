@@ -20,7 +20,8 @@
 <script lang="ts">
     import QuestionPreview from "$lib/components/QuestionPreview.svelte"
     import Account from "$lib/components/Account.svelte"
-    import type { DatabaseUserSafe, Question } from "$lib/mongo"
+    import type { DatabaseUserSafe } from "$lib/mongo"
+    import type { Question } from "$lib/types"
     export let questions: Question[]
     export let userData: DatabaseUserSafe
 </script>

@@ -66,7 +66,15 @@ export async function addPacket(questions: NewQuestionData[], { name, setId, set
         packetId,
         packetName: name,
     }))
-
+    if(!setId && setName){
+        collections.sets.insertOne({
+            document:{
+                id:newSetId,
+                name: setName,
+                packetIds: packetId,
+            }
+        })
+    }
     collections.sets.updateOne({
         filter: {
             id: setId,
@@ -117,7 +125,7 @@ export async function searchPacketsByName(name: string) {
         filter: {
             name: { $regex: escapeRegex(name), $options: "i" },
         },
-        limit: 15,
+        limit: 90,
     })
     return documents
 }
@@ -182,7 +190,7 @@ export async function getQuestions({
     types,
     timeRange,
     page = 0,
-    limit = 96,
+    limit = 5000,
 }: QuestionQuery) {
     const mongoQuery: MongoQuestionQuery = {}
     if (authorId) mongoQuery.authorId = authorId

@@ -53,4 +53,5 @@ export interface PacketSet {
     id: string
     name: string
     packetIds: string[]
+    packets?: Packet[]
 }

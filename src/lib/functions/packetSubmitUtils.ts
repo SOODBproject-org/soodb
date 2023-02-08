@@ -54,6 +54,7 @@ export function generatePreviews(
     if (text) {
         try {
             const results = [...text.matchAll(pattern)]
+            console.dir(results)
             for (const question of results) {
                 const category = categoryNames[question[2].toLowerCase()]?.[0]
                     ?? "Custom Category"
@@ -70,7 +71,7 @@ export function generatePreviews(
                 }
 
                 if (keywords[question[3].toLowerCase()] === "multipleChoice") {
-                    const splitQuestion = [...(question[4].match(/(.+?)W\)(.+?)X\)(.+?)Y\)(.+?)Z\)(.+)/is) ?? [])]
+                    const splitQuestion = [...(question[4].match(/(.+?)W\)(.+?)X\)(.+?)Y\)(.+?)Z\)(.+)/s) ?? [])]
                     const answerChoice = [...(question[5].match(/(W|X|Y|Z).??/i) ?? [])]
                     const thisQ = removeUndefined({
                         ...baseData,

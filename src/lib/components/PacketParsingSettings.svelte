@@ -35,6 +35,7 @@
         const res = editableRegex.match(/\/((\n|.)+?)\/(.{0,6})/)
         try {
             regexPattern = res ? new RegExp(res[1], res[3]) : /^\b$/
+            console.log(regexPattern)
         } catch (error) {
             console.log(error)
         }

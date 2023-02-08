@@ -1,16 +1,16 @@
 <script lang="ts">
     import Icon from "$lib/components/Icon.svelte"
-    import type { PacketSet } from "$lib/types"
+    import type { PacketSet,Packet } from "$lib/types"
     import arrow from "$lib/icons/arrow.svg?raw"
     export let set: PacketSet
     let open = false
 </script>
 
 <main class:opened={open}>
-    <h1 class="toggle-menu" on:click={() => (open = !open)}><Icon data={arrow} class="icon" /> {set.setName}</h1>
+    <h1 class="toggle-menu" on:click={() => (open = !open)}><Icon data={arrow} class="icon" /> {set.name}</h1>
     {#if open}
-        {#each Object.keys(set.packets) as p}
-            <p>{p} ({set.packets[p].length} questions)</p>
+        {#each set.packets as p}
+            <p>{p.name} ({p.questionIds.length} questions)</p>
         {/each}
     {/if}
 </main>

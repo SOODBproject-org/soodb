@@ -6,6 +6,7 @@
     import pencil from "$lib/icons/pencil.svg?raw"
     export let question: Question & { authorName?: string }
     export let answerVisible = false
+    export let questionVisible = true
 
     const modifiedDate = new Date(question.modified ?? "")
     const modifiedDateString = Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale).format(modifiedDate)
@@ -25,6 +26,10 @@
         answerVisible = !answerVisible
     }
 
+    export function toggleQuestion() {
+        questionVisible = !questionVisible
+    }
+
     export function showAnswer() {
         answerVisible = true
     }
@@ -32,6 +37,8 @@
     export function hideAnswer() {
         answerVisible = false
     }
+
+    
 
     function keyHandler(e: KeyboardEvent) {
         if (e.code === "Space") {
@@ -45,8 +52,10 @@
 <div id="question" class={question.category}>
     <div class="top">
         <h1>{categoryNames[question.category] ? categoryNames[question.category] : question.category}</h1>
+        <button id="showquestion" on:click={toggleQuestion}>{questionVisible ? "Hide" : "Show"} Question</button>
+        {#if questionVisible}
         <p class="question-text">{question.questionText}</p>
-
+        
         {#if question.type === "MCQ"}
             <ul>
                 <li class="question-text">W) {question.choices.W}</li>
@@ -57,6 +66,7 @@
         {/if}
         {#if question.visual}
             <img src={question.visual} alt="visual bonus could not load" />
+        {/if}
         {/if}
         <button id="showanswer" on:click={toggleAnswer}>{answerVisible ? "Hide" : "Show"} Answer</button>
         {#if answerVisible}

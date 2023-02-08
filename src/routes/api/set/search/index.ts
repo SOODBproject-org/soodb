@@ -4,8 +4,11 @@ import type { PacketSet } from "$lib/types"
 import type { RequestHandler } from "./__types/index.d"
 
 export const GET: RequestHandler<MaybeError<PacketSet[]>> = async function ({ url }) {
-    const setName = url.searchParams.get("setName") as string
-    const results = setName ? await searchSetsByName(setName) : []
+    const setNameParam = url.searchParams.get("setName") 
+    console.log(setNameParam)
+    const setName = setNameParam ? setNameParam : ""  as string
+    console.log(setName)
+    const results = await searchSetsByName(setName)
     return {
         body: results,
     }

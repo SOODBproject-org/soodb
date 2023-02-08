@@ -7,13 +7,135 @@
     import Select from "svelte-select"
     import { browser } from "$app/env"
     import {onMount} from "svelte"
-    import QuestionPreview from "./QuestionPreview.svelte"
+    import Question from "./Question.svelte"
 
     export let question: Question
     let synth: SpeechSynthesis
     const dispatch = createEventDispatcher()
     let correct: Question[] = []
     let incorrect: Question[] = []
+    const elements = [
+        "H",
+        "He",
+        "Li",
+        "Be",
+        "B",
+        "C",
+        "N",
+        "O",
+        "F",
+        "Ne",
+        "Na",
+        "Mg",
+        "Al",
+        "Si",
+        "P",
+        "S",
+        "Cl",
+        "Ar",
+        "K",
+        "Ca",
+        "Sc",
+        "Ti",
+        "V",
+        "Cr",
+        "Mn",
+        "Fe",
+        "Co",
+        "Ni",
+        "Cu",
+        "Zn",
+        "Ga",
+        "Ge",
+        "As",
+        "Se",
+        "Br",
+        "Kr",
+        "Rb",
+        "Sr",
+        "Y",
+        "Zr",
+        "Nb",
+        "Mo",
+        "Tc",
+        "Ru",
+        "Rh",
+        "Pd",
+        "Ag",
+        "Cd",
+        "In",
+        "Sn",
+        "Sb",
+        "Te",
+        "I",
+        "Xe",
+        "Cs",
+        "Ba",
+        "La",
+        "Ce",
+        "Pr",
+        "Nd",
+        "Pm",
+        "Sm",
+        "Eu",
+        "Gd",
+        "Tb",
+        "Dy",
+        "Ho",
+        "Er",
+        "Tm",
+        "Yb",
+        "Lu",
+        "Hf",
+        "Ta",
+        "W",
+        "Re",
+        "Os",
+        "Ir",
+        "Pt",
+        "Au",
+        "Hg",
+        "Tl",
+        "Pb",
+        "Bi",
+        "Po",
+        "At",
+        "Rn",
+        "Fr",
+        "Ra",
+        "Ac",
+        "Th",
+        "Pa",
+        "U",
+        "Np",
+        "Pu",
+        "Am",
+        "Cm",
+        "Bk",
+        "Cf",
+        "Es",
+        "Fm",
+        "Md",
+        "No",
+        "Lr",
+        "Rf",
+        "Db",
+        "Sg",
+        "Bh",
+        "Hs",
+        "Mt",
+        "Ds",
+        "Rg",
+        "Cn",
+        "Nh",
+        "Fl",
+        "Mc",
+        "Lv",
+        "Ts",
+        "Og",
+        "Uue"
+    ]
+
 
     const categoryNames: Record<string, string> = {
         bio: "Biology",
@@ -24,21 +146,7 @@
         energy: "Energy",
     }
 
-    let questionWords =
-        (question.bonus ? "Bonus " : "Tossup ") +
-        categoryNames[question.category] +
-        (question.type === "MCQ" ? " Multiple Choice " : " Short Answer ") +
-        question.questionText +
-        (question.type === "MCQ"
-            ? " W " +
-              question.choices.W +
-              " X " +
-              question.choices.X +
-              " Y " +
-              question.choices.Y +
-              " Z " +
-              question.choices.Z
-            : "")
+    let questionWords = genQuestionWords(question)
     let answerWords = "The Correct Answer Is " + question.correctAnswer
     let questionUtterance: SpeechSynthesisUtterance
     let answerUtterance: SpeechSynthesisUtterance
@@ -50,6 +158,7 @@
         voices = synth.getVoices()
         synth.cancel()
         listedVoices = voices.map((v) => v.name)
+        console.log("hahafunny",questionWords)
         questionUtterance = new SpeechSynthesisUtterance(questionWords)
         answerUtterance = new SpeechSynthesisUtterance(answerWords)
         questionUtterance.addEventListener('end',(event)=>{console.log(event.elapsedTime)})
@@ -65,6 +174,25 @@
     let speechRate = 1
     let timeAfterRead = 0
     let timerInterval: NodeJS.Timer
+
+
+    function genQuestionWords(question:Question){    
+        
+        let spokenText = (question.bonus ? "Bonus " : "Tossup ") + 
+            categoryNames[question.category] + 
+            (question.type === "MCQ" ? " Multiple Choice " : " Short Answer ") +
+            question.questionText + 
+            (question.type === "MCQ"
+                ? `. W: ${question.choices.W}. X: ${question.choices.X}. Y: ${question.choices.Y}. Z: ${question.choices.Z}`
+                : "")
+        spokenText = spokenText.replaceAll(/(-|–|−)([^a-zA-Z0-9]| )/g,(s)=>" minus ")
+        spokenText = spokenText.replaceAll(/\[.+?(-|–|−).+?\]/g,"")
+        if (question.category="chem") {
+            spokenText = spokenText.replaceAll(new RegExp(` (${elements.join('|')})(${elements.join('|')}|\\d)+(\n|[^a-z])`,'gs'),(s)=>s.replaceAll(/./g,(c)=>c.toUpperCase()+' '))
+        }
+        
+        return spokenText
+    }
 
     function toggleSpeech() {
         clearInterval(timerInterval)
@@ -103,22 +231,15 @@
     }
 
     function questionUpdate(q: Question) {
-        questionWords = [
-            (q.bonus ? "Bonus " : "Tossup ")
-            + (q.category === "custom"
-                ? q.customCategory
-                : categoryNames[q.category])
-            + (q.type === "MCQ" ? " Multiple Choice" : " Short Answer"),
-            q.questionText,
-            q.type === "MCQ"
-                ? `W: ${q.choices.W}. X: ${q.choices.X}. Y: ${q.choices.Y}. Z: ${q.choices.Z}`
-                : ""
-        ].join(". ")
-        console.log("questionWords", questionWords)
-        answerWords = "The Correct Answer Is " + q.correctAnswer
-        if (browser) {
-            questionUtterance = new SpeechSynthesisUtterance(questionWords)
-            answerUtterance = new SpeechSynthesisUtterance(answerWords)
+        if (correct.includes(question)) dispatch("sendQuery", {})
+        else {
+            questionWords = genQuestionWords(q)
+            console.log("questionWords", questionWords)
+            answerWords = "The Correct Answer Is " + q.correctAnswer
+            if (browser) {
+                questionUtterance = new SpeechSynthesisUtterance(questionWords)
+                answerUtterance = new SpeechSynthesisUtterance(answerWords)
+            }
         }
     }
 
@@ -146,6 +267,7 @@
         if (e.key === "k") toggleSpeech()
         if (e.key === "l") markIncorrect()
         if (e.key === "j") markCorrect()
+		if (e.key === ";") readQuestion()
     }
 </script>
 
@@ -202,7 +324,7 @@
     <div class="questions-wrapper">
         <div class="incorrect-questions">
             {#each incorrect as q}
-                <QuestionPreview question={q}></QuestionPreview>
+                <Question question={q}></Question>
             {/each}
         </div>
     </div>

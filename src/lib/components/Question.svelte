@@ -10,6 +10,8 @@
 
     const user = getUser()
 
+    const user = getUser()
+
     const modifiedDate = new Date(question.modified ?? "")
     const modifiedDateString = Intl.DateTimeFormat(Intl.DateTimeFormat().resolvedOptions().locale).format(modifiedDate)
     const createdDate = new Date(question.created)
